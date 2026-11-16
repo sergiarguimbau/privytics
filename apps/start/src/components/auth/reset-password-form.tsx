@@ -13,6 +13,20 @@ import { unwrap, useAuthClient } from '@/integrations/auth/client';
 const validator = zResetPassword;
 type IForm = z.infer<typeof validator>;
 
+export function ResetLinkMissing() {
+  return (
+    <div className="col gap-8">
+      <AuthHeading
+        description="This reset link is incomplete. Open the link from your email again, or request a new one from the sign in page."
+        title="Reset link missing"
+      />
+      <a className="font-medium text-foreground underline" href="/login">
+        Back to sign in
+      </a>
+    </div>
+  );
+}
+
 export function ResetPasswordForm({ token }: { token: string }) {
   const navigate = useNavigate();
   const authClient = useAuthClient();

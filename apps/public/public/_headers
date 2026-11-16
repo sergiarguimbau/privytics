@@ -11,6 +11,15 @@
 # request, so each asset costs a round trip (for a 304) on every page load.
 
 
+# --- Security headers: every response ---------------------------------------
+#
+# Pages merges these with the path rules below, which only set Cache-Control.
+# HSTS is set at the Cloudflare zone, not here.
+/*
+  X-Frame-Options: DENY
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+
+
 # --- Build output: safe to cache forever ------------------------------------
 #
 # These filenames contain a content hash (chunks/264db70q2w4pf.js, and the build
@@ -61,6 +70,10 @@
 /logo.svg
   Cache-Control: public, max-age=604800
 /favicon.svg
+  Cache-Control: public, max-age=604800
+/favicon.ico
+  Cache-Control: public, max-age=604800
+/apple-touch-icon.png
   Cache-Control: public, max-age=604800
 
 

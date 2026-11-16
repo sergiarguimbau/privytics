@@ -8,28 +8,34 @@ export const dynamic = 'force-static';
 
 const BASE = 'https://privytics.com';
 
+// lastmod dates are hand-maintained constants, never `new Date()`: a build
+// that stamps "now" on every URL tells crawlers that everything changed on
+// every deploy, and once Google proves lastmod dishonest it ignores it
+// site-wide, taking the blog's real dates down too. Bump SITE_UPDATED when
+// the home, /docs or /for copy materially changes, and LEGAL_UPDATED together
+// with the "Last updated" line in app/legal/content.json.
+const SITE_UPDATED = new Date('2026-11-16T00:00:00Z');
+const LEGAL_UPDATED = new Date('2026-11-16T00:00:00Z');
+
 // Keep in sync with the routes under apps/public/app.
-const ROUTES: { path: string; priority: number }[] = [
-  { path: '', priority: 1 },
-  { path: '/docs', priority: 0.8 },
+// /blog has no lastModified: it changes whenever a post does.
+const ROUTES: { path: string; priority: number; lastModified?: Date }[] = [
+  { path: '', priority: 1, lastModified: SITE_UPDATED },
+  { path: '/docs', priority: 0.8, lastModified: SITE_UPDATED },
   { path: '/blog', priority: 0.8 },
-  { path: '/for', priority: 0.8 },
-  { path: '/privacy', priority: 0.5 },
-  { path: '/terms', priority: 0.5 },
-  { path: '/dpa', priority: 0.5 },
-  { path: '/cookie', priority: 0.5 },
+  { path: '/for', priority: 0.8, lastModified: SITE_UPDATED },
+  { path: '/privacy', priority: 0.5, lastModified: LEGAL_UPDATED },
+  { path: '/terms', priority: 0.5, lastModified: LEGAL_UPDATED },
+  { path: '/dpa', priority: 0.5, lastModified: LEGAL_UPDATED },
+  { path: '/cookie', priority: 0.5, lastModified: LEGAL_UPDATED },
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  // lastModified is deliberately ABSENT for static routes and guides. The
-  // previous build stamped `new Date()` on all of them, which told crawlers
-  // that 42 URLs changed on every deploy; once Google proves lastmod dishonest
-  // it ignores it site-wide, taking the blog's real dates down too. Omitting
-  // lastmod is valid per the sitemap spec and strictly better than lying.
-  // Blog posts keep honest dates from their frontmatter.
+  // Blog posts take honest dates from their frontmatter.
   const staticRoutes: MetadataRoute.Sitemap = ROUTES.map(
-    ({ path, priority }) => ({
+    ({ path, priority, lastModified }) => ({
       url: `${BASE}${path}`,
+      lastModified,
       changeFrequency: path === '' ? 'weekly' : 'monthly',
       priority,
     })
@@ -49,6 +55,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   // non-brand search traffic.
   const guides: MetadataRoute.Sitemap = getAllEntries().map((entry) => ({
     url: `${BASE}/for/${entry.slug}`,
+    lastModified: SITE_UPDATED,
     changeFrequency: 'monthly' as const,
     priority: 0.7,
   }));

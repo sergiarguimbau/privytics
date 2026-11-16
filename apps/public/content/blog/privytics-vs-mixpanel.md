@@ -3,7 +3,7 @@ slug: privytics-vs-mixpanel
 title: "Privytics vs Mixpanel: Pricing, Cookies and EU Data Residency"
 description: Privytics vs Mixpanel compared on price at volume, cookieless tracking, EU data residency and analytical depth, including the cases where Mixpanel wins.
 date: 2026-07-19
-updated: 2026-07-29
+updated: 2026-11-16
 tag: Comparison
 ---
 
@@ -64,7 +64,7 @@ Neither tool makes you compliant. Mixpanel's docs are explicit that Mixpanel is 
 
 Our analytics event data is stored in Germany. There is no region to choose and nothing to configure.
 
-Mixpanel stores data on US servers on Google Cloud by default, with EU and India residency available as alternatives. There are three real operational catches, all documented by Mixpanel. First, residency must be selected when the project is created and cannot be retrofitted onto an existing project. Second, EU and India projects use separate endpoints (`api-eu.mixpanel.com` and `api-in.mixpanel.com` for ingestion), and for EU projects created after 18 August 2025 no data is ingested at all unless your SDK points at the regional endpoint. Third, the US-to-EU forwarding path that older projects relied on is being retired. [Mixpanel's changelog](https://docs.mixpanel.com/changelogs/2026-02-20-eu-forwarding-deprecation) states that the legacy automated forwarding for EU projects created before 18 August 2025 is being sunset from July 2026. Events forwarded between 1 July and 1 August 2026 were kept but temporarily hidden from the UI and the Query API, and events still sent to US endpoints for EU projects after 1 August 2026 are not accepted. Some projects have an extended timeline through 31 December 2026. If you inherited an older EU project, check which endpoint your SDK actually posts to rather than assuming.
+Mixpanel stores data on US servers on Google Cloud by default, with EU and India residency available as alternatives. There are three real operational catches, all documented by Mixpanel. First, residency must be selected when the project is created and cannot be retrofitted onto an existing project. Second, EU and India projects use separate endpoints (`api-eu.mixpanel.com` and `api-in.mixpanel.com` for ingestion), and for EU projects created after 18 August 2025 no data is ingested at all unless your SDK points at the regional endpoint. Third, the US-to-EU forwarding path that older projects relied on has been retired. [Mixpanel's changelog](https://docs.mixpanel.com/changelogs#deprecation-notice-legacy-us-to-eu-data-forwarding-ends-july-2026-for-eu-projects) states that the legacy automated forwarding for EU projects created before 18 August 2025 ended on 1 July 2026. Events forwarded between 1 July and 1 August 2026 were kept but temporarily hidden from the UI and the Query API, and events still sent to US endpoints for EU projects after 1 August 2026 are not accepted. Projects that Mixpanel notified directly have an extended timeline to February 2027. If you inherited an older EU project, check which endpoint your SDK actually posts to rather than assuming.
 
 Our sub-processors, including US-based ones for billing, email, monitoring and AI features, are listed in Section 7 of our [privacy policy](/privacy).
 

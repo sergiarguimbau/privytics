@@ -85,9 +85,11 @@ export function AuthShowcase() {
               </span>
             )}
           </figcaption>
-          <div aria-hidden="true" className="row gap-1.5">
+          <div className="row gap-1.5">
             {TESTIMONIALS.map((item, dotIndex) => (
               <button
+                aria-current={dotIndex === index ? 'true' : undefined}
+                aria-label={`Show slide ${dotIndex + 1}`}
                 className={cn(
                   'h-1.5 rounded-full transition-all',
                   dotIndex === index
@@ -96,7 +98,6 @@ export function AuthShowcase() {
                 )}
                 key={item.quote}
                 onClick={() => setIndex(dotIndex)}
-                tabIndex={-1}
                 type="button"
               />
             ))}

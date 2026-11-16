@@ -3,7 +3,7 @@ slug: mixpanel-alternatives-2026
 title: "Mixpanel Alternatives in 2026: An Honest Shortlist"
 description: The best Mixpanel alternatives in 2026 compared on price, EU data residency, cookies and analytical depth. PostHog, Amplitude, Matomo, Aptabase, Privytics.
 date: 2026-07-29
-updated: 2026-07-29
+updated: 2026-11-16
 tag: Comparison
 ---
 
@@ -17,7 +17,7 @@ We build one of the tools listed. Where another is the better pick, we say so. F
 
 **Complexity you are not using.** Insights, Funnels, Flows, Retention, behavioural cohorts, Signal and Impact are a serious suite. If two people check signups once a week, that surface area is an onboarding cost.
 
-**Where the data sits.** Mixpanel stores data in the US by default, with EU and India residency available. Residency is fixed when a project is created, and Mixpanel states it cannot assist with migrating a project that has the wrong one. For EU projects created before 18 August 2025, US-to-EU data forwarding ends in July 2026. More in [Privytics vs Mixpanel](/blog/privytics-vs-mixpanel).
+**Where the data sits.** Mixpanel stores data in the US by default, with EU and India residency available. Residency is fixed when a project is created, and Mixpanel states it cannot assist with migrating a project that has the wrong one. For EU projects created before 18 August 2025, US-to-EU data forwarding ended on 1 July 2026. More in [Privytics vs Mixpanel](/blog/privytics-vs-mixpanel).
 
 Three things decide the comparison below: the billing unit, since events, pageviews, hits and monthly tracked users are not interchangeable; whether the free tier is permanent or a trial; and whether cookies are on by default, which decides if analytics feeds your consent banner.
 

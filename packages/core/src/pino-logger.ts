@@ -99,32 +99,40 @@ export function createLogger({
 
   const useHyperDX = exporter === 'otlp' && !!hyperdxApiKey;
   const usePretty = !(useHyperDX || isBun || config.isProduction);
+  const transport = useHyperDX
+    ? hyperdxTransport(level, service)
+    : usePretty
+      ? {
+          target: 'pino-pretty',
+          options: {
+            colorize: true,
+            translateTime: 'SYS:standard',
+            ignore: 'pid,hostname,service',
+          },
+        }
+      : undefined;
 
-  return pino({
-    name: service,
-    level,
-    enabled: !silent,
-    formatters: {
-      log: (obj) => {
-        return redactSensitive(obj) as Record<string, unknown>;
+  return pino(
+    {
+      name: service,
+      level,
+      enabled: !silent,
+      formatters: {
+        log: (obj) => {
+          return redactSensitive(obj) as Record<string, unknown>;
+        },
       },
+      // Keep trace_id/span_id on every line even in stdout mode so trace↔log
+      // correlation survives when a collector does the shipping.
+      mixin: hyperdxApiKey ? HyperDX.getPinoMixinFunction : undefined,
+      transport,
     },
-    // Keep trace_id/span_id on every line even in stdout mode so trace↔log
-    // correlation survives when a collector does the shipping.
-    mixin: hyperdxApiKey ? HyperDX.getPinoMixinFunction : undefined,
-    transport: useHyperDX
-      ? hyperdxTransport(level, service)
-      : usePretty
-        ? {
-            target: 'pino-pretty',
-            options: {
-              colorize: true,
-              translateTime: 'SYS:standard',
-              ignore: 'pid,hostname,service',
-            },
-          }
-        : undefined,
-  });
+    // Under Bun process.stdout.write is not its prototype's write, so pino
+    // takes it as tampered and falls back to process.stdout, which
+    // interceptProcessOutput wraps: every line was re-intercepted and dropped.
+    // Writing to fd 1 directly, as pino does by default under Node, avoids it.
+    transport ? undefined : pino.destination({ dest: 1, sync: true })
+  );
 }
 
 const MAX_INTERCEPTED_LINE_LENGTH = 8192;
@@ -135,10 +143,11 @@ let intercepted = false;
  * Route everything written to process.stdout/stderr through the given pino
  * logger, so output that bypasses our loggers (Prisma engine lines, dependency
  * console.*, Node warnings) still reaches the OTLP pipeline. Call it before
- * anything else runs in the app entry.
+ * anything else runs in the app entry. Under Bun, console.* writes natively to
+ * fd 1/2 and is not captured: it still prints once, as raw text.
  *
- * No feedback loop: pino writes straight to the file descriptor, never through
- * these wrappers; a reentrancy guard covers any exotic transport that does.
+ * No feedback loop: createLogger hands pino fd 1 directly (or a transport),
+ * never these wrappers; a reentrancy guard covers anything that does.
  *
  * In otlp mode raw lines are also passed to the original stream so `docker
  * logs` stays useful. In stdout mode pino's JSON line IS the container output,

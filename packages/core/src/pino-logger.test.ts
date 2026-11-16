@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test';
 import { existsSync } from 'node:fs';
-import { isAbsolute } from 'node:path';
+import { isAbsolute, join } from 'node:path';
 import { hyperdxTransport, redactSensitive } from './pino-logger';
 
 describe('redactSensitive', () => {
@@ -43,5 +43,37 @@ describe('hyperdxTransport', () => {
     const { target } = hyperdxTransport('info', 'test-service');
     expect(isAbsolute(target)).toBe(true);
     expect(existsSync(target)).toBe(true);
+  });
+});
+
+describe('interceptProcessOutput in stdout mode', () => {
+  // A child process, because interception rewires the process's own streams.
+  it('writes every pino line and every raw line to fd 1 exactly once', () => {
+    const script = `
+      import { createLogger, interceptProcessOutput } from ${JSON.stringify(join(import.meta.dir, 'pino-logger.ts'))};
+      import { testCoreConfig } from ${JSON.stringify(join(import.meta.dir, '../test/config-fixture.ts'))};
+      const base = testCoreConfig();
+      const config = testCoreConfig({
+        isProduction: true,
+        logging: { ...base.logging, interceptProcessOutput: true },
+      });
+      const logger = createLogger({ name: 'api', config });
+      interceptProcessOutput(config, logger);
+      logger.info('pino line');
+      process.stdout.write('raw stdout line\\n');
+      process.stderr.write('raw stderr line\\n');
+    `;
+    const child = Bun.spawnSync([process.execPath, '-e', script]);
+    const lines = child.stdout
+      .toString()
+      .split('\n')
+      .filter(Boolean)
+      .map((line) => JSON.parse(line));
+
+    expect(lines.map(({ msg, source }) => ({ msg, source }))).toEqual([
+      { msg: 'pino line', source: undefined },
+      { msg: 'raw stdout line', source: 'stdout' },
+      { msg: 'raw stderr line', source: 'stderr' },
+    ]);
   });
 });

@@ -446,19 +446,25 @@ function warnAboutPendingMigrations(): void {
  * on the way down, and `docker logs` must always show why we died.
  */
 function installFatalHandlers(): void {
+  // In stdout mode the fatal line already reaches `docker logs` as JSON.
+  const mirrorFatals = config.core.logging.exporter !== 'stdout';
   process.on('uncaughtException', (error) => {
     logger.fatal({ err: error }, 'Uncaught exception — exiting');
-    rawStderrWrite(`Uncaught exception — exiting: ${error?.stack ?? error}\n`);
+    if (mirrorFatals) {
+      rawStderrWrite(`Uncaught exception — exiting: ${error?.stack ?? error}\n`);
+    }
     setShuttingDown(true);
     setTimeout(() => process.exit(1), FATAL_EXIT_DELAY_MS).unref();
   });
   process.on('unhandledRejection', (reason) => {
     logger.fatal({ reason }, 'Unhandled rejection — exiting');
-    rawStderrWrite(
-      `Unhandled rejection — exiting: ${
-        reason instanceof Error ? reason.stack : String(reason)
-      }\n`
-    );
+    if (mirrorFatals) {
+      rawStderrWrite(
+        `Unhandled rejection — exiting: ${
+          reason instanceof Error ? reason.stack : String(reason)
+        }\n`
+      );
+    }
     setShuttingDown(true);
     setTimeout(() => process.exit(1), FATAL_EXIT_DELAY_MS).unref();
   });

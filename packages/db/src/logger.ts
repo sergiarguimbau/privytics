@@ -96,36 +96,45 @@ export function createLogger({ name }: { name: string }): ILogger {
   const usePretty =
     !(useHyperDX || isBun) && process.env.NODE_ENV !== 'production';
 
-  return pino({
-    name: service,
-    level: logLevel,
-    enabled: !silent,
-    formatters: {
-      log: (obj) => {
-        return redactSensitive(obj) as Record<string, unknown>;
+  // Under Bun pino would otherwise write through process.stdout, which
+  // interceptProcessOutput wraps in production, and every line was dropped.
+  // Give it fd 1 directly whenever there is no transport (see core's
+  // pino-logger.ts).
+  const transport = useHyperDX
+    ? HyperDX.getPinoTransport(logLevel, {
+        detectResources: true,
+        service,
+      })
+    : usePretty
+      ? {
+          target: 'pino-pretty',
+          options: {
+            colorize: true,
+            translateTime: 'SYS:standard',
+            ignore: 'pid,hostname,service',
+          },
+        }
+      : undefined;
+
+  return pino(
+    {
+      name: service,
+      level: logLevel,
+      enabled: !silent,
+      formatters: {
+        log: (obj) => {
+          return redactSensitive(obj) as Record<string, unknown>;
+        },
       },
-    },
-    // Keep trace_id/span_id on every line even in stdout mode so trace↔log
-    // correlation survives when a collector does the shipping.
-    mixin: process.env.HYPERDX_API_KEY
-      ? HyperDX.getPinoMixinFunction
-      : undefined,
-    transport: useHyperDX
-      ? HyperDX.getPinoTransport(logLevel, {
-          detectResources: true,
-          service,
-        })
-      : usePretty
-        ? {
-            target: 'pino-pretty',
-            options: {
-              colorize: true,
-              translateTime: 'SYS:standard',
-              ignore: 'pid,hostname,service',
-            },
-          }
+      // Keep trace_id/span_id on every line even in stdout mode so trace↔log
+      // correlation survives when a collector does the shipping.
+      mixin: process.env.HYPERDX_API_KEY
+        ? HyperDX.getPinoMixinFunction
         : undefined,
-  });
+      transport,
+    },
+    transport ? undefined : pino.destination({ dest: 1, sync: true })
+  );
 }
 
 export const logger = createLogger({ name: 'db:prisma' });

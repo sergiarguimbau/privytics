@@ -1117,7 +1117,12 @@ footer {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
-  .nav-login { display: none; }
+  /* Log in stays visible as a compact text link; the tighter gap and smaller
+     CTA keep brand + Log in + CTA on one row from 360px up. Narrower screens
+     wrap the pair onto its own row, as the lone CTA already did there. */
+  .nav-cta { gap: 12px; }
+  .nav-login { font-size: 0.9rem; }
+  .nav-cta .btn { padding: 9px 14px; font-size: 0.92rem; }
   .features { grid-template-columns: 1fr; }
   .footer-grid { grid-template-columns: 1fr 1fr; }
   .price-row { grid-template-columns: 1fr auto; }

@@ -1,7 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { z } from 'zod';
-import { ResetPasswordForm } from '@/components/auth/reset-password-form';
-import { FullPageErrorState } from '@/components/full-page-error-state';
+import {
+  ResetLinkMissing,
+  ResetPasswordForm,
+} from '@/components/auth/reset-password-form';
 import { createTitle, PAGE_TITLES } from '@/utils/title';
 
 export const Route = createFileRoute('/_login/reset-password')({
@@ -12,12 +14,10 @@ export const Route = createFileRoute('/_login/reset-password')({
     ],
   }),
   component: Component,
+  // A missing or malformed token renders ResetLinkMissing instead of throwing.
   validateSearch: z.object({
-    token: z.string(),
+    token: z.string().optional().catch(undefined),
   }),
-  errorComponent: () => (
-    <FullPageErrorState description="Missing reset password token" />
-  ),
 });
 
 function Component() {
@@ -25,7 +25,7 @@ function Component() {
 
   return (
     <div className="col w-full gap-8">
-      <ResetPasswordForm token={token} />
+      {token ? <ResetPasswordForm token={token} /> : <ResetLinkMissing />}
     </div>
   );
 }

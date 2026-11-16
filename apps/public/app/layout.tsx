@@ -24,7 +24,12 @@ export const metadata: Metadata = {
   alternates: { canonical: './' },
   applicationName: 'Privytics',
   icons: {
-    icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
+    // .ico first for browsers and crawlers that ignore SVG icons.
+    icon: [
+      { url: '/favicon.ico', sizes: '16x16 32x32' },
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+    ],
+    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180' }],
   },
   openGraph: {
     type: 'website',

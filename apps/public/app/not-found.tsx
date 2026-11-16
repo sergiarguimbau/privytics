@@ -1,5 +1,18 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { SiteFooter } from './site-footer';
+
+// Without this the 404 inherits the root layout's homepage title, OG/Twitter
+// block (og:url = homepage) and `canonical: './'`, which resolves to
+// /_not-found. Null drops an inherited block instead of merging into it.
+export const metadata: Metadata = {
+  title: 'Page not found',
+  description: 'The page you are looking for does not exist or has moved.',
+  robots: { index: false, follow: true },
+  alternates: null,
+  openGraph: null,
+  twitter: null,
+};
 
 // Styled 404. Without this file the static export ships Next's bare
 // black-on-white error page with no navigation, which is both a dead end for
