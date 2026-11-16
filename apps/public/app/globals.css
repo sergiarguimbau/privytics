@@ -1638,6 +1638,15 @@ details p a:hover {
   margin: 0 auto;
 }
 
+/* The shared .legal-nav assumes the padded .legal column; on the full-width
+   guide pages it would sit flush against the window edges. Pad it to the same
+   880px column as .for-inner, keep its rule full width, and let the hero start
+   right under it. */
+.for-page > .legal-nav {
+  padding-inline: max(24px, calc((100% - 880px) / 2));
+  margin-bottom: 0;
+}
+
 .for-page main > section {
   padding: 56px 0;
 }
@@ -1968,6 +1977,10 @@ details p a:hover {
 @media (max-width: 640px) {
   .for-inner {
     width: min(100% - 32px, 880px);
+  }
+
+  .for-page > .legal-nav {
+    padding-inline: 16px;
   }
 
   .for-page main > section {
