@@ -7,7 +7,7 @@ export const SIGNUP_URL = `${APP_URL}/onboarding`;
 export const LOGIN_URL = `${APP_URL}/login`;
 export const SOURCE_URL = 'https://github.com/sergiarguimbau/privytics';
 
-// Not live yet. Leave null until the service exists: every link to it is
-// hidden while it is null, so the site never advertises a dead page.
+// Leave a link null until its service exists: every link to it is hidden
+// while it is null, so the site never advertises a dead page.
 export const DEMO_URL: string | null = null;
-export const STATUS_URL: string | null = null;
+export const STATUS_URL: string | null = 'https://status.privytics.com';
