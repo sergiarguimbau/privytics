@@ -122,6 +122,15 @@ function Component() {
   const { data: organizations } = useQuery(
     trpc.organization.list.queryOptions(undefined, { initialData: [] })
   );
+  // Only a user's first workspace carries the free allowance, so warn before
+  // they create a second one rather than letting them install a snippet and
+  // discover it as a silent rejection. The limit is enforced server-side
+  // regardless.
+  const { data: hasFreeOrganization } = useQuery(
+    trpc.organization.hasFreeOrganization.queryOptions(undefined, {
+      initialData: false,
+    })
+  );
   const navigate = useNavigate();
   const secondsOnStep = useSecondsOnStep();
   const mutation = useMutation(
@@ -146,11 +155,25 @@ function Component() {
           secondsOnStep: secondsOnStep(),
         });
         queryClient.invalidateQueries(trpc.organization.list.queryFilter());
+        // Keep the keys either way: they are only ever returned once, and they
+        // are remembered so the connect step still works if the user comes
+        // back to it after picking a plan.
         if (res.projectId) {
           rememberOnboardingKeys(res.projectId, {
             clientSecret: res.secret,
             mcpToken: res.mcpToken,
           });
+        }
+        // A workspace with no allowance rejects every event, so sending the
+        // user to install the snippet first is a dead end. Billing first.
+        if (res.requiresPlan) {
+          navigate({
+            to: '/$organizationId/billing',
+            params: {
+              organizationId: res.organizationId,
+            },
+          });
+          return;
         }
         navigate({
           to: '/onboarding/$projectId/connect',
@@ -322,6 +345,20 @@ function Component() {
                 </WithLabel>
               )}
             />
+          </AnimateHeight>
+          <AnimateHeight open={createsWorkspace && hasFreeOrganization}>
+            <div className="rounded-xl border bg-def-100 p-4 text-sm">
+              <div className="font-medium">
+                This workspace will not collect events until you pick a plan
+              </div>
+              <p className="mt-1 text-muted-foreground leading-normal">
+                The free 10,000 events a month applies to your first workspace
+                only. You can create this one now, but it starts with no event
+                allowance and will reject incoming events until you choose a
+                plan on its billing page. Workspaces you are invited to are not
+                affected.
+              </p>
+            </div>
           </AnimateHeight>
         </div>
       )}

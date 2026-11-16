@@ -46,11 +46,18 @@ const CLEANUP_BATCH_SIZE = 5000;
 const CLEANUP_MAX_BATCHES = 2000; // runaway backstop: 5000 * 2000 = 10M rows
 const DEFAULT_INSIGHTS_RETENTION_DAYS = 90;
 /** Where the weekly-digest link points when DASHBOARD_URL is not set. */
-const DEFAULT_DASHBOARD_URL = 'https://dashboard.openpanel.dev';
+const DEFAULT_DASHBOARD_URL = 'https://app.privytics.com';
 
 // Weekly digest: quiet threshold + how many email-worthy insights to surface.
 const WEEKLY_DIGEST_MIN_EVENTS = 100;
 const WEEKLY_DIGEST_MAX_INSIGHTS = 5;
+const DIGEST_STATES = new Set<string>([
+  'active',
+  'free',
+  'canceling',
+  'pausing',
+  'past_due',
+]);
 
 const DEFAULT_ENGINE_CONFIG: EngineConfig = {
   keepTopNPerModuleWindow: 20,
@@ -495,7 +502,14 @@ export async function sendWeeklyDigests(
         ? {}
         : {
             organization: {
-              subscriptionStatus: { in: ['active', 'trialing'] },
+              OR: [
+                {
+                  subscriptionStatus: {
+                    in: ['active', 'free', 'past_due', 'canceled'],
+                  },
+                },
+                { subscriptionStatus: null },
+              ],
             },
           }),
     },
@@ -510,12 +524,11 @@ export async function sendWeeklyDigests(
   let sent = 0;
   for (const project of projects) {
     try {
+      // Privytics has no trial: mail every paid state plus the permanent free
+      // tier (the digest nudges free to paid). Unfinished checkouts and paused
+      // plans are skipped.
       const state = project.organization.subscriptionState;
-      if (
-        !deps.config.selfHosted &&
-        state !== 'active' &&
-        state !== 'trialing'
-      ) {
+      if (!(deps.config.selfHosted || DIGEST_STATES.has(state))) {
         continue;
       }
 

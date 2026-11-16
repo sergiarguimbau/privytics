@@ -1,4 +1,5 @@
-import { useMutation } from '@tanstack/react-query';
+import { isChatBlockedState } from '@openpanel/core/modules/assistant/assistant.constants';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { Loader2Icon, SparklesIcon } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -12,6 +13,25 @@ import {
 } from '@/hooks/use-event-query-filters';
 import { handleError, useTRPC } from '@/integrations/trpc/react';
 import { cn } from '@/utils/cn';
+
+/**
+ * Privytics: AI is paid-only and the server refuses the command for free,
+ * paused and unfinished plans, so the bar is not offered there. Off the org
+ * routes (a public share) there is no org, and no command either.
+ */
+export function useOverviewAICommandEnabled(): boolean {
+  const { organizationId } = useAppParams();
+  const trpc = useTRPC();
+  const { data: organization } = useQuery(
+    trpc.organization.get.queryOptions(
+      { organizationId },
+      { enabled: Boolean(organizationId) }
+    )
+  );
+  return Boolean(
+    organization && !isChatBlockedState(organization.subscriptionState)
+  );
+}
 
 /**
  * Inline AI command bar. Calls the `overview.runFilterCommand`
@@ -29,6 +49,7 @@ export function OverviewAICommand({ className }: { className?: string }) {
   const [eventFilters] = useEventQueryFilters();
   const trpc = useTRPC();
 
+  const enabled = useOverviewAICommandEnabled();
   const [value, setValue] = useState('');
 
   const mutation = useMutation(
@@ -56,7 +77,7 @@ export function OverviewAICommand({ className }: { className?: string }) {
         if (applied === 0) {
           toast(
             result.summary ||
-              "Couldn't translate that into a filter — try rephrasing."
+              "Couldn't translate that into a filter. Try rephrasing."
           );
         } else if (result.summary) {
           toast(result.summary);
@@ -90,6 +111,10 @@ export function OverviewAICommand({ className }: { className?: string }) {
   }
 
   const pending = mutation.isPending;
+
+  if (!enabled) {
+    return null;
+  }
 
   return (
     <div className={cn('relative', className)}>

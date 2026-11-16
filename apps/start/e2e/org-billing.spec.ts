@@ -13,8 +13,10 @@ const SLOW_DEV_SERVER_TIMEOUT_MS = 150_000;
 
 test.setTimeout(SLOW_DEV_SERVER_TIMEOUT_MS);
 
-// Plan rows start a real checkout when there is no current plan, so none is clicked.
-test('billing renders plans, the usage breakdown and the FAQ without errors', async ({
+// The seeded org is active with no Polar subscription, the shape of a plan set
+// up by hand (like the comped production org): a custom plan, no picker. The
+// picker is covered on a free org in org-multi.spec.ts.
+test('billing renders the custom plan, the usage breakdown and the FAQ without errors', async ({
   page,
   seed,
 }) => {
@@ -25,27 +27,18 @@ test('billing renders plans, the usage breakdown and the FAQ without errors', as
   await expect(
     page.getByRole('heading', { name: 'Billing', level: 1 })
   ).toBeVisible();
-  const yearlyPlan = page.getByRole('button', {
-    name: /10K events per month \(yearly\)/,
-  });
-  await expect(yearlyPlan).toContainText('/yr');
+  await expect(page.getByText('Custom plan', { exact: true })).toBeVisible();
+  await expect(page.getByText('Choose a plan', { exact: true })).toHaveCount(0);
   await expect(
     page.getByRole('button', { name: /events per month/ })
-  ).toHaveCount(8);
-
-  await page.getByRole('button', { name: 'Monthly' }).click();
-  await expect(
-    page.getByRole('button', { name: /^10K events per month/ })
-  ).toContainText('/mo');
-  await page.getByRole('button', { name: 'Yearly' }).click();
-  await expect(yearlyPlan).toBeVisible();
+  ).toHaveCount(0);
 
   // The usage breakdown: one stacked bar per day split by project, and the
   // event-name donut, each with a share table listing the seeded projects
   // and the most frequent names.
   await expect(page.getByText('Events per project')).toBeVisible();
   await expect(page.getByText('Events by name')).toBeVisible();
-  // No plan yet, so both widgets fall back to a trailing window.
+  // No Polar billing period, so both widgets fall back to a trailing window.
   await expect(page.getByText(/Last 30 days ·/)).toHaveCount(2);
   for (const project of seed.projects) {
     await expect(page.getByText(project.name, { exact: true })).toBeVisible();
@@ -64,12 +57,13 @@ test('billing renders plans, the usage breakdown and the FAQ without errors', as
   await expect(page.locator('body')).not.toContainText(/NaN|undefined/);
 
   const question = page.getByRole('button', {
-    name: 'Does OpenPanel have a free tier?',
+    name: 'Is there a free plan?',
   });
+  const answer = page.getByText(/10,000 events a month, free forever/);
   await question.click();
-  await expect(page.getByText('30 days free trial')).toBeVisible();
+  await expect(answer).toBeVisible();
   await question.click();
-  await expect(page.getByText('30 days free trial')).toBeHidden();
+  await expect(answer).toBeHidden();
 
   await shot(page, 'billing');
   expectNoCrashes(problems);

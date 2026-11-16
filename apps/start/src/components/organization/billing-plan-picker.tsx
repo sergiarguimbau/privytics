@@ -1,5 +1,6 @@
 import type { IServiceOrganization } from '@openpanel/core';
 import type { IPolarProduct } from '@openpanel/payments';
+import { BILLING_CURRENCY } from '@openpanel/payments/prices';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   CheckIcon,
@@ -78,7 +79,7 @@ export default function BillingPlanPicker({
       ((organization.subscriptionInterval as 'year' | 'month') || 'year')
   );
   const [selectedProductId, setSelectedProductId] = useState<string | null>(
-    organization.subscriptionProductId || null
+    currentProduct?.id ?? null
   );
   const [pendingProductId, setPendingProductId] = useState<string | null>(null);
   const products = productsQuery.data || [];
@@ -184,7 +185,13 @@ export default function BillingPlanPicker({
 
     const isCurrentProduct = selectedProduct.id === currentProduct?.id;
 
-    if (isCurrentProduct && organization.isActive && onCancel) {
+    // Only a live, unpaused subscription can be canceled. `isActive` is also
+    // true on the free plan, where the old product is a resubscribe.
+    if (
+      isCurrentProduct &&
+      organization.subscriptionState === 'active' &&
+      onCancel
+    ) {
       return (
         <Button
           className="mt-4 w-full"
@@ -198,11 +205,9 @@ export default function BillingPlanPicker({
     }
 
     const payLabel = (() => {
-      if (
-        organization.isCanceled ||
-        organization.isWillBeCanceled ||
-        organization.isExpired
-      ) {
+      // A paid plan that ended drops the org to the free tier, so the only
+      // "coming back" case left is a subscription still winding down.
+      if (organization.isWillBeCanceled) {
         return isCurrentProduct
           ? 'Reactivate subscription'
           : 'Change subscription';
@@ -233,7 +238,11 @@ export default function BillingPlanPicker({
         {currentProduct && (
           <div className="row justify-between rounded-t-lg border-border border-t border-r border-l bg-def-200 p-2 px-4 line-through transition-colors group-hover:bg-def-100">
             <span>{currentProduct?.name}</span>
-            <span>{number.currency(getPrice(currentProduct))}</span>
+            <span>
+              {number.currency(getPrice(currentProduct), {
+                currency: BILLING_CURRENCY,
+              })}
+            </span>
           </div>
         )}
         <div
@@ -243,7 +252,11 @@ export default function BillingPlanPicker({
           )}
         >
           <span>{selectedProduct.name}</span>
-          <span>{number.currency(getPrice(selectedProduct))}</span>
+          <span>
+            {number.currency(getPrice(selectedProduct), {
+              currency: BILLING_CURRENCY,
+            })}
+          </span>
         </div>
         <div className="center-center row gap-4 bg-primary p-4 text-primary-foreground transition-colors group-hover:bg-primary/90">
           {isCheckingOut ? (
@@ -276,7 +289,7 @@ export default function BillingPlanPicker({
           <div className="font-medium">
             {recurringInterval === 'year' ? (
               <>
-                Yearly billing —{' '}
+                Yearly billing:{' '}
                 <span className="text-emerald-500">2 months free</span>{' '}
                 <span className="font-normal text-muted-foreground">
                   (pay for 10 months, get 12)
@@ -346,7 +359,7 @@ export default function BillingPlanPicker({
                 <span className={'font-medium'}>{product.name}</span>
                 <div className="row items-center gap-2">
                   <span className="font-bold">
-                    {number.currency(price)}
+                    {number.currency(price, { currency: BILLING_CURRENCY })}
                     <span className="font-normal text-muted-foreground">
                       /{recurringInterval === 'year' ? 'yr' : 'mo'}
                     </span>

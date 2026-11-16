@@ -1,0 +1,96 @@
+{
+  "slug": "kotlin",
+  "kind": "sdk",
+  "name": "Kotlin (Android)",
+  "category": "Mobile",
+  "title": "Android Kotlin analytics, cookieless and hosted in Germany",
+  "description": "Add product analytics to your Android app with the OpenPanel Kotlin SDK and Privytics. Cookieless by default, event data stored in Germany, setup in a few lines.",
+  "tagline": "Track Android events with the OpenPanel Kotlin SDK, pointed at EU-hosted Privytics.",
+  "intro": "Privytics is managed product analytics for Android apps, built on the open-source OpenPanel engine, with event data stored in Germany. You add the OpenPanel Kotlin SDK, point apiUrl at Privytics, and call track from anywhere in your app. Initialisation is a single call and the SDK is documented as thread-safe, so you can call it from any thread without wrapping it yourself.",
+  "why": [
+    {
+      "title": "Nothing is written to the device",
+      "body": "Privytics is cookieless by default and does not need an advertising ID. The anonymous visitor id is computed server side and resets every day. That keeps your Play Console Data safety declaration short, though you remain responsible for filling it in."
+    },
+    {
+      "title": "App lifecycle events without extra code",
+      "body": "Set automaticTracking = true and the SDK emits app_opened and app_closed for you. That gives you sessions and retention on day one, before you have instrumented a single custom event."
+    },
+    {
+      "title": "Device context is attached automatically",
+      "body": "Every event carries os and os_version, manufacturer, brand and model, screen_width, screen_height and screen_dpi, app_version and app_build_number, and network details such as wifi and carrier. You do not build a device properties map yourself."
+    },
+    {
+      "title": "No third-party script in the path",
+      "body": "Events go from your app straight to https://api.privytics.com over HTTPS. There is no injected web script and no third-party analytics domain, so mobile ad blockers and DNS filters are not part of the path."
+    }
+  ],
+  "steps": [
+    {
+      "title": "Add the dependency",
+      "body": "The SDK is OpenPanel's own package, distributed under the dev.openpanel group id. Privytics is independent and not affiliated with OpenPanel. Note that upstream still marks this artifact as not yet published, so you will need to build it from the kotlin-sdk repository until it lands on Maven Central.",
+      "lang": "kotlin",
+      "code": "dependencies {\n    implementation 'dev.openpanel:openpanel:0.0.1'\n}"
+    },
+    {
+      "title": "Initialise with your Privytics API URL",
+      "body": "apiUrl is the option for pointing the SDK at a non-default instance, and it is required for Privytics. If you omit it your events go to OpenPanel's own host instead. clientSecret is documented as being needed only for server-side events, so leave it out of the app binary.",
+      "lang": "kotlin",
+      "code": "import dev.openpanel.OpenPanel\n\nval op = OpenPanel.create(\n    context,\n    OpenPanel.Options(\n        clientId = \"YOUR_CLIENT_ID\",\n        apiUrl = \"https://api.privytics.com\"\n    )\n)"
+    },
+    {
+      "title": "Track events and identify users",
+      "body": "track takes an event name and a property map. identify attaches your own user id so sessions link into one profile. That is opt-in and needs your own lawful basis.",
+      "lang": "kotlin",
+      "code": "op.track(\"button_clicked\", mapOf(\"button_id\" to \"submit_form\"))\n\nop.identify(\"user123\", mapOf(\n    \"firstName\" to \"John\",\n    \"lastName\" to \"Doe\",\n    \"email\" to \"john@example.com\"\n))\n\n// Call on sign out to remove the current user\nop.clear()"
+    },
+    {
+      "title": "Turn on automatic lifecycle tracking",
+      "body": "With automaticTracking enabled the SDK records app_opened and app_closed. setGlobalProperties adds fields to every event that follows, which is useful for build channel or environment.",
+      "lang": "kotlin",
+      "code": "val op = OpenPanel.create(\n    context,\n    OpenPanel.Options(\n        clientId = \"YOUR_CLIENT_ID\",\n        apiUrl = \"https://api.privytics.com\",\n        automaticTracking = true\n    )\n)\n\nop.setGlobalProperties(mapOf(\n    \"app_version\" to \"1.0.2\",\n    \"environment\" to \"production\"\n))"
+    }
+  ],
+  "faq": [
+    {
+      "q": "Is the OpenPanel Kotlin SDK on Maven Central?",
+      "a": "Not at the time of writing. The upstream README states the package is not yet published and that you cannot install it with gradle, and a Maven Central search for the dev.openpanel group returns no artifacts. Until it is published you build it from the Openpanel-dev/kotlin-sdk repository."
+    },
+    {
+      "q": "Does Android analytics need cookies or the advertising ID?",
+      "a": "Not with Privytics. It is cookieless by default and the anonymous visitor id is derived server side from a daily-rotating salted hash of IP, user agent and project id. Nothing is written to the device for identification, and the SDK does not collect an advertising ID."
+    },
+    {
+      "q": "Does the Kotlin SDK track screen views automatically?",
+      "a": "No. The documented automatic tracking covers app_opened and app_closed only. For screen views you call op.track yourself with your own event name and properties."
+    },
+    {
+      "q": "How do I follow the same user across sessions and reinstalls?",
+      "a": "Call op.identify with your own user id, for example your account id after sign in. That links sessions into one profile. It is opt-in, so make sure you have a lawful basis before you send it."
+    },
+    {
+      "q": "Where is the event data stored?",
+      "a": "In EU data centres in Germany. Privytics is a managed service built on the open-source OpenPanel engine, which is AGPL-3.0, but Privytics is independent and not affiliated with or endorsed by OpenPanel."
+    }
+  ],
+  "docsUrl": "https://openpanel.dev/docs/sdks/kotlin",
+  "sourcesUsed": [
+    "https://openpanel.dev/docs/sdks/kotlin",
+    "https://raw.githubusercontent.com/Openpanel-dev/kotlin-sdk/main/README.md",
+    "https://search.maven.org/solrsearch/select?q=g:dev.openpanel"
+  ],
+  "omitted": [
+    "No published Maven artifact exists. A Maven Central search for the dev.openpanel group returns numFound 0, matching the upstream README warning that the package cannot be installed with gradle. The Gradle snippet is reproduced exactly as documented, with the status flagged in the step body rather than presented as working.",
+    "scriptUrl is not mentioned anywhere in the Kotlin SDK docs or README. It is a web/Next.js component concept and was not included in any snippet here.",
+    "No screen-view or navigation-tracking API is documented, so no screen tracking step was written. Only app_opened and app_closed are listed under automatic tracking.",
+    "No Jetpack Compose or Fragment integration guidance exists upstream, so none was invented.",
+    "alias(), increment() and decrement() are real documented methods but were not shown, since they need profile semantics the Kotlin docs do not explain. No flush, opt-out, opt-in or reset method is documented at all, so none was shown.",
+    "waitForProfile, filter, disabled and verbose are listed as Options fields but are not explained with working examples upstream, so they were not used in any snippet.",
+    "clientSecret is documented as an Options field but described as being for server-side events. It was deliberately left out of the Android snippets rather than shipped in an app binary, and no server-side Kotlin example was written since the docs do not show one.",
+    "Session replay is not mentioned anywhere in the Kotlin SDK docs, so it is not claimed for Android.",
+    "The Advanced Usage section of the README shows an OpenPanel(OpenPanel.Options(...)) constructor without a context, which contradicts the required context parameter documented above it. That inconsistent form was not used.",
+    "No SDK version other than 0.0.1 could be confirmed.",
+    "A previous draft claimed the visitor id salt rotates at midnight UTC. The specific rotation time could not be confirmed from any source, so the claim was reduced to daily rotation.",
+    "bluetooth_enabled is also listed among the auto-collected properties upstream but was left out of the marketing copy as it is unlikely to be useful and may raise unnecessary privacy questions."
+  ]
+}

@@ -4,11 +4,45 @@
 import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure } from '../../rpc/base';
 import { TRPCBadRequestError, TRPCNotFoundError } from '../../rpc/errors';
-import { zCreateImport } from './import.constants';
+import type { ServiceDeps } from '../../services';
+import { type IImportConfig, zCreateImport } from './import.constants';
+import { canImport } from './import.routes';
 import {
   requireMappedProjectsWriteAccess,
   toPublicImport,
 } from './import.service';
+
+const IMPORT_REQUIRES_PAID_PLAN =
+  'You cannot start an import without an active subscription!';
+
+/**
+ * Privytics: an Umami import also writes into every mapped project, which can
+ * belong to another organization. Each receiving organization must be allowed
+ * to import, or a paid org's import could fill a free org past its hard cap.
+ */
+async function requireMappedOrganizationsCanImport(
+  ctx: Pick<ServiceDeps, 'db' | 'config'>,
+  projectId: string,
+  config: IImportConfig
+): Promise<void> {
+  if (!('projectMapper' in config)) {
+    return;
+  }
+  const mappedProjectIds = [
+    ...new Set(config.projectMapper.map(({ to }) => to)),
+  ].filter((id) => id !== projectId);
+  if (mappedProjectIds.length === 0) {
+    return;
+  }
+  const organizations = await ctx.db.organization.findMany({
+    where: { projects: { some: { id: { in: mappedProjectIds } } } },
+  });
+  for (const organization of organizations) {
+    if (!canImport(organization, ctx.config.selfHosted)) {
+      throw new TRPCBadRequestError(IMPORT_REQUIRES_PAID_PLAN);
+    }
+  }
+}
 
 export const importRouter = createTRPCRouter({
   list: protectedProcedure
@@ -54,11 +88,14 @@ export const importRouter = createTRPCRouter({
         );
       }
 
-      if (!organization.isActive) {
-        throw new TRPCBadRequestError(
-          'You cannot start an import without an active subscription!'
-        );
+      if (!canImport(organization, ctx.config.selfHosted)) {
+        throw new TRPCBadRequestError(IMPORT_REQUIRES_PAID_PLAN);
       }
+      await requireMappedOrganizationsCanImport(
+        ctx,
+        input.projectId,
+        input.config
+      );
 
       const importRecord = await db.import.create({
         data: {
@@ -126,6 +163,18 @@ export const importRouter = createTRPCRouter({
       if (importRecord.status !== 'failed') {
         throw new Error('Only failed imports can be retried');
       }
+
+      const organization = await db.organization.findFirst({
+        where: { projects: { some: { id: importRecord.projectId } } },
+      });
+      if (!canImport(organization, ctx.config.selfHosted)) {
+        throw new TRPCBadRequestError(IMPORT_REQUIRES_PAID_PLAN);
+      }
+      await requireMappedOrganizationsCanImport(
+        ctx,
+        importRecord.projectId,
+        importRecord.config
+      );
 
       const jobId = await ctx.services.import.enqueue(importRecord.id);
 

@@ -5,42 +5,39 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Widget, WidgetHead } from '@/components/widget';
+import { BRAND } from '@/brand';
 
 const questions = [
   {
-    question: 'Does OpenPanel have a free tier?',
+    question: 'Is there a free plan?',
     answer: [
-      'For our Cloud plan we offer a 30 days free trial, this is mostly for you to be able to try out OpenPanel before committing to a paid plan.',
-      'OpenPanel is also open-source and you can self-host it for free!',
-      '',
-      'Why does OpenPanel not have a free tier?',
-      'We want to make sure that OpenPanel is used by people who are serious about using it. We also need to invest time and resources to maintain the platform and provide support to our users.',
+      'Yes. Every account gets 10,000 events a month, free forever, with no credit card. You only pay when you outgrow it.',
     ],
   },
   {
-    question: 'What happens if my site exceeds the limit?',
+    question: 'What happens if I go over my limit?',
     answer: [
-      "You will not see any new events in OpenPanel until your next billing period. If this happens 2 months in a row, we'll advice you to upgrade your plan.",
+      'On the free plan, new events pause until your next billing period and we prompt you to upgrade.',
+      'On a paid plan we let you keep tracking and send you a heads up to move to the next tier, so you never lose data at the boundary.',
     ],
   },
   {
     question: 'What happens if I cancel my subscription?',
     answer: [
-      'If you cancel your subscription, you will still have access to OpenPanel until the end of your current billing period. You can reactivate your subscription at any time.',
-      'After your current billing period ends, you will not get access to new data.',
-      "NOTE: If your account has been inactive for 3 months, we'll delete your events.",
+      'You keep access until the end of your current billing period, and you can reactivate anytime.',
+      'After that you stay on the free plan. If an account records no events for 3 months, we may delete its old data.',
     ],
   },
   {
     question: 'How do I change my billing information?',
     answer: [
-      'You can change your billing information by clicking the "Customer portal" button in the billing section.',
+      'Open the billing section and click "Customer portal" to manage your plan, payment method, and invoices.',
     ],
   },
   {
-    question: 'We need a custom plan, can you help us?',
+    question: 'We need a custom plan, can you help?',
     answer: [
-      'Yes, we can help you with that. Please contact us at hello@openpanel.dev to request a quote.',
+      `Yes. For more than 10 million events a month or other custom needs, contact us at ${BRAND.supportEmail} for a quote.`,
     ],
   },
 ];

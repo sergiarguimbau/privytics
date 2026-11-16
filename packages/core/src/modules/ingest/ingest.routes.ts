@@ -21,6 +21,7 @@ import {
   ingestLegacyEvent,
   ingestTrack,
   isDuplicateIngestRequest,
+  isFreeTierBlocked,
   isIngestionWoundDown,
   type TrackOutcome,
 } from './ingest.service';
@@ -154,8 +155,39 @@ function windDownGuard(deps: AppDeps) {
   };
 }
 
+/** Privytics free tier gate: hard cap and paid-only replay. 202, not 402/403,
+ *  for the same retry reason as wind-down. See `isFreeTierBlocked`. */
+function freeTierGuard(deps: AppDeps) {
+  return async ({
+    body,
+    client,
+    ctx,
+    status,
+  }: {
+    body: unknown;
+    client: { projectId: string | null };
+    ctx: HttpCtx;
+    status: StatusFn;
+  }) => {
+    const type =
+      body && typeof body === 'object' && 'type' in body
+        ? String(body.type)
+        : undefined;
+    const reason = await isFreeTierBlocked(ctx, {
+      projectId: client.projectId,
+      selfHosted: deps.config.selfHosted,
+      type,
+      logger: ctx.logger,
+    });
+    if (reason) {
+      return status(WIND_DOWN_STATUS, { blocked: true, reason });
+    }
+  };
+}
+
 export const ingestRoutes = defineRoutes((app, deps: AppDeps) => {
   const blockWhenWoundDown = windDownGuard(deps);
+  const blockOnFreeTier = freeTierGuard(deps);
 
   return app.guard(
     {
@@ -203,7 +235,12 @@ export const ingestRoutes = defineRoutes((app, deps: AppDeps) => {
           {
             clientAuth: { ingest: validateIngestRequest },
             body: zTrackHandlerPayload,
-            beforeHandle: [refuseOversizedBody, botGuard, blockWhenWoundDown],
+            beforeHandle: [
+              refuseOversizedBody,
+              botGuard,
+              blockWhenWoundDown,
+              blockOnFreeTier,
+            ],
             detail: {
               tags: TAGS,
               description:
@@ -286,6 +323,7 @@ export const ingestRoutes = defineRoutes((app, deps: AppDeps) => {
               },
               botGuard,
               blockWhenWoundDown,
+              blockOnFreeTier,
             ],
             detail: {
               tags: LEGACY_EVENT_TAGS,

@@ -92,7 +92,7 @@ export default function AddClient({ name, type }: AddClientProps = {}) {
           <div className="mt-4 flex gap-4">
             <a
               className={cn(buttonVariants({ variant: 'secondary' }), 'flex-1')}
-              href="https://openpanel.dev/docs"
+              href="https://privytics.com/docs"
               rel="noreferrer"
               target="_blank"
             >

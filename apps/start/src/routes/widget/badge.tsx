@@ -67,7 +67,7 @@ function BadgeWidget({ visitors, isLoading, color }: BadgeWidgetProps) {
         <div className="font-medium text-3xs text-white/80 uppercase tracking-wide">
           ANALYTICS FROM
         </div>
-        <div className="font-semibold text-white">OpenPanel</div>
+        <div className="font-semibold text-white">Privytics</div>
       </div>
 
       <div className="col center-center flex-shrink-0 gap-1">

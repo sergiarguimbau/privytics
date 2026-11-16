@@ -111,6 +111,21 @@ describe('assessTracking', () => {
     expect(levels(findings, 'snippet')).toEqual(['warn']);
   });
 
+  test('snippet findings name Privytics, never OpenPanel', () => {
+    const snippets = [
+      { scriptTag: true, initCall: true, sdkPackage: false },
+      { scriptTag: false, initCall: false, sdkPackage: true },
+      { scriptTag: false, initCall: false, sdkPackage: false },
+    ];
+    for (const snippet of snippets) {
+      const [finding] = assessTracking(
+        facts({ snippet: { ...snippet, clientIds: [CLIENT] } })
+      ).filter((item) => item.check === 'snippet');
+      expect(finding?.message).toContain('Privytics');
+      expect(finding?.message).not.toContain('OpenPanel');
+    }
+  });
+
   test('traffic from other origins but not this one is called out', () => {
     const findings = assessTracking(
       facts({

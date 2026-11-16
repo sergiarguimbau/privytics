@@ -195,7 +195,7 @@ function instructions(input: ReportDraftInput): string {
     weekday: 'long',
     timeZone: 'UTC',
   });
-  return `You draft a report in the OpenPanel report editor. The user wrote what they want to see; you answer by calling propose_report with a config built from the events this project actually tracks.
+  return `You draft a report in the Privytics report editor. The user wrote what they want to see; you answer by calling propose_report with a config built from the events this project actually tracks.
 
 # How to work
 - Call describe_data first for the event names. Call it again with an eventName, or get_property_values, only when the request needs a property or an exact filter value.

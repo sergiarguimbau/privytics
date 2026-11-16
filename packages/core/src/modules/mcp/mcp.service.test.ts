@@ -231,7 +231,7 @@ describe('handleStatelessMcpRequest — protocol', () => {
     expect(body.jsonrpc).toBe('2.0');
     expect(body.id).toBe(1);
     expect(body.result.serverInfo).toEqual({
-      name: 'OpenPanel',
+      name: 'Privytics',
       version: '1.0.0',
     });
   });

@@ -98,7 +98,7 @@ function LoginPage() {
   return (
     <div className="col w-full gap-8">
       <AuthHeading
-        description="Sign in to your OpenPanel account."
+        description="Sign in to your Privytics account."
         title="Welcome back"
       />
 
@@ -113,7 +113,7 @@ function LoginPage() {
                 Reference: {correlationId}.{' '}
                 <a
                   className="font-medium underline"
-                  href={`mailto:hello@openpanel.dev?subject=${encodeURIComponent(`Login Issue - Correlation ID: ${correlationId}`)}`}
+                  href={`mailto:support@privytics.com?subject=${encodeURIComponent(`Login Issue - Correlation ID: ${correlationId}`)}`}
                 >
                   Email us
                 </a>{' '}
@@ -162,7 +162,7 @@ function LoginPage() {
 
       {registrationAllowed && (
         <p className="text-center text-muted-foreground text-sm">
-          New to OpenPanel?{' '}
+          New to Privytics?{' '}
           <a
             className="font-medium text-foreground underline"
             href={signUpHref}

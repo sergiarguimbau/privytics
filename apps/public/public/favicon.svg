@@ -1,0 +1,6 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Privytics">
+  <rect width="64" height="64" rx="16" fill="#0C6B69"/>
+  <rect x="15" y="33" width="8" height="16" rx="4" fill="#FFFFFF" fill-opacity="0.85"/>
+  <rect x="28" y="24" width="8" height="25" rx="4" fill="#FFFFFF"/>
+  <rect x="41" y="15" width="8" height="34" rx="4" fill="#7FE0D8"/>
+</svg>

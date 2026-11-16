@@ -218,7 +218,7 @@ export function AiTracesTable({ projectId }: { projectId: string }) {
         empty={{
           title: 'No traces',
           description:
-            'Traces appear once your app sends AI events. Wrap a model with @openpanel/ai or call op.ai().',
+            'Traces appear once your app sends AI events. Wrap a model with @openpanel/ai or call op.ai(), on an SDK instance created with apiUrl as shown above.',
         }}
         error={query.isError}
         loading={query.isLoading}

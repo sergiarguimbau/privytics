@@ -1,205 +1,86 @@
 {
   "slug": "startups",
-  "audience": "startups",
-  "seo": {
-    "title": "Analytics for Startups, Open Source & Affordable",
-    "description": "OpenPanel gives startups product analytics without enterprise pricing. Track events, funnels, retention, and user behavior from $2.50/mo or self-host free. No cookies, GDPR compliant.",
-    "noindex": false
-  },
-  "hero": {
-    "heading": "Analytics for startups",
-    "subheading": "Get the product analytics you need to grow, without the enterprise price tag. Events, funnels, retention and user profiles from $2.50 a month. Self-host for free when budgets are tight.",
-    "badges": [
-      "From $2.50/month",
-      "Self-host free",
-      "No cookies needed",
-      "Open source"
-    ]
-  },
-  "problem": {
-    "title": "Why most analytics tools fail startups",
-    "intro": "The tools that have the features you need are priced for enterprises. The affordable ones lack the depth to drive real product decisions.",
-    "items": [
-      {
-        "title": "Mixpanel and Amplitude get expensive fast",
-        "description": "Event-based pricing sounds fine at 10K events, but startups grow. At 1M events you're looking at $300–800/month, money better spent on product development."
-      },
-      {
-        "title": "Google Analytics doesn't show you user behavior",
-        "description": "GA4 tracks pageviews and sessions, but can't tell you which users completed onboarding, where they dropped off in your funnel, or why retention is falling."
-      },
-      {
-        "title": "Privacy compliance is a headache",
-        "description": "Cookie consent banners hurt conversion rates. GDPR fines can be existential for early-stage companies. Most analytics tools make compliance your problem, not theirs."
-      },
-      {
-        "title": "Vendor lock-in limits your options",
-        "description": "Closed-source tools own your data. Migrating away means losing historical analytics. With no export path, you're stuck paying whatever they charge."
-      }
-    ]
-  },
-  "features": {
-    "title": "Everything you need to understand your users",
-    "intro": "OpenPanel combines web analytics and product analytics in one tool. No need to pay for two separate platforms.",
-    "items": [
-      {
-        "title": "Event tracking",
-        "description": "Track any user action with one call. Button clicks, sign-ups, purchases: one line per event, from the web, your app or your backend."
-      },
-      {
-        "title": "Funnel analysis",
-        "description": "See where users drop off in your signup flow, onboarding, or checkout. Identify the step costing you the most conversions."
-      },
-      {
-        "title": "Retention analysis",
-        "description": "See how many users come back after week 1, week 2 and week 4 in a cohort grid, with a weighted average that ignores weeks that have not happened yet."
-      },
-      {
-        "title": "User profiles",
-        "description": "Every event a user triggered, their sessions, their properties and their revenue. Turn on session replay to watch a session next to its events."
-      },
-      {
-        "title": "Realtime dashboard",
-        "description": "See events as they happen. Launch a feature and watch adoption. Run a campaign and watch conversions land."
-      },
-      {
-        "title": "Web analytics",
-        "description": "Pageviews, referrers, UTM campaigns, devices, countries, the standard web analytics you expect, included out of the box."
-      },
-      {
-        "title": "Revenue tracking",
-        "description": "Send the amount with the event and see revenue per user, per source and per campaign. Know what is making money."
-      },
-      {
-        "title": "Cookieless tracking",
-        "description": "No cookies means no consent banner, better conversion and cleaner data. Cloud data is hosted in Germany with a DPA included."
-      },
-      {
-        "title": "Self-hosting option",
-        "description": "Run OpenPanel on a $20 a month VPS when Cloud costs matter. Docker Compose, one install script, the full product with no event limits, releases a month or two behind Cloud."
-      }
-    ]
-  },
-  "benefits": {
-    "title": "Why startups choose OpenPanel",
-    "intro": "Built for teams that need answers from their data without burning through their runway.",
-    "items": [
-      {
-        "title": "Predictable pricing that grows with you",
-        "description": "Flat tiers from $2.50 to $900 a month. No per-seat fees, no surprise overages. Know what you will pay as you scale."
-      },
-      {
-        "title": "All features included at every tier",
-        "description": "Funnels, retention, user profiles, replay, realtime: everything is available from day one. No upsells, no feature gates."
-      },
-      {
-        "title": "Self-host to cut costs to near zero",
-        "description": "Self-hosting is the full product, free. Run it on your own infrastructure when you need to keep spend near zero."
-      },
-      {
-        "title": "Open source means no lock-in",
-        "description": "AGPL-3.0 licensed. Your data is yours. Fork it, extend it, export it or migrate away; you are never stuck."
-      },
-      {
-        "title": "Set up in under 10 minutes",
-        "description": "Add a script tag or install an SDK. Page views track automatically. Ship analytics and get back to building."
-      },
-      {
-        "title": "Privacy-first by default",
-        "description": "Cookieless tracking and EU-only hosting mean you don't need a lawyer to figure out GDPR compliance."
-      }
-    ]
-  },
-  "faqs": {
-    "title": "Frequently asked questions",
-    "intro": "Common questions from startup teams evaluating OpenPanel.",
-    "items": [
-      {
-        "question": "How much does OpenPanel cost for a typical startup?",
-        "answer": "Most early-stage startups land between $2.50 and $20 a month. At 100K events a month, a common seed-stage level, you pay $20 a month. Self-hosting is free; your only cost is the server."
-      },
-      {
-        "question": "Can I switch from Mixpanel or Amplitude?",
-        "answer": "Yes. OpenPanel uses the same event-based model, so migrating is mostly renaming mixpanel.track() or amplitude.track() to op.track(). Built-in importers bring your Mixpanel or Amplitude history in through their export APIs."
-      },
-      {
-        "question": "What happens when I outgrow the free self-hosted version?",
-        "answer": "Nothing, the self-hosted version has no usage limits. As your traffic grows, you may need to scale your server, but OpenPanel itself doesn't charge anything for self-hosting regardless of volume."
-      },
-      {
-        "question": "Is OpenPanel GDPR compliant?",
-        "answer": "Yes. Cookieless tracking by default, so no cookie consent banner for analytics under GDPR. Cloud data is stored in Germany with a DPA included. Self-hosting gives you complete control over data location."
-      },
-      {
-        "question": "How does OpenPanel compare to PostHog?",
-        "answer": "PostHog offers more tools (feature flags, experiments, error tracking) but is more complex and more expensive at scale. OpenPanel focuses on core analytics, events, funnels, retention, profiles, replay and AI observability, at a fraction of the cost. If you need a Swiss Army knife, choose PostHog. If you need focused product analytics, choose OpenPanel."
-      },
-      {
-        "question": "Do I need both Google Analytics and OpenPanel?",
-        "answer": "No. OpenPanel includes web analytics (pageviews, referrers, UTM campaigns, devices, countries) alongside product analytics. For most startups, OpenPanel replaces both GA4 and a product analytics tool like Mixpanel."
-      },
-      {
-        "question": "What SDKs are available?",
-        "answer": "SDKs for the web, Node, React, Next.js, Vue, Nuxt, Astro, Remix, Express, React Native, Swift, Kotlin, Java, Python, Ruby and Rust, plus community Flutter and PHP packages. There is also a script tag for zero-build setups and a REST API for everything else."
-      },
-      {
-        "question": "Can I track mobile apps?",
-        "answer": "Yes. OpenPanel has SDKs for React Native, Kotlin (Android) and Swift (iOS). The same events, funnels and user profiles work across web and mobile."
-      }
-    ]
-  },
-  "related_links": {
-    "guides": [
-      {
-        "title": "Next.js analytics setup",
-        "url": "/guides/nextjs-analytics"
-      },
-      {
-        "title": "React analytics setup",
-        "url": "/guides/react-analytics"
-      },
-      {
-        "title": "Migrate from Google Analytics",
-        "url": "/guides/migrate-from-google-analytics"
-      }
-    ],
-    "articles": [
-      {
-        "title": "Best open source analytics tools",
-        "url": "/articles/self-hosted-web-analytics"
-      },
-      {
-        "title": "How to create a funnel",
-        "url": "/articles/how-to-create-a-funnel"
-      },
-      {
-        "title": "Cookieless analytics guide",
-        "url": "/articles/cookieless-analytics"
-      }
-    ],
-    "comparisons": [
-      {
-        "title": "OpenPanel vs Mixpanel",
-        "url": "/compare/mixpanel-alternative"
-      },
-      {
-        "title": "OpenPanel vs PostHog",
-        "url": "/compare/posthog-alternative"
-      },
-      {
-        "title": "OpenPanel vs Amplitude",
-        "url": "/compare/amplitude-alternative"
-      }
-    ]
-  },
-  "ctas": {
-    "primary": {
-      "label": "Try OpenPanel Free",
-      "href": "https://dashboard.openpanel.dev/onboarding"
+  "kind": "usecase",
+  "name": "Startups",
+  "title": "Product analytics for startups, free up to 10k events",
+  "description": "Funnels, retention and cohorts for small teams. Free up to 10,000 events a month, then stepped pricing from EUR 10. Cookieless, event data stored in Germany.",
+  "tagline": "Funnels, retention and cohorts without an enterprise contract or a data team.",
+  "category": "Audience",
+  "docsUrl": "https://openpanel.dev/docs/sdks/script",
+  "intro": "Privytics gives a small team the product analytics needed to answer two questions: are new users activating, and are they coming back. You get funnels, retention, cohorts, dashboards, user profiles and custom events, with 10,000 events a month free and no credit card. Event data is stored in Germany and the tracker is cookieless by default, so the setup does not start with a consent management project.",
+  "why": [
+    {
+      "title": "The price is known before you have revenue",
+      "body": "The steps are published: free up to 10,000 events a month, then EUR 10 for 100k, 20 for 500k, 40 for 1M, 100 for 5M, 200 for 10M, and a custom quote above that. Pricing is driven by event volume, so a launch that goes well moves you one step up a list you already read, not into a sales call. Free is a real tier with one project and 12 months of retention, not a 14 day trial."
     },
-    "secondary": {
-      "label": "View Source on GitHub",
-      "href": "https://github.com/Openpanel-dev/openpanel"
+    {
+      "title": "Enough depth for activation and retention, without a data pipeline",
+      "body": "Funnels, retention curves, cohorts and user profiles cover the questions a pre product-market-fit team actually asks: where signup drops off, whether week two retention moved after a change, how one cohort behaves against another. None of it needs a warehouse, a transformation layer or an analytics engineer. If your question is closer to 'what is our week four retention by signup source' than 'run this multi-touch attribution model', this is the right size of tool."
+    },
+    {
+      "title": "EU hosting is set up once, at the point where it is cheapest to do",
+      "body": "Event data is stored in Germany, the tracker sets no cookies and writes nothing to the device, and the anonymous visitor id resets every day. Deciding this at ten users costs an afternoon. Deciding it at your first enterprise security review, after two years of events sit somewhere else, costs a migration. You remain the data controller for whatever you send us, including any user id you pass to identify()."
+    },
+    {
+      "title": "Where another tool is the better call",
+      "body": "Mixpanel, Amplitude and PostHog are stronger at serious analytical depth. If you need advanced behavioural segmentation, experimentation and feature flags in the same tool, a large library of warehouse and CRM integrations, or a mature SQL layer over raw events, pick one of those. Privytics is a newer service than those three, which have been operating for years, and support on the free tier is community only. Weigh that against the published pricing and EU hosting."
     }
-  }
+  ],
+  "steps": [
+    {
+      "title": "Add the tracker to your app",
+      "body": "Paste both tags into the <head> of your pages and replace YOUR_CLIENT_ID with the client id from your Privytics project. Setting apiUrl is required: without it the SDK sends events to OpenPanel's own hosted API instead of yours. If you build with a bundler, npm install @openpanel/web and pass the same options to the OpenPanel constructor instead.",
+      "lang": "html",
+      "code": "<script>\n  window.op=window.op||function(){var n=[];return new Proxy(function(){arguments.length&&n.push([].slice.call(arguments))},{get:function(t,r){return\"q\"===r?n:function(){n.push([r].concat([].slice.call(arguments)))}} ,has:function(t,r){return\"q\"===r}}) }();\n  window.op('init', {\n    apiUrl: 'https://api.privytics.com',\n    clientId: 'YOUR_CLIENT_ID',\n    trackScreenViews: true,\n    trackOutgoingLinks: true,\n  });\n</script>\n<script src=\"https://privytics.com/op1.js\" defer async></script>"
+    },
+    {
+      "title": "Define a small event taxonomy and stick to it",
+      "body": "Start with the handful of events that make up your activation path, not everything a user can click. Use snake_case verbs in the past tense, keep the event name stable and put the variable parts in properties. Six well-named events you can build a funnel from beat sixty you cannot remember the meaning of. Add the rest once these are answering questions.",
+      "lang": "js",
+      "code": "// Acquisition\nwindow.op('track', 'signup_started', { source: 'pricing_page' });\nwindow.op('track', 'signup_completed', { plan: 'free', source: 'pricing_page' });\n\n// Activation: the steps a user must finish to get value\nwindow.op('track', 'workspace_created', { seats: 1 });\nwindow.op('track', 'data_imported', { rows: 240, method: 'csv' });\nwindow.op('track', 'first_report_created', { template: 'retention' });\n\n// Expansion and churn signals\nwindow.op('track', 'teammate_invited', { invited_count: 3 });\nwindow.op('track', 'plan_upgraded', { from: 'free', to: 'pro' });"
+    },
+    {
+      "title": "Identify signed-in users so retention and cohorts follow the person",
+      "body": "Anonymous tracking is enough for funnels inside one session. To see whether a user came back next week, or to build a cohort from people who signed up in March, pass your own user id as profileId after login. This is opt-in and you need your own lawful basis for it. Call clear() on logout so later events are not attributed to that profile.",
+      "lang": "js",
+      "code": "// After a successful login or signup\nwindow.op('identify', {\n  profileId: user.id,\n  firstName: user.firstName,\n  lastName: user.lastName,\n  email: user.email,\n  properties: {\n    plan: 'free',\n    signup_month: '2026-03',\n  },\n});\n\n// On logout\nwindow.op('clear');"
+    }
+  ],
+  "faq": [
+    {
+      "q": "What analytics tool should an early-stage startup use?",
+      "a": "If the questions are activation, funnel drop-off and retention, almost any product analytics tool will answer them and the deciding factors are cost, setup time and where data lives. Privytics is free up to 10,000 events a month with one project, and the paid steps are published by volume. If you need experimentation, feature flags or deep behavioural segmentation in the same product, Mixpanel, Amplitude or PostHog are stronger choices."
+    },
+    {
+      "q": "Is Privytics a Mixpanel or Amplitude replacement?",
+      "a": "For core product analytics, funnels, retention, cohorts, dashboards, user profiles and custom events, it covers the same ground. For advanced analysis it does not: those tools go deeper on segmentation, modelling and integrations, and they have years of production history behind them. Privytics is a newer service than they are. The honest pitch is predictable pricing, EU hosting and enough analytics to run a seed-stage product, not feature parity."
+    },
+    {
+      "q": "What happens to the bill when we grow?",
+      "a": "You move up a published step rather than into a negotiation. Free covers 10,000 events a month, then EUR 10 for 100k, 20 for 500k, 40 for 1M, 100 for 5M and 200 for 10M, with custom pricing above 10M. Paid plans also add session replay and extend event history from 12 months to 5 years."
+    },
+    {
+      "q": "Do we need a cookie banner for this?",
+      "a": "That decision is yours as the data controller and we cannot make it for you. What we can describe is the design: the default tracker sets no cookies and stores nothing on the device, and the visitor id is a salted hash of IP, user agent and project id that is rotated daily at midnight UTC rather than a stored identifier. If you call identify() with your own user ids, you are processing identifiable data and need your own lawful basis for it."
+    },
+    {
+      "q": "Can we get session replay on the free plan?",
+      "a": "No. Session replay is on paid plans only and is opt-in per project. When enabled it masks all text and inputs by default, so you review flows rather than reading what a user typed."
+    }
+  ],
+  "sourcesUsed": [],
+  "omitted": [
+    "Any customer count, testimonial, logo wall or reliability figure. None of these are claimed anywhere on the page.",
+    "Speed and reliability comparisons against Mixpanel, Amplitude, PostHog or Google Analytics. No comparative measurement was made, so no claim appears in either direction beyond the statement that those tools are analytically deeper.",
+    "Any suggestion that using Privytics makes a startup GDPR compliant. The copy describes the design (cookieless default, German storage, rotating salted hash) and states plainly that the reader remains the data controller.",
+    "A startup discount, YC deal or credits programme. None exists. The free tier and the published steps are the whole offer.",
+    "Seat and team-member pricing. The published pricing is event-volume based and nothing is documented about per-seat charges, so the page does not claim unlimited seats or any seat policy.",
+    "A session replay code snippet. Replay is real and paid-only, but no complete script-tag configuration example is published, so no snippet was written rather than guessing the option shape.",
+    "The REST API, groups, revenue tracking, setGlobalProperties, increment, decrement and alias. All real, but out of scope for a three-step first-week setup page.",
+    "trackAttributes in the init snippet. It is a real option shown on the script tag page, but this page's second step is about a deliberate taxonomy written in code, so the markup-driven path was left out to avoid mixing two approaches.",
+    "scriptUrl. Not required and not relevant to a plain script tag or a bundled @openpanel/web setup, so it is absent from every snippet. apiUrl is the one URL that must be set.",
+    "Salt rotation time is now stated in full: the copy says 'rotates daily at midnight UTC', matching the documented behaviour and the wording used on the other guides.",
+    "CONFIRMED: https://privytics.com/op1.js is the correct tracker URL for step one. The file is served as a static asset by this marketing site (apps/public/public/op1.js), so it resolves once privytics.com is deployed. An earlier connection failure reflected the pending deploy, not a wrong URL.",
+    "A concrete week-one or week-four retention reference figure for startups. Any number here would be invented, so the copy talks about measuring retention rather than what good looks like."
+  ]
 }

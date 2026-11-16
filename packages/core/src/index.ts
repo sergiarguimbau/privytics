@@ -42,6 +42,8 @@ export { registerBufferMetrics } from './buffers/buffer.metrics';
 export type { Buffers } from './buffers/create-buffers';
 export { createBuffers } from './buffers/create-buffers';
 export { createClients } from './clients/create-clients';
+// Privytics: boot-time check that the GeoLite2 databases loaded (apps/api main).
+export { getGeoStatus } from './clients/geo';
 export {
   isRetryableStatus,
   ProviderError,

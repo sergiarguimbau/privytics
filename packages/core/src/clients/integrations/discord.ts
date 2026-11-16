@@ -10,7 +10,7 @@ import {
 
 // This transport's own probe wording, read by nothing outside this file.
 const DISCORD_TEST_NOTIFICATION_MESSAGE =
-  '**🧪 Test [OpenPanel.dev](<https://openpanel.dev/>)**\nIf you can read this, your Discord webhook is functioning correctly!\n';
+  '**🧪 Test [Privytics](<https://privytics.com/>)**\nIf you can read this, your Discord webhook is functioning correctly!\n';
 
 export function sendDiscordNotification({
   webhookUrl,
@@ -28,8 +28,8 @@ export function sendDiscordNotification({
 }): Promise<WebhookResult> {
   return postWebhook(fetcher, webhookUrl, {
     content: message,
-    avatar_url: 'https://openpanel.dev/logo.jpg',
-    username: 'OpenPanel Notifications',
+    avatar_url: 'https://privytics.com/logo.png',
+    username: 'Privytics Notifications',
   });
 }
 

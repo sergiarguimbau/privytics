@@ -1,0 +1,98 @@
+{
+  "slug": "rust",
+  "kind": "sdk",
+  "name": "Rust",
+  "category": "Backend",
+  "title": "Rust analytics, cookieless and EU-hosted event tracking",
+  "description": "Track events from your Rust backend with the openpanel_rust crate. Cookieless by default, event data is stored in Germany, and setup takes a few lines.",
+  "tagline": "Server-side analytics for Rust services. No cookies, no client, data stored in Germany.",
+  "intro": "The openpanel_rust crate sends events from your Rust service straight to the Privytics ingestion API over HTTP. You set three environment variables, build a Tracker, and call track() with an event name and a map of properties. Because the events originate on your server, ad blockers and browser privacy settings never touch them.",
+  "docsUrl": "https://docs.rs/openpanel_rust/0.4.0/openpanel_sdk/",
+  "why": [
+    {
+      "title": "Server-side events are not blockable",
+      "body": "There is no browser script and no request from the user's device, so content blockers, tracking protection and network filtering have nothing to intercept. Events fire from inside your own service, on the same code path as the business logic that produced them."
+    },
+    {
+      "title": "Nothing is written to the user's device",
+      "body": "The crate is an HTTP client authenticated with a client id and secret. It sets no cookies and no local storage, because it never runs on the visitor's device. Any identifier attached to an event is one you pass yourself as a profile id."
+    },
+    {
+      "title": "Async, built on Tokio and reqwest",
+      "body": "track(), identify() and revenue() are async and return a Result, so they await alongside your existing handlers instead of blocking a worker thread. The crate depends on reqwest and tokio directly, so it drops into an Axum, Actix Web or Tower service without a second runtime."
+    },
+    {
+      "title": "Endpoint and credentials come from the environment",
+      "body": "The tracker reads OPENPANEL_TRACK_URL, OPENPANEL_CLIENT_ID and OPENPANEL_CLIENT_SECRET at startup via Tracker::try_new_from_env(). You point staging and production at different projects without recompiling, and the client secret stays out of the binary and out of version control."
+    }
+  ],
+  "steps": [
+    {
+      "title": "Install the crate",
+      "body": "The package on crates.io is openpanel_rust. Pin the minor version: the snippets below are written against the 0.4 API. anyhow is only a dev-dependency of the crate, so add it yourself if you want the error handling used in these examples, along with a Tokio runtime for the #[tokio::main] macro.",
+      "lang": "bash",
+      "code": "cargo add openpanel_rust@0.4\ncargo add tokio --features full\ncargo add anyhow"
+    },
+    {
+      "title": "Point it at Privytics",
+      "body": "Set these three variables in the environment your service starts with. The repository ships a .env_sample for reference. OPENPANEL_TRACK_URL must point at the Privytics ingestion endpoint, and the client id and secret come from your Privytics project settings.",
+      "lang": "bash",
+      "code": "# .env\nOPENPANEL_TRACK_URL=https://api.privytics.com/track\nOPENPANEL_CLIENT_ID=YOUR_CLIENT_ID\nOPENPANEL_CLIENT_SECRET=YOUR_CLIENT_SECRET"
+    },
+    {
+      "title": "Build a tracker and send an event",
+      "body": "The crate is named openpanel_rust but its library target is openpanel_sdk, so that is what you import. In 0.4 the arguments to track() are the event name, an optional profile id, optional properties, optional groups, and an optional filter closure.",
+      "lang": "rust",
+      "code": "use openpanel_sdk::sdk::Tracker;\nuse std::collections::HashMap;\n\n#[tokio::main]\nasync fn main() -> anyhow::Result<()> {\n    let tracker = Tracker::try_new_from_env()?.with_default_headers()?;\n\n    let mut properties = HashMap::new();\n    properties.insert(\"plan\".to_string(), \"pro\".to_string());\n\n    tracker\n        .track(\n            \"signup_completed\".to_string(),\n            Some(\"user_123\".to_string()),\n            Some(properties),\n            None,\n            None,\n        )\n        .await?;\n\n    Ok(())\n}"
+    },
+    {
+      "title": "Record revenue from the server",
+      "body": "Revenue belongs on the backend, next to the webhook or the transaction that confirmed it, rather than on a checkout page that may never finish loading. revenue() takes an optional profile id, the amount as an i64, and optional properties.",
+      "lang": "rust",
+      "code": "tracker\n    .revenue(Some(\"user_123\".to_string()), 4900, None)\n    .await?;"
+    }
+  ],
+  "faq": [
+    {
+      "q": "What is the crate name for the OpenPanel Rust SDK?",
+      "a": "The published package on crates.io is openpanel_rust, currently 0.4.0, but its library target is named openpanel_sdk. So you install openpanel_rust and write use openpanel_sdk::sdk::Tracker. It is a third-party MIT-licensed crate maintained at github.com/tstaetter/openpanel-rust-sdk, not an official OpenPanel package. Note that the openpanel.dev docs page currently tells you to run cargo add openpanel-sdk, which will fail: no crate by that name exists."
+    },
+    {
+      "q": "How do I send events to Privytics instead of OpenPanel?",
+      "a": "Set OPENPANEL_TRACK_URL to https://api.privytics.com/track in the environment your service reads at startup. Tracker::try_new_from_env() picks it up along with the client id and secret."
+    },
+    {
+      "q": "Does server-side Rust analytics need a cookie banner?",
+      "a": "The SDK runs on your server and writes nothing to the visitor's device, so there is no cookie or local storage to disclose from this integration. You remain the data controller and are responsible for your own lawful basis and privacy notice, particularly if you call identify() or pass your own user ids as profile ids."
+    },
+    {
+      "q": "Does it work with Axum or Actix Web?",
+      "a": "Yes. The tracker is an async HTTP client built on reqwest and tokio, so its methods await inside any Tokio-based handler. Add tokio to your own crate if you need the #[tokio::main] macro."
+    }
+  ],
+  "sourcesUsed": [
+    "https://openpanel.dev/docs/sdks/rust",
+    "https://crates.io/api/v1/crates?q=openpanel",
+    "https://crates.io/api/v1/crates/openpanel-sdk",
+    "https://crates.io/api/v1/crates/openpanel_rust",
+    "https://crates.io/api/v1/crates/openpanel_rust/versions",
+    "https://raw.githubusercontent.com/tstaetter/openpanel-rust-sdk/main/README.md",
+    "https://raw.githubusercontent.com/tstaetter/openpanel-rust-sdk/main/Cargo.toml",
+    "https://docs.rs/openpanel_rust/0.4.0/openpanel_sdk/sdk/struct.Tracker.html",
+    "https://docs.rs/openpanel_rust/0.4.0/openpanel_sdk/sdk/index.html"
+  ],
+  "omitted": [
+    "The openpanel.dev docs page is inaccurate and I did not follow it for the package name. It states the crate is openpanel-sdk version 0.1.0, installed with cargo add openpanel-sdk. That crate does not exist on crates.io (the API returns 404, and a search for 'openpanel' returns only one crate). The real published crate is openpanel_rust 0.4.0, whose lib target is openpanel_sdk. Install and import lines come from crates.io and the repo Cargo.toml, not from the docs page. I also repointed docsUrl to docs.rs so readers are not sent to a page whose install command fails.",
+    "The openpanel.dev page also shows a three-argument track() and methods named increment_property / decrement_property. Neither matches the published 0.4.0 API, which has a five-argument track() and methods named increment / decrement. I used the docs.rs 0.4.0 signatures and pinned the version in the install step.",
+    "Removed the claim that the SDK falls back to or defaults to OpenPanel's own host when OPENPANEL_TRACK_URL is unset. Nothing in the README or docs.rs states this, and try_new_from_env() returning a Result suggests it errors instead. The step and FAQ now just instruct you to set the variable, without asserting what happens if you do not.",
+    "Removed the claim that the crate loads .env via dotenvy. dotenvy is a real dependency in Cargo.toml, but no source states whether the crate auto-loads .env or expects you to call dotenvy yourself, so I describe the variables as environment configuration instead.",
+    "Removed the claim that the track() signature changed specifically between 0.3 and 0.4. I could not load docs.rs for 0.3.2 (repeated fetch failures) and the repo README is internally inconsistent, showing both a four-argument and a three-argument track(). The version pin is kept, since the 0.4 signatures are confirmed, but the specific changelog claim is gone.",
+    "Removed the statement that Privytics assigns an anonymous visitor id from a daily-rotating salted hash. That describes browser-side tracking and is not a behaviour of this crate, so it does not belong on a server-side SDK page.",
+    "No identify() code example. identify() takes an IdentifyUser built by implementing From on your own type, but the fields of IdentifyUser are not documented (the struct page did not resolve). I would have had to invent field names, so identify() is only mentioned in the FAQ.",
+    "No filter closure example. track() accepts an optional Fn(HashMap<String, String>) -> bool, but the docs do not state whether returning true means send the event or suppress it, so a snippet could silently do the opposite of what it reads like.",
+    "The units of the revenue() amount are not documented anywhere I could find. The signature takes an i64. I used 4900 as a placeholder integer without labelling it as cents or as a currency amount, and the step body avoids claiming a unit.",
+    "No script tag or scriptUrl anywhere. This is a server-side SDK with no browser component, so scriptUrl and op1.js do not apply to it at all.",
+    "No group tracking step. set_group, set_groups and upsert_group exist in 0.4.0, and upsert_group takes a Group whose fields I could not confirm, so there is no usage example.",
+    "This crate is community-maintained by Thomas Staetter under MIT and is not published under the @openpanel scope. Total downloads were 471 at the time of writing, so it is far less established than the JavaScript SDKs. I stated the third-party status in the FAQ rather than implying it is official."
+  ]
+}

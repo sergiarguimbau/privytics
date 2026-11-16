@@ -12,9 +12,9 @@ import {
   getDefaultChatModelId,
 } from '../assistant.constants';
 
-/** Cheap models for titles and the one-shot filter command. */
-const UTILITY_MODEL_BY_PROVIDER = {
-  openai: 'gpt-5.4-nano',
+/** Cheap models for titles and the one-shot filter command. Privytics: approved models only. */
+export const UTILITY_MODEL_BY_PROVIDER = {
+  openai: 'gpt-6-luna',
   anthropic: 'claude-haiku-5-5',
 } as const satisfies Record<ChatProvider, string>;
 
@@ -139,9 +139,9 @@ export function reasoningProviderOptions(
 /** OpenAI model ids the one-shot generators (digests, insights, win-back) pin to. */
 export const OPENAI_TASK_MODELS = {
   /** Cheap batch scoring and short copy. */
-  small: 'gpt-5.4-mini',
+  small: 'gpt-6-luna',
   /** Synthesis over a supplied breakdown. */
-  standard: 'gpt-6.1-sol',
+  standard: 'gpt-6-luna',
 } as const;
 
 export function resolveOpenAITaskModel(

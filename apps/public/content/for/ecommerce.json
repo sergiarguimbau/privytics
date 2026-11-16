@@ -1,189 +1,89 @@
 {
   "slug": "ecommerce",
-  "audience": "ecommerce",
-  "seo": {
-    "title": "Ecommerce Analytics, Cookieless Tracking for Shopify, WooCommerce, Stripe",
-    "description": "Ecommerce analytics without consent banners. Track revenue, funnels, and customers across Shopify, WooCommerce, and Stripe checkouts. From $2.50/month or self-host free.",
-    "noindex": false
-  },
-  "hero": {
-    "heading": "Ecommerce analytics that survives cookie consent",
-    "subheading": "GA4 loses a large share of EU traffic to consent banners, and event-priced tools scale into the thousands. OpenPanel tracks every cart, checkout and purchase without cookies, with revenue attached, from $2.50 a month or free to self-host.",
-    "badges": [
-      "Cookieless tracking",
-      "No consent banner needed",
-      "Revenue + funnel tracking",
-      "Any store, one script"
-    ]
-  },
-  "problem": {
-    "title": "Why ecommerce analytics is broken in 2026",
-    "intro": "Every analytics tool has a different failure mode for online stores. Here's what actually breaks.",
-    "items": [
-      {
-        "title": "Cookie consent destroys GA4 data",
-        "description": "Under GDPR you need explicit consent for analytics cookies, and a large share of EU shoppers click reject. GA4 fills the gap with modeled data, so you optimise ad spend on estimates."
-      },
-      {
-        "title": "Event-priced analytics scale into the thousands",
-        "description": "Mixpanel and Heap charge per event. A busy store firing 50 events a session reaches 1M events at 20K sessions. That is hundreds a month before any decision has been made with the data."
-      },
-      {
-        "title": "Shopify and WooCommerce native reports are shallow",
-        "description": "Pageviews and orders are there, but you cannot build a funnel from product page to cart to checkout, segment by acquisition channel, or compare retention by product. Native reports show what happened, not why."
-      },
-      {
-        "title": "Cart-abandonment retargeting depends on attribution that breaks",
-        "description": "When a third of shoppers reject cookies and the rest are cleared by browser tracking prevention, last-click attribution stops matching reality."
-      }
-    ]
-  },
-  "features": {
-    "title": "Everything an online store needs",
-    "intro": "These features cover the full ecommerce funnel without the privacy or pricing trade-offs.",
-    "items": [
-      {
-        "title": "Cookieless tracking by default",
-        "description": "No cookies, no consent banner, no modeled data. Every visitor counts, every event lands in the database, and your conversion data isn't filtered by opt-out rates."
-      },
-      {
-        "title": "Revenue tracking",
-        "description": "Send the amount with the purchase event and it follows the session and the customer. Revenue shows on the overview, next to sources, campaigns and entry pages, and on every profile. One currency, shown as USD."
-      },
-      {
-        "title": "Funnels broken down by product",
-        "description": "Build product page to add to cart to checkout to purchase, then break the funnel down by a product, category or campaign property. See where each product loses customers."
-      },
-      {
-        "title": "Works with Shopify, WooCommerce, Stripe and custom stacks",
-        "description": "Drop the script tag into a Shopify or WordPress theme, or use an SDK in a Next.js or Remix store. Purchases are revenue events you send from the thank-you page or from your payment webhook. No native integrations, no app to install."
-      },
-      {
-        "title": "EU-only data residency",
-        "description": "Cloud data is stored on Hetzner in Germany, with backups inside the EU. One GDPR data processing agreement covers it; no transfer impact assessments or Standard Contractual Clauses to maintain."
-      },
-      {
-        "title": "Customer profiles and lifetime revenue",
-        "description": "Every customer with the ad they came from, the products they viewed, their purchases and their lifetime revenue. Repeat purchases show up in retention."
-      },
-      {
-        "title": "Realtime dashboard",
-        "description": "Run a flash sale or send an email and watch traffic and revenue land live. No processing delay."
-      },
-      {
-        "title": "Self-host for unlimited events",
-        "description": "Run OpenPanel on your own infrastructure with Docker Compose for a flat hosting cost. The install is one script. Self-hosted releases follow Cloud by a month or two."
-      }
-    ]
-  },
-  "benefits": {
-    "title": "Why ecommerce teams switch to OpenPanel",
-    "intro": "The trade-offs that break ecommerce on other tools, consent attrition, runaway pricing, shallow reports, don't apply here.",
-    "items": [
-      {
-        "title": "Real attribution, not modeled estimates",
-        "description": "Cookieless tracking counts every visitor. No consent-mode gaps, no sampling. You make ad-spend decisions on real numbers."
-      },
-      {
-        "title": "Predictable cost as you scale",
-        "description": "$2.50 a month at 5K events, $20 at 100K, $90 at 1M. Self-host free for unlimited events. No usage-based surprises after a Black Friday spike."
-      },
-      {
-        "title": "One tool instead of GA4 plus a product analytics subscription",
-        "description": "Web analytics, funnels, retention, revenue and session replay in one place. No heatmaps, so keep that tool if you need one."
-      },
-      {
-        "title": "Compliance handled at the architecture level",
-        "description": "EU hosting, no cookies, no third-party data sharing. One DPA from us, no consent platform required."
-      },
-      {
-        "title": "Works on every platform",
-        "description": "Shopify, WooCommerce, BigCommerce, Magento, Squarespace, custom Next.js, Remix or Astro, or a Stripe-direct checkout. The script tag and SDK setup are the same everywhere."
-      }
-    ]
-  },
-  "faqs": {
-    "title": "Frequently asked questions",
-    "intro": "Common questions from ecommerce teams evaluating OpenPanel.",
-    "items": [
-      {
-        "question": "Can OpenPanel replace GA4 for an online store?",
-        "answer": "Yes. OpenPanel covers the core ecommerce reporting GA4 does (pageviews, traffic sources, UTM attribution, conversion events, revenue, funnels) and adds cohorts, retention, customer profiles and session replay. The biggest difference is that OpenPanel is cookieless, so the consent banner can go and the data is complete."
-      },
-      {
-        "question": "How do I install OpenPanel on Shopify?",
-        "answer": "Add the OpenPanel script tag in Shopify Admin, Online Store, Themes, Edit code, theme.liquid, before </head>. Pageviews track automatically. For purchases, call op.revenue(amount, { orderId, products }) on the order confirmation page after enabling client-side revenue in project settings. See the [Shopify analytics page](/for/shopify)."
-      },
-      {
-        "question": "How do I install OpenPanel on WooCommerce?",
-        "answer": "Install the OpenPanel WordPress plugin and paste your client id, or add the script tag to your theme header. For orders, hook into WooCommerce's woocommerce_thankyou action and send a revenue event with the order total. Add-to-cart and product views are custom events you fire from the same hooks."
-      },
-      {
-        "question": "Does OpenPanel work with Stripe Checkout or Payment Links?",
-        "answer": "Yes. Fire a checkout_started event from the product page when a customer clicks buy, then send op.revenue(amount, { orderId }) from your Stripe webhook handler when checkout.session.completed arrives, using the client secret. This works for Stripe Checkout, Payment Links, Subscriptions and Elements."
-      },
-      {
-        "question": "Will I need a cookie consent banner with OpenPanel on my store?",
-        "answer": "Not for analytics. OpenPanel sets no cookies and stores no raw IP, so a consent banner is not needed for analytics under GDPR or CCPA. You may still need one for marketing pixels (Meta, Google Ads) if you use them."
-      },
-      {
-        "question": "Will OpenPanel slow down my checkout?",
-        "answer": "The web tracker is about 3 KB gzipped and loads async; GA4 is many times larger. The impact at checkout is well below anything that moves Core Web Vitals or conversion."
-      },
-      {
-        "question": "How does OpenPanel pricing compare to Mixpanel for a busy store?",
-        "answer": "A store with 20K sessions a month and 50 events a session fires 1M events. Mixpanel's free plan covers 1M events a month; its first paid tier is $140 a month for 1.5M events. OpenPanel Cloud is $90 a month for 1M events, or free self-hosted. In a Black Friday spike you move up a flat tier rather than paying overages."
-      },
-      {
-        "question": "Can I track multi-store setups (Shopify Plus with multiple stores)?",
-        "answer": "Yes. Projects are unlimited, so track each store as its own project, or put them in one project and break reports down by a store_id property. Both work."
-      }
-    ]
-  },
-  "related_links": {
-    "guides": [
-      {
-        "title": "Ecommerce tracking setup",
-        "url": "/guides/ecommerce-tracking"
-      },
-      {
-        "title": "Track custom events",
-        "url": "/guides/track-custom-events"
-      }
-    ],
-    "articles": [
-      {
-        "title": "Cookieless analytics explained",
-        "url": "/articles/cookieless-analytics"
-      },
-      {
-        "title": "Open source analytics tools survey",
-        "url": "/articles/self-hosted-web-analytics"
-      }
-    ],
-    "comparisons": [
-      {
-        "title": "OpenPanel vs Google Analytics",
-        "url": "/compare/google-analytics-alternative"
-      },
-      {
-        "title": "OpenPanel vs Mixpanel",
-        "url": "/compare/mixpanel-alternative"
-      },
-      {
-        "title": "OpenPanel vs Plausible",
-        "url": "/compare/plausible-alternative"
-      }
-    ]
-  },
-  "ctas": {
-    "primary": {
-      "label": "Try OpenPanel Free",
-      "href": "https://dashboard.openpanel.dev/onboarding"
+  "kind": "usecase",
+  "name": "Ecommerce",
+  "category": "Audience",
+  "title": "Ecommerce analytics, cookieless and EU-hosted",
+  "description": "Cookieless, EU-hosted product analytics for online stores. Build checkout funnels, track cart abandonment, and see repeat-purchase cohorts, with no consent banner for anonymous visitors. Free for 10,000 events a month.",
+  "tagline": "Checkout funnels and repeat-purchase cohorts, not just pageview counts.",
+  "intro": "Most store dashboards count pageviews and sessions. Selling more comes from a different question: where do carts fall out of the checkout, and which buyers come back. Privytics is product analytics for commerce, so you map real events onto add-to-cart, checkout, and purchase, then read them as funnels and cohorts. It is cookieless and EU-hosted in Germany, so consent banners do not suppress your conversion data for anonymous visitors.",
+  "why": [
+    {
+      "title": "Funnels and cart-abandonment beat pageview counters",
+      "body": "A pageview count cannot tell you where money leaks. A checkout funnel can. Line up add_to_cart, checkout_started, and purchase_completed, and the drop-off at each step shows you exactly where carts are abandoned."
     },
-    "secondary": {
-      "label": "View Source on GitHub",
-      "href": "https://github.com/Openpanel-dev/openpanel"
+    {
+      "title": "Repeat-purchase cohorts show real retention",
+      "body": "One-time revenue hides churn. Group buyers by their first purchase and watch how many come back over the following weeks. That repeat-purchase view tells you whether growth is real or just paid acquisition topping up a leaky store."
+    },
+    {
+      "title": "Cookieless keeps your conversion data",
+      "body": "Consent banners suppress the very conversions you want to measure, because visitors who decline are never counted. Privytics uses an anonymous visitor id that resets every day and stores nothing on the device, so anonymous shopping needs no banner and your funnel stays complete."
+    },
+    {
+      "title": "Works on any platform or gateway",
+      "body": "Privytics tracks events, not a specific checkout. Add it to Shopify, WooCommerce, BigCommerce, Wix, or a custom stack, and send purchase events from any payment gateway. The funnels and cohorts look the same whatever runs underneath."
     }
-  }
+  ],
+  "steps": [
+    {
+      "title": "Add Privytics to your store",
+      "body": "Drop the install snippet into your store theme so it loads on every page. On Shopify you add it to theme.liquid, on WooCommerce or any WordPress store through the theme header or a code-injection plugin, on BigCommerce through the script manager, and on Wix through custom code in the site settings. The snippet below is the generic path that works anywhere you can add HTML. Replace YOUR_CLIENT_ID with your project id from Privytics.",
+      "lang": "html",
+      "code": "<script>\n  window.op=window.op||function(){var n=[];return new Proxy(function(){arguments.length&&n.push([].slice.call(arguments))},{get:function(t,r){return\"q\"===r?n:function(){n.push([r].concat([].slice.call(arguments)))}} ,has:function(t,r){return\"q\"===r}}) }();\n  window.op('init', {\n    apiUrl: 'https://api.privytics.com',\n    clientId: 'YOUR_CLIENT_ID',\n    trackScreenViews: true,\n    trackOutgoingLinks: true,\n  });\n</script>\n<script src=\"https://privytics.com/op1.js\" defer async></script>"
+    },
+    {
+      "title": "Track your key commerce events",
+      "body": "Send an event at each moment that matters, with revenue and currency so Privytics can total sales. Call these from your theme, your cart scripts, or your order-confirmation page. Use consistent names like add_to_cart, checkout_started, and purchase_completed so they line up cleanly into a funnel later.",
+      "lang": "js",
+      "code": "// When a shopper adds an item\nwindow.op('track', 'add_to_cart', {\n  product_id: 'SKU-123',\n  revenue: 29.0,\n  currency: 'EUR',\n});\n\n// When checkout begins\nwindow.op('track', 'checkout_started', {\n  revenue: 58.0,\n  currency: 'EUR',\n});\n\n// On the order-confirmation page\nwindow.op('track', 'purchase_completed', {\n  order_id: '1043',\n  revenue: 58.0,\n  currency: 'EUR',\n});"
+    },
+    {
+      "title": "Build a checkout funnel and read the cohorts",
+      "body": "In Privytics, create a funnel from your three events and read the drop-off at each step to find where carts are lost. Break purchase_completed down by product_id to see best sellers and total revenue, then open retention and group buyers by first purchase date to see repeat-purchase cohorts.",
+      "lang": "text",
+      "code": "Funnel:\n  1. add_to_cart\n  2. checkout_started\n  3. purchase_completed\n  -> drop-off per step = where carts are lost\n\nRevenue:\n  break down purchase_completed by product_id\n  sum the revenue property for total sales\n\nRetention:\n  group buyers by first purchase date\n  -> repeat-purchase cohorts over the following weeks"
+    }
+  ],
+  "faq": [
+    {
+      "q": "Which store platforms does Privytics work with?",
+      "a": "Any platform where you can add a script tag or call the REST API. That includes Shopify, WooCommerce, BigCommerce, and Wix, plus custom and headless stores. Because Privytics tracks events rather than a specific checkout, your payment gateway does not matter."
+    },
+    {
+      "q": "Do I need a cookie consent banner?",
+      "a": "For anonymous visitors, no. Privytics is cookieless: it derives a daily-rotating salted-hash visitor id and stores nothing on the device, so there is no cookie to consent to. If you later identify logged-in customers or add other marketing cookies to your store, check your own obligations for those."
+    },
+    {
+      "q": "Can I see revenue and best sellers?",
+      "a": "Yes. Send a revenue and currency property with your purchase event, and Privytics totals sales for you. Break purchase_completed down by product_id to rank best sellers, and by any other property you send, such as collection or campaign."
+    },
+    {
+      "q": "What does it cost?",
+      "a": "The free tier covers 10,000 events a month with no card and 12-month retention, which is plenty for a small or new store. Paid plans add session replay and 5-year event history when you need them."
+    },
+    {
+      "q": "Is it accurate with ad blockers?",
+      "a": "Mostly, but be honest with yourself: browser events can miss a few visitors who run aggressive blockers, so client-side counts run slightly under reality. For the most complete purchase data, send purchase_completed from your server through the REST API, which no blocker can stop."
+    },
+    {
+      "q": "When is another tool a better fit?",
+      "a": "If your main need is deep ad-spend attribution, tying every sale back to specific ad campaigns and calculating return on ad spend across networks, a dedicated attribution tool will serve you better. Privytics shows you on-site behavior, funnels, and repeat purchases, not multi-touch ad attribution."
+    }
+  ],
+  "sourcesUsed": [
+    "Privytics product analytics feature set: custom events, funnels, retention, cohorts, dashboards, per-user Profiles, and REST API",
+    "Privytics cookieless model: daily-rotating salted-hash visitor id, no cookies, nothing stored on the device, so anonymous tracking needs no consent banner",
+    "Privytics plans: free 10,000 events per month with no card and 12-month retention; paid adds session replay and 5-year retention; managed, with event data stored in EU data centres in Germany",
+    "OpenPanel open-source engine that Privytics is built on: window.op track API and the browser install snippet",
+    "Store platform reference: Shopify, WooCommerce, BigCommerce, and Wix all support adding a custom script or pixel to the storefront"
+  ],
+  "omitted": [
+    "Event names (add_to_cart, checkout_started, purchase_completed) are conventions you define, not built-in commerce events. Privytics tracks whatever names you send, so you must fire them from your theme, cart, and order pages yourself.",
+    "Per-platform install is described in prose only, not as step-by-step guides, since this umbrella page has no docsUrl. The exact insertion point differs per platform and theme.",
+    "The no-consent-banner claim is scoped to anonymous visitors under the cookieless model. Identifying logged-in customers or adding other marketing cookies to your store can still trigger consent duties, which I flagged rather than glossed over.",
+    "Ad-blocker loss: client-side browser events can undercount slightly. I noted the server-side REST API path as the mitigation rather than claiming perfect accuracy.",
+    "Revenue and best-seller reporting depend on you sending correct revenue, currency, and product_id properties.",
+    "Not surfaced on this page: Privytics is an independent European service, operated from Spain, and there is no white-label option, so the Privytics brand shows in the product."
+  ]
 }

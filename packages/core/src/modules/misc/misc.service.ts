@@ -254,13 +254,17 @@ export async function getGeoReport(
   };
 }
 
+const PRIVYTICS_NO_TELEMETRY = true;
+
 /**
  * The outbound half of "ping": a self-hosted instance's own cron job,
  * reporting its event count back to `api.openpanel.dev/misc/ping` (the
  * route above, on OUR side).
  */
 export async function runPingCron(deps: ServiceDeps): Promise<unknown> {
-  if (deps.config.pingDisabled) {
+  // Privytics: no telemetry. Upstream reports every instance's event count to
+  // api.openpanel.dev; this fork never phones home, whatever DISABLE_PING says.
+  if (PRIVYTICS_NO_TELEMETRY || deps.config.pingDisabled) {
     return;
   }
 

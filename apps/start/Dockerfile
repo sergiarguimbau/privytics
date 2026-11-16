@@ -44,6 +44,13 @@ COPY apps/public/public/op1-replay.js ./apps/start/public/op1-replay.js
 # BUILD — Nitro's standalone server output. NITRO=1 selects the node-server
 # preset over the Cloudflare one; SELF_HOSTED=1 is read at build time.
 #
+# Privytics: this image is the SELF-HOSTING path only. Privytics Cloud serves the
+# dashboard from Cloudflare Workers, which is what vite.config.ts builds by
+# default, and CI does not build this image. It is kept working so self-hosting
+# from this fork still works. The op1 scripts copied above are the Privytics
+# builds shipped in apps/public. (The old NODE_OPTIONS heap bump is gone: the
+# build now runs on bun, where that V8 flag does not apply.)
+#
 # No codegen step: the build succeeds with `packages/db/src/generated` absent, because every `@openpanel/db` import in
 # apps/start is `import type` and the `@openpanel/core` imports are all `*.constants` subpaths.
 FROM install AS build

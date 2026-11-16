@@ -51,7 +51,11 @@ export default function CancelSubscriptionFlow({
   const [comment, setComment] = useState('');
   const [pauseMonths, setPauseMonths] = useState<1 | 2 | 3>(1);
 
-  const discountAvailable = !organization.subscriptionSaveDiscountAppliedAt;
+  // ponytail: Privytics offers no save discount, and applySaveDiscount throws
+  // without POLAR_SAVE_DISCOUNT_ID. To offer one: create it in Polar, set the
+  // env on the api and restore upstream's
+  // `!organization.subscriptionSaveDiscountAppliedAt`.
+  const discountAvailable = false;
 
   // Funnel instrumentation. Every step render emits a step_viewed event, and
   // the unmount cleanup emits cancel_flow_abandoned when the flow closes with
@@ -98,7 +102,7 @@ export default function CancelSubscriptionFlow({
         outcomeRef.current = 'paused';
         invalidate();
         toast.success('Subscription paused', {
-          description: `Billing stops at the end of your current period and resumes on ${formatDate(data.resumesAt)}. Your events keep flowing in.`,
+          description: `Billing stops at the end of your current period and resumes on ${formatDate(data.resumesAt)}. While paused, your organization is on the free plan's limits.`,
         });
         onComplete();
       },
@@ -167,7 +171,7 @@ export default function CancelSubscriptionFlow({
     return (
       <>
         <ModalHeader
-          text="Before you go — what's the main reason? It genuinely helps us improve."
+          text="Before you go: what's the main reason? It genuinely helps us improve."
           title="Cancel subscription"
         />
         <div className="scrollbar-thin col min-h-0 flex-1 gap-4 overflow-y-auto">
@@ -235,7 +239,7 @@ export default function CancelSubscriptionFlow({
     return (
       <>
         <ModalHeader
-          text="Pause your subscription: billing stops at the end of your current period, we keep collecting your events, and everything is exactly where you left it when you come back."
+          text="Pause your subscription: billing stops at the end of your current period and your organization runs on the free plan's limits until it resumes. Everything is exactly where you left it when you come back."
           title="Take a break instead?"
         />
         <div className="scrollbar-thin col min-h-0 flex-1 gap-3 overflow-y-auto">
@@ -252,8 +256,8 @@ export default function CancelSubscriptionFlow({
             ))}
           </div>
           <p className="shrink-0 text-muted-foreground text-sm">
-            Billing automatically resumes after the pause — or resume earlier
-            any time from the billing page. You pay nothing while paused.
+            Billing automatically resumes after the pause, or resume earlier any
+            time from the billing page. You pay nothing while paused.
           </p>
         </div>
         <ButtonContainer className="shrink-0 gap-2 [&>*]:flex-1">
@@ -301,7 +305,7 @@ export default function CancelSubscriptionFlow({
     <>
       <ModalHeader
         text="We'd love to keep you around. Stay on your current plan and get 30% off for the next 12 months, starting with your next billing cycle."
-        title="One last thing — 30% off for a year"
+        title="One last thing: 30% off for a year"
       />
       <div className="scrollbar-thin col min-h-0 flex-1 overflow-y-auto">
         <div className="row shrink-0 items-center gap-3 rounded-lg border bg-def-100 p-4">

@@ -1,0 +1,95 @@
+{
+  "slug": "script-tag",
+  "kind": "sdk",
+  "name": "HTML / Script tag",
+  "title": "HTML script tag analytics, cookieless and hosted in the EU",
+  "description": "Add product analytics to any HTML page with one script tag. No build step. Cookieless by default, with funnels and dashboards included.",
+  "tagline": "Two script tags, no build step, no cookies. Works on any HTML page.",
+  "category": "Web",
+  "intro": "Privytics records page views and custom events on any HTML page through a single script tag. You paste two tags into your `<head>`, set `apiUrl` to `https://api.privytics.com` and your client id, and page views start arriving. Privytics runs on the open-source OpenPanel engine, so the browser global is `window.op` and the tracker file is `op1.js`.",
+  "docsUrl": "https://openpanel.dev/docs/sdks/script",
+  "why": [
+    {
+      "title": "No build step, no bundler",
+      "body": "The snippet is plain HTML. It runs anywhere you can edit a template or inject a header script: static sites, a CMS theme, a landing page, an nginx-served folder. There is nothing to install, compile or deploy alongside your app."
+    },
+    {
+      "title": "Page views work without a router",
+      "body": "Set trackScreenViews: true and navigation is captured for you. On a classic multi-page site every click is a real page load, and the tracker also patches the history API and listens for popstate, so a site that later gains client-side routing keeps reporting screen views without new code."
+    },
+    {
+      "title": "Instrument clicks from markup alone",
+      "body": "With trackAttributes: true, any button or anchor carrying a data-track attribute fires an event on click, and its other data-* attributes become event properties. A designer editing templates can add tracking without touching JavaScript."
+    },
+    {
+      "title": "Nothing is written to the device",
+      "body": "The script sets no cookies and stores no identifier in the browser. Visitors are counted with an anonymous id that resets every day. That removes the usual work of gating a snippet behind a consent management platform on an otherwise static site."
+    }
+  ],
+  "steps": [
+    {
+      "title": "Add the snippet to your HTML",
+      "body": "Paste both tags into the <head> of every page, or into your template's shared header. Replace YOUR_CLIENT_ID with the client id from your Privytics project. Setting apiUrl is required: if you leave it out, the SDK falls back to OpenPanel's own hosted API instead of yours.",
+      "lang": "html",
+      "code": "<script>\n  window.op=window.op||function(){var n=[];return new Proxy(function(){arguments.length&&n.push([].slice.call(arguments))},{get:function(t,r){return\"q\"===r?n:function(){n.push([r].concat([].slice.call(arguments)))}} ,has:function(t,r){return\"q\"===r}}) }();\n  window.op('init', {\n    apiUrl: 'https://api.privytics.com',\n    clientId: 'YOUR_CLIENT_ID',\n    trackScreenViews: true,\n    trackOutgoingLinks: true,\n    trackAttributes: true,\n  });\n</script>\n<script src=\"https://privytics.com/op1.js\" defer async></script>"
+    },
+    {
+      "title": "Track a custom event",
+      "body": "Call window.op('track', ...) with an event name and any properties you want to filter or group by later. Calls made before op1.js finishes loading are pushed onto a queue by the stub in step one and replayed once the tracker loads, so you can track from anywhere on the page.",
+      "lang": "js",
+      "code": "window.op('track', 'signup_completed', {\n  plan: 'free',\n  source: 'pricing_page',\n});"
+    },
+    {
+      "title": "Track clicks without writing JavaScript",
+      "body": "Because you enabled trackAttributes, a data-track attribute on a button or link sends that event on click. Every other data-* attribute on the element is passed along as an event property.",
+      "lang": "html",
+      "code": "<button\n  data-track=\"signup_completed\"\n  data-plan=\"free\"\n  data-source=\"pricing_page\"\n>\n  Create account\n</button>"
+    },
+    {
+      "title": "Identify a signed-in user",
+      "body": "Optional. Pass your own user id as profileId to link sessions into one profile. This is opt-in and you need your own lawful basis for it. Call window.op('clear') on logout to stop attributing events to that profile.",
+      "lang": "js",
+      "code": "window.op('identify', {\n  profileId: '123',\n  firstName: 'Joe',\n  lastName: 'Doe',\n  email: 'joe@doe.com',\n  properties: {\n    tier: 'premium',\n  },\n});"
+    }
+  ],
+  "faq": [
+    {
+      "q": "How do I add analytics to a plain HTML website?",
+      "a": "Paste the two script tags from step one into the <head> of your pages and set clientId and apiUrl. With trackScreenViews: true, page views are recorded from the next load onwards. No package manager or build tooling is involved."
+    },
+    {
+      "q": "Does the script tag set any cookies?",
+      "a": "No. The tracker sets no cookies and stores no identifier on the device. Visitors are counted using a salted hash of IP address, user agent and project id, and that salt is rotated once a day, at midnight UTC."
+    },
+    {
+      "q": "Can I track button clicks without writing JavaScript?",
+      "a": "Yes. Set trackAttributes: true in the init call, then add data-track=\"event_name\" to a button or anchor. Any other data-* attributes on that element are sent as properties of the event."
+    },
+    {
+      "q": "Do I still need a cookie banner?",
+      "a": "That is your call as the data controller, and we cannot make it for you. What we can describe is the design: the default script writes nothing to the device and sends no cookie, and the visitor identifier is a salted hash that is rotated daily rather than a stored id. If you enable identify() with your own user ids, you are processing identifiable data and need your own lawful basis."
+    }
+  ],
+  "sourcesUsed": [
+    "https://openpanel.dev/docs/sdks/script (fetched and compared directly)",
+    "Local repo: /Users/sergi/Documents/dev/openpanel-main-2026/packages/sdks/web/src/init-snippet.ts (init stub matches the published snippet byte-for-byte)",
+    "Local repo: /Users/sergi/Documents/dev/openpanel-main-2026/packages/sdks/web/src/index.ts (trackScreenViews / trackOutgoingLinks / trackAttributes / trackHashChanges options, data-track handling, history API patching)",
+    "Local repo: /Users/sergi/Documents/dev/openpanel-main-2026/packages/sdks/sdk/src/index.ts (track, identify, clear, setGlobalProperties, increment, decrement, alias; apiUrl default)",
+    "Local repo: /Users/sergi/Documents/dev/openpanel-main-2026/packages/sdks/web/package.json (confirms the npm package name @openpanel/web)",
+    "Local repo: /Users/sergi/Documents/dev/openpanel-main-2026/apps/api/src/utils/ids.ts (device id derived from salt + projectId + ip + ua)",
+    "Local repo: /Users/sergi/Documents/dev/openpanel-main-2026/apps/worker/src/boot-cron.ts (salt rotation cron pattern '0 0 * * *')",
+    "Live host probe: https://api.privytics.com returned 200; https://privytics.com/op1.js returned 522"
+  ],
+  "omitted": [
+    "CONFIRMED: the script host in step one. https://privytics.com/op1.js is correct and needs no change. The tracker file exists at apps/public/public/op1.js and is served as a static asset by this marketing site itself, so the URL resolves as soon as privytics.com is deployed. The earlier HTTP 522 reflected only the pending deploy, not a wrong URL. https://api.privytics.com/op1.js returns 404 and is not the alternative.",
+    "Data residency wording. Analytics event data is stored in Germany (EU), which is what the title and description mean by EU hosting. No infrastructure vendor is named anywhere on the page: hosting is described by location only.",
+    "Session replay setup. The SDK does expose a sessionReplay options object (enabled, sampleRate, maskAllInputs, maskAllText, unmaskTextSelector, blockSelector, blockClass, ignoreSelector, flushIntervalMs, maxEventsPerChunk, maxPayloadBytes, scriptUrl), but the docs page shows no complete script-tag example, so no snippet was written rather than guessing the shape. Replay is opt-in per project.",
+    "clientSecret. A real init option but documented as server-side only, so it has no place in a browser snippet.",
+    "The filter and disabled init options, and the trackHashChanges web option. All real and verified in source, but cut to keep the page to the core setup path.",
+    "setGlobalProperties, increment, decrement and alias. All real methods on the base SDK, but out of scope for a first-install page.",
+    "scriptUrl as a top-level init option. It exists only on the Next.js component and inside sessionReplay, not on the script-tag init call, so it is deliberately absent from every snippet here.",
+    "The npm-installed browser package. The package name @openpanel/web is confirmed from the local package.json, but a script-tag page has no install command, and the npm registry listing was not fetched.",
+    "Script size and load-time figures. None are published, so no performance claim is made.",
+    "Salt rotation timing. The salt rotates once a day at midnight UTC, which is what the FAQ states. The cron pattern in the engine is '0 0 * * *'."
+  ]
+}

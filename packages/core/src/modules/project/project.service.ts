@@ -7,7 +7,7 @@ import type {
 import { stripTrailingSlash } from '@openpanel/shared';
 import { cacheablePerDb, type DbScope } from '../../cacheable-per-deps';
 import { chQuery } from '../../ch-query';
-import { TRPCBadRequestError } from '../../rpc/errors';
+import { TRPCBadRequestError, TRPCForbiddenError } from '../../rpc/errors';
 import type { ServiceDeps, Services } from '../../services';
 import { getMemberProjectGrants } from '../../shared/access-lookups';
 import { convertClickhouseDateToJs } from '../../shared/ch-dates';
@@ -309,6 +309,54 @@ export async function getProjectForOrganization(
   });
 }
 
+export const FREE_PLAN_PROJECT_LIMIT_MESSAGE =
+  'The free plan includes one project. Choose a paid plan to add more.';
+
+/**
+ * Privytics: the free plan includes one project (Terms and Privacy Policy).
+ * Every path that creates or restores a project asks this, so the rule lives
+ * in one place. Paid and self-hosted organizations are never limited. A
+ * project already scheduled for deletion does not count, so a free user can
+ * delete theirs and start over. With `createdAfter` (a restore), only projects
+ * created after that moment count, pending deletion or not.
+ *
+ * ponytail: count-then-create is not atomic, two simultaneous creates can both
+ * pass. Lock the organization row if that ever matters.
+ */
+export async function isFreeProjectLimitReached(
+  deps: DbScope,
+  organizationId: string,
+  createdAfter?: Date
+): Promise<boolean> {
+  const organization = await deps.db.organization.findUniqueOrThrow({
+    where: { id: organizationId },
+    select: { subscriptionState: true },
+  });
+  if (organization.subscriptionState !== 'free') {
+    return false;
+  }
+  // A restore counts every project created since, live or pending deletion:
+  // otherwise restoring the old one first and the new one after keeps both.
+  const projects = await deps.db.project.count({
+    where: {
+      organizationId,
+      ...(createdAfter
+        ? { createdAt: { gt: createdAfter } }
+        : { deleteAt: null }),
+    },
+  });
+  return projects > 0;
+}
+
+export async function assertCanCreateProject(
+  deps: DbScope,
+  organizationId: string
+): Promise<void> {
+  if (await isFreeProjectLimitReached(deps, organizationId)) {
+    throw new TRPCForbiddenError(FREE_PLAN_PROJECT_LIMIT_MESSAGE);
+  }
+}
+
 // Grace period between a scheduled deletion and the `delete` cron sweeping it up.
 const DELETE_GRACE_PERIOD_MS = 24 * 60 * 60 * 1000;
 
@@ -329,6 +377,7 @@ export function createProjectService(
     project: IServiceProject;
     client: CreatedProjectClient | null;
   }> {
+    await assertCanCreateProject(deps, organizationId);
     const secret = newClientSecret();
     const project = await deps.db.project.create({
       data: {
@@ -449,8 +498,10 @@ export function createProjectService(
       return false;
     }
 
-    await deps.db.project.update({
-      where: { id },
+    // An already scheduled deletion keeps its deadline: moving it would also
+    // move the free plan's restore anchor (see cancelProjectDeletion).
+    await deps.db.project.updateMany({
+      where: { id, deleteAt: null },
       data: {
         deleteAt: new Date(Date.now() + DELETE_GRACE_PERIOD_MS),
       },
@@ -465,8 +516,9 @@ export function createProjectService(
   // and no ownership re-check.
 
   async function scheduleProjectDeletion(id: string): Promise<void> {
-    await deps.db.project.update({
-      where: { id },
+    // Keeps an existing deadline, as above.
+    await deps.db.project.updateMany({
+      where: { id, deleteAt: null },
       data: { deleteAt: new Date(Date.now() + DELETE_GRACE_PERIOD_MS) },
     });
   }
@@ -475,6 +527,8 @@ export function createProjectService(
     const project = await deps.db.project.findUnique({
       where: { id },
       select: {
+        organizationId: true,
+        deleteAt: true,
         organization: {
           select: { deleteAt: true },
         },
@@ -488,6 +542,20 @@ export function createProjectService(
       throw new TRPCBadRequestError(
         'This organization is scheduled for deletion. Cancel the deletion from the organization settings.'
       );
+    }
+
+    // The free limit only refuses the abuse it targets: delete, create a new
+    // project, restore the old one. A project the org already had comes back
+    // (a downgraded org keeps every project it had).
+    if (
+      project?.deleteAt &&
+      (await isFreeProjectLimitReached(
+        deps,
+        project.organizationId,
+        new Date(project.deleteAt.getTime() - DELETE_GRACE_PERIOD_MS)
+      ))
+    ) {
+      throw new TRPCForbiddenError(FREE_PLAN_PROJECT_LIMIT_MESSAGE);
     }
 
     await deps.db.project.update({

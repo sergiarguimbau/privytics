@@ -14,17 +14,17 @@ export type Props = z.infer<typeof zOnboardingWelcome>;
 export default OnboardingWelcome;
 export function OnboardingWelcome({
   firstName,
-  dashboardUrl = 'https://dashboard.openpanel.dev',
+  dashboardUrl = 'https://app.privytics.com',
   hasData = false,
   unsubscribeUrl,
 }: Props & { unsubscribeUrl?: string }) {
   return (
     <Layout unsubscribeUrl={unsubscribeUrl}>
       <Text>Hi{firstName ? ` ${firstName}` : ''},</Text>
-      <Text>Carl here. I build OpenPanel. Thanks for signing up.</Text>
+      <Text>Thanks for signing up to Privytics, we're glad you're here.</Text>
       <Text>
-        Your trial runs for 30 days with everything included. No card needed
-        until you decide to stay.
+        Your free plan includes 10,000 events a month, for as long as you like.
+        No card, no expiry. Upgrade whenever you outgrow it.
       </Text>
       {hasData ? (
         <>
@@ -48,7 +48,7 @@ export function OnboardingWelcome({
             items={[
               <Link
                 href={withUtm(
-                  'https://openpanel.dev/docs/get-started/install-openpanel',
+                  'https://privytics.com/docs',
                   'onboarding-welcome'
                 )}
                 key="install"
@@ -57,7 +57,7 @@ export function OnboardingWelcome({
               </Link>,
               <Link
                 href={withUtm(
-                  'https://openpanel.dev/docs/get-started/track-events',
+                  'https://privytics.com/docs',
                   'onboarding-welcome'
                 )}
                 key="track"
@@ -69,13 +69,13 @@ export function OnboardingWelcome({
           <Text>If you get stuck, just reply to this email.</Text>
         </>
       )}
-      <Text>Carl</Text>
+      <Text>The Privytics team</Text>
     </Layout>
   );
 }
 
 OnboardingWelcome.PreviewProps = {
   firstName: 'Alex',
-  dashboardUrl: 'https://dashboard.openpanel.dev/org-id',
+  dashboardUrl: 'https://app.privytics.com/org-id',
   hasData: false,
 };

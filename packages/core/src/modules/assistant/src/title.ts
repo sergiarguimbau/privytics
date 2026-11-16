@@ -25,7 +25,9 @@ export async function generateConversationTitle(
         instructions:
           'Write a 3 to 6 word title for a chat that starts with the user message below. Reply with the title only: no quotes, no trailing period.',
         prompt: text,
-        reasoning: 'low',
+        // Reasoning tokens count against the 40-token cap and could leave no
+        // title: 'none' is effort none on gpt-6-luna, thinking off on Haiku 5.5.
+        reasoning: 'none',
         maxOutputTokens: MAX_OUTPUT_TOKENS,
       })
     );

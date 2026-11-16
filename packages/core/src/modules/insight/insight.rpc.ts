@@ -3,8 +3,12 @@
 // only sees a TOP-LEVEL `projectId` / `organizationId`, so anything resolved
 // from another id needs its own.
 
+import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure } from '../../rpc/base';
+import { TRPCNotFoundError } from '../../rpc/errors';
+import { checkChatLimits, resolveChatTier } from '../assistant/src/limits';
+import { getOrganizationByProjectIdCached } from '../organization/organization.service';
 import {
   INSIGHT_LIST_ALL_DEFAULT_LIMIT,
   INSIGHT_LIST_ALL_MAX_LIMIT,
@@ -142,6 +146,27 @@ export const insightRouter = createTRPCRouter({
         projectId: insight.projectId,
         level: 'read',
       });
+
+      // Privytics: AI is paid-only, and an explanation is a model call on the
+      // operator's key, so it shares the chat's plan gate and spend limits.
+      const organization = await getOrganizationByProjectIdCached(
+        ctx,
+        insight.projectId
+      );
+      if (!organization) {
+        throw new TRPCNotFoundError('Project not found');
+      }
+      const limited = await checkChatLimits(ctx, {
+        organizationId: organization.id,
+        userId,
+        tier: resolveChatTier(organization, ctx.config.selfHosted),
+      });
+      if (limited) {
+        throw new TRPCError({
+          code: 'TOO_MANY_REQUESTS',
+          message: limited.message,
+        });
+      }
 
       const cacheKey = `insight-explain:${insightId}:${insight.lastUpdatedAt.getTime()}`;
 

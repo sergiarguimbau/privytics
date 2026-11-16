@@ -1,0 +1,86 @@
+{
+  "slug": "drupal",
+  "kind": "sdk",
+  "name": "Drupal",
+  "category": "Web",
+  "title": "Drupal analytics, cookieless and EU-hosted",
+  "description": "Add privacy-first analytics to your Drupal site with one snippet. Cookieless, EU-hosted in Germany, and no consent banner for anonymous visitors.",
+  "tagline": "Privacy-first analytics for Drupal, no cookie banner needed.",
+  "intro": "Privytics adds page view and event tracking to your Drupal site with one snippet you paste once. The usual choice on Drupal is the Google Analytics module (GA4), which needs a consent banner for EU visitors. Privytics is cookieless and EU-hosted, so it is paste one snippet, with no consent banner for anonymous visitors. Drupal has no built-in place for site-wide tags, so you first turn on one free, no-code helper module, then paste and save.",
+  "why": [
+    {
+      "title": "Nothing is stored on the visitor's device",
+      "body": "The snippet sets no cookies and saves no id in the browser. Visitors are counted with an anonymous id that resets every day, so there is nothing to store and nothing to consent to."
+    },
+    {
+      "title": "Your data is stored in the EU",
+      "body": "Every event is stored in EU data centres in Germany. For government, university and enterprise Drupal sites, that keeps your analytics data stored inside the EU by default."
+    },
+    {
+      "title": "No cookie banner for the anonymous case",
+      "body": "Because nothing is written to the device and no cookie is sent, there is nothing to ask consent for. You stay the data controller and skip the banner most GA4 setups need."
+    },
+    {
+      "title": "Free to start, page views included",
+      "body": "The free plan covers 10,000 events a month with no card. Page views start counting the moment the snippet is live, with 12-month history on free, and 5-year event history plus session replay on paid."
+    }
+  ],
+  "steps": [
+    {
+      "title": "Turn on the free Asset Injector helper",
+      "body": "Drupal has no built-in field for site-wide tags, so add one small free module that lets you paste code with no theme editing. Install Asset Injector from drupal.org or with the command below, turn it on under Manage > Extend, then go to Manage > Configuration > Development > Asset Injector > Add JS injector. If your site is run by a host or agency, this one-time module step may need their help.",
+      "lang": "bash",
+      "code": "composer require drupal/asset_injector"
+    },
+    {
+      "title": "Paste your Privytics snippet and save",
+      "body": "Give the injector a name like Privytics. In the Code box, paste the two tags below. Replace YOUR_CLIENT_ID with the client id from your Privytics project, then Save. Placement does not matter for this snippet, so the default footer is fine; if you prefer, open Advanced options and tick the box to load it in the header. If your site caches pages, clear the cache under Manage > Configuration > Development > Performance so the change goes live.",
+      "lang": "html",
+      "code": "<script>\n  window.op=window.op||function(){var n=[];return new Proxy(function(){arguments.length&&n.push([].slice.call(arguments))},{get:function(t,r){return\"q\"===r?n:function(){n.push([r].concat([].slice.call(arguments)))}} ,has:function(t,r){return\"q\"===r}}) }();\n  window.op('init', {\n    apiUrl: 'https://api.privytics.com',\n    clientId: 'YOUR_CLIENT_ID',\n    trackScreenViews: true,\n    trackOutgoingLinks: true,\n  });\n</script>\n<script src=\"https://privytics.com/op1.js\" defer async></script>"
+    },
+    {
+      "title": "Check that page views are arriving",
+      "body": "Open your Drupal site in a normal browser tab, then open your Privytics dashboard and look at the Realtime view. Your own visit should show up within a few seconds. Page views are tracked automatically from now on, with no extra setup, and that is the main thing most sites need.",
+      "lang": "text",
+      "code": "Privytics dashboard  >  your project  >  Realtime"
+    },
+    {
+      "title": "Optional: count one button click",
+      "body": "Want to count a specific action like a signup or a Contact click? Add a second JS injector the same way (Add JS injector), give it a name, and paste the line below. Change signup_click to your own label, and change #signup-button to the button on your page. This runs as first-party code on your own pages, so it needs no extra tags. It is a small piece of code, so if you would rather not touch it, whoever manages your site can add it in a minute.",
+      "lang": "javascript",
+      "code": "document.querySelector('#signup-button')?.addEventListener('click', function () {\n  window.op('track', 'signup_click');\n});"
+    }
+  ],
+  "faq": [
+    {
+      "q": "Does this need a paid plan?",
+      "a": "No. The free plan tracks up to 10,000 events a month with no card, and page views are included. Session replay and 5-year event history are paid extras you can add later, but the core analytics you set up here is free."
+    },
+    {
+      "q": "Do I still need a cookie banner?",
+      "a": "The snippet writes nothing to the device and sends no cookie, so for anonymous visitors there is nothing to consent to. You remain the data controller. This is the main reason Drupal teams move off the GA4 module, which does need a banner for EU visitors."
+    },
+    {
+      "q": "Where is my data stored?",
+      "a": "In EU data centres in Germany. Privytics runs the open-source OpenPanel engine, and your events are stored in the EU by default, which suits public sector and university sites."
+    },
+    {
+      "q": "Can I track button clicks or events?",
+      "a": "Yes. Page views are tracked automatically with no setup. To count a specific action like a signup, add a second JS injector with one short line, window.op('track', ...), as shown in the optional step. No extra tags are needed. If you would rather not paste code, whoever manages your Drupal site can add it quickly."
+    }
+  ],
+  "sourcesUsed": [
+    "Drupal Asset Injector module (drupal.org/project/asset_injector): maintained, stable 8.x-2.21, compatible with Drupal 10.3 and 11, config at admin/config/development/asset-injector",
+    "Asset Injector JS injector form source (AssetInjectorJsForm.php): confirms an optional header/footer placement checkbox under Advanced options",
+    "Drupal Google Tag module (drupal.org/project/google_tag): manages Google Tag Manager containers only, no generic header field",
+    "Privytics script-tag install (op1.js + window.op init, apiUrl https://api.privytics.com)"
+  ],
+  "omitted": [
+    "Drupal has no plan gate, but unlike hosted platforms it has no built-in head field, so a free contributed module (Asset Injector) is required first. On modern Drupal that usually means Composer or an admin module download, which may need host or agency help; stated plainly in the intro and step 1.",
+    "Did not recommend the Google Tag module. Confirmed on drupal.org it only manages Google Tag Manager containers (Configuration > Web Services > Google Tag, Container ID field) and has no generic header field.",
+    "The custom-event step relies on Asset Injector running site-wide first-party JS; used window.op('track', ...) rather than the data-track attribute, which the pasted snippet does not enable (no trackAttributes). Advanced event setups (dynamic content, complex forms) may still need a developer.",
+    "Skipped theme template editing and any code-file changes to keep this no-code; the pasted snippet was not modified.",
+    "Verified on drupal.org that Asset Injector is maintained (stable 8.x-2.21, dev updated 2025) and compatible with Drupal 10.3 and 11, and that its configuration lives at Manage > Configuration > Development > Asset Injector.",
+    "Confirmed in the module source (AssetInjectorJsForm.php) that the JS injector header placement is a real, optional checkbox under Advanced options ('load the script in the header, otherwise footer'). Because the snippet loads op1.js with defer async and queues calls, it works in either position, so step 2 now presents header placement as optional rather than a required 'before </head>' step."
+  ]
+}

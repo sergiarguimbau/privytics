@@ -63,5 +63,5 @@ test('models filters to the configured provider and prefers the recorded default
   const result = await caller.models();
   expect(result.providers).toEqual({ openai: true, anthropic: false });
   expect(result.models.every((m) => m.provider === 'openai')).toBe(true);
-  expect(result.defaultModelId).toBe('gpt-6-1-sol');
+  expect(result.defaultModelId).toBe('gpt-6-luna');
 });

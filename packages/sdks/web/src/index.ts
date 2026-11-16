@@ -144,7 +144,7 @@ export class OpenPanel extends OpenPanelBase {
    * Load the replay recorder module.
    *
    * - **IIFE build (op1.js)**: `__OPENPANEL_REPLAY_URL__` is replaced at
-   *   build time with a CDN URL (e.g. `https://openpanel.dev/op1-replay.js`).
+   *   build time with a CDN URL (e.g. `https://privytics.com/op1-replay.js`).
    *   The user can also override it via `sessionReplay.scriptUrl`.
    *   We load the IIFE replay script via a classic `<script>` tag which
    *   avoids CORS issues (dynamic `import(url)` uses `cors` mode).
@@ -165,7 +165,7 @@ export class OpenPanel extends OpenPanelBase {
         const url =
           this.options.sessionReplay?.scriptUrl ||
           scriptEl?.src?.replace('.js', '-replay.js') ||
-          'https://openpanel.dev/op1-replay.js';
+          'https://privytics.com/op1-replay.js';
 
         // Already loaded (e.g. user included the script manually)
         if ((window as any).__openpanel_replay) {
@@ -180,7 +180,7 @@ export class OpenPanel extends OpenPanelBase {
             resolve((window as any).__openpanel_replay ?? null);
           };
           script.onerror = () => {
-            console.warn('[OpenPanel] Failed to load replay script from', url);
+            console.warn('[Privytics] Failed to load replay script from', url);
             resolve(null);
           };
           document.head.appendChild(script);
@@ -189,7 +189,7 @@ export class OpenPanel extends OpenPanelBase {
       // Library / bundler context — resolved by the bundler
       return await import('./replay');
     } catch (e) {
-      console.warn('[OpenPanel] Failed to load replay module', e);
+      console.warn('[Privytics] Failed to load replay module', e);
       return null;
     }
   }

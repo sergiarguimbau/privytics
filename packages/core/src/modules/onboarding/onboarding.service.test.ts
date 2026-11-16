@@ -65,7 +65,7 @@ function org(overrides: Record<string, unknown> = {}) {
     id: 'org-1',
     createdAt: new Date(),
     onboarding: null,
-    subscriptionStatus: 'trialing',
+    subscriptionStatus: 'free',
     subscriptionEndsAt: new Date('2026-06-16T12:00:00Z'),
     createdByUserId: 'user-1',
     members: [
@@ -147,7 +147,7 @@ test('sends the no-data branch of what-to-track on day 2', async () => {
   });
 });
 
-test('completes onboarding when the org subscribed before the trial emails', async () => {
+test('completes onboarding once a subscribed org is past the last email', async () => {
   organizationFindMany.mockResolvedValue([
     org({
       onboarding: 'onboarding-feature-request',
@@ -166,40 +166,32 @@ test('completes onboarding when the org subscribed before the trial emails', asy
   });
 });
 
-test('populates recommendedPlan and trial stats in the trial-ending email', async () => {
-  // `recommendedPlan` must not read subscriptionPeriodEventsCount, which is always 0
-  // for trial orgs (no Polar billing period).
+test('never sends trial emails to a free organization', async () => {
+  // Regression: Privytics has no trial, the free plan is permanent. Upstream
+  // mailed "your trial is ending" on day 26 to any org that was not 'active',
+  // which included every free-tier organization. That email is gone; the
+  // sequence now ends at day 14.
   getOrganizationEventsCount.mockResolvedValue(84_211);
   organizationFindMany.mockResolvedValue([
     org({
       onboarding: 'onboarding-feature-request',
-      createdAt: subDays(new Date(), 27),
+      createdAt: subDays(new Date(), 31),
+      subscriptionStatus: 'free',
     }),
   ]);
 
-  await runOnboardingCron(deps, logger);
+  const result = await runOnboardingCron(deps, logger);
 
-  expect(sendEmail).toHaveBeenCalledWith('onboarding-trial-ending', {
-    to: 'user@example.com',
-    data: expect.objectContaining({
-      hasData: true,
-      eventsCount: 84_211,
-      trialEndDate: 'June 16',
-      // Compact-number casing (100K vs 100k) is ICU-version dependent and
-      // differs between macOS and Linux/CI, so match case-insensitively.
-      recommendedPlan: expect.stringMatching(
-        /100k events per month for \$20\.00/i
-      ),
-    }),
-  });
-  // Memoized — one query even though both data and recommendedPlan use it.
-  expect(getOrganizationEventsCount).toHaveBeenCalledTimes(1);
+  expect(sendEmail).not.toHaveBeenCalled();
+  expect(result).toMatchObject({ emailsSent: 0, orgsCompleted: 1 });
 });
 
 test('marks onboarding completed once every email has been sent', async () => {
   organizationFindMany.mockResolvedValue([
     org({
-      onboarding: 'onboarding-trial-ending',
+      // The sequence now ends at the day-14 feature-request email; the day-26
+      // trial email was removed with the trial itself.
+      onboarding: 'onboarding-feature-request',
       createdAt: subDays(new Date(), 31),
     }),
   ]);

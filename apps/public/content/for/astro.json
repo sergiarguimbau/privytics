@@ -1,0 +1,95 @@
+{
+  "slug": "astro",
+  "kind": "sdk",
+  "name": "Astro",
+  "category": "Web",
+  "title": "Astro analytics with Privytics, cookieless and EU-hosted",
+  "description": "Add analytics to your Astro site with the @openpanel/astro component. Cookieless by default, event data stored in Germany, and setup takes a few lines.",
+  "tagline": "Cookieless analytics for Astro, hosted in the EU.",
+  "intro": "Privytics gives your Astro site page views, custom events and funnels without setting a single cookie. You add one component to your root layout, point it at the Privytics API, and every page rendered through that layout is tracked. It works the same whether your site is fully static, server-rendered, or a mix of both.",
+  "docsUrl": "https://openpanel.dev/docs/sdks/astro",
+  "why": [
+    {
+      "title": "One component covers every page",
+      "body": "Astro sites almost always share a single root layout. Drop OpenPanelComponent into that layout's <head> once and every route inherits tracking. There is no per-page wiring and no provider tree to thread through."
+    },
+    {
+      "title": "Works with static output",
+      "body": "The component renders a plain <script> tag plus a small inline init snippet, so it survives `astro build` to fully static HTML on a CDN. You do not need an SSR adapter or a server runtime just to collect analytics."
+    },
+    {
+      "title": "Track clicks without shipping an island",
+      "body": "Astro ships zero JavaScript by default and adding a React or Vue island just to fire an event defeats that. With trackAttributes enabled you put data-track on ordinary markup, or call window.op inline, and no framework component is involved."
+    },
+    {
+      "title": "No cookie banner for the analytics itself",
+      "body": "Astro is built for content and marketing sites, where a consent dialog is the first thing a visitor meets. Privytics is cookieless and writes nothing to the visitor's device, so the analytics does not add a reason to show one. You are still the controller and decide what your site needs overall."
+    }
+  ],
+  "steps": [
+    {
+      "title": "Install the SDK",
+      "body": "The Astro package is published by OpenPanel under the @openpanel scope. Privytics is built on the open-source OpenPanel engine, so you use the upstream package name.",
+      "lang": "bash",
+      "code": "pnpm install @openpanel/astro"
+    },
+    {
+      "title": "Add the component to your root layout",
+      "body": "Put it in the <head> of the layout every page uses. apiUrl is required: leave it out and the component falls back to OpenPanel's own host, so your events never reach Privytics. clientId identifies your project. scriptUrl is optional. The component defaults to https://openpanel.dev/op1.js and works fine that way, but we point it at https://privytics.com/op1.js so the tracker is served from a domain we control rather than a third party. The tracking options all default to false, so enable the ones you want.",
+      "lang": "astro",
+      "code": "---\nimport { OpenPanelComponent } from '@openpanel/astro';\n---\n\n<html>\n  <head>\n    <OpenPanelComponent\n      apiUrl=\"https://api.privytics.com\"\n      scriptUrl=\"https://privytics.com/op1.js\"\n      clientId=\"YOUR_CLIENT_ID\"\n      trackScreenViews={true}\n      trackOutgoingLinks={true}\n      trackAttributes={true}\n    />\n  </head>\n  <body>\n    <slot />\n  </body>\n</html>"
+    },
+    {
+      "title": "Track a custom event",
+      "body": "Call the global op function inline, or use data attributes. The data-track form requires trackAttributes={true} from the previous step. Extra data-* attributes on the same element are sent as event properties.",
+      "lang": "astro",
+      "code": "<button onclick=\"window.op('track', 'signup_clicked')\">Sign up</button>\n\n<button data-track=\"pricing_viewed\" data-plan=\"pro\">See pricing</button>"
+    },
+    {
+      "title": "Identify a signed-in user",
+      "body": "Optional. Render IdentifyComponent on pages where you know who the visitor is to link sessions into one profile. This is opt-in and you need your own lawful basis for it.",
+      "lang": "astro",
+      "code": "---\nimport { IdentifyComponent } from '@openpanel/astro';\n---\n\n<IdentifyComponent\n  profileId=\"123\"\n  firstName=\"Joe\"\n  lastName=\"Doe\"\n  email=\"joe@doe.com\"\n  properties={{\n    tier: 'premium',\n  }}\n/>"
+    }
+  ],
+  "faq": [
+    {
+      "q": "Does this work with a fully static Astro site?",
+      "a": "Yes. The component outputs the tracker script tag and its init snippet during the build, so the generated HTML carries the tracker and no server runtime is required. Static hosting on any CDN is fine."
+    },
+    {
+      "q": "Do I need a cookie banner to use analytics on my Astro site?",
+      "a": "Privytics is cookieless and stores nothing on the device, so the analytics itself does not create that requirement. You remain the data controller and other parts of your site may still need consent, so check your own situation."
+    },
+    {
+      "q": "How do I track page views in Astro?",
+      "a": "Set trackScreenViews={true} on OpenPanelComponent. Page views are then recorded automatically and you do not need to call anything per route."
+    },
+    {
+      "q": "Can I track a button click without adding a React or Vue island?",
+      "a": "Yes. Enable trackAttributes and add data-track to any plain element, or call window.op('track', 'event_name') from an inline onclick. Neither approach loads a framework."
+    }
+  ],
+  "sourcesUsed": [
+    "https://openpanel.dev/docs/sdks/astro (refetched during verification)",
+    "https://registry.npmjs.org/@openpanel/astro (name @openpanel/astro, latest 1.4.1, peer astro ^4.0.0 || ^5.0.0)",
+    "/Users/sergi/Documents/dev/openpanel-main-2026/apps/public/content/docs/(tracking)/sdks/astro.mdx",
+    "/Users/sergi/Documents/dev/openpanel-main-2026/packages/sdks/astro/package.json",
+    "/Users/sergi/Documents/dev/openpanel-main-2026/packages/sdks/astro/index.ts",
+    "/Users/sergi/Documents/dev/openpanel-main-2026/packages/sdks/astro/src/OpenPanelComponent.astro",
+    "/Users/sergi/Documents/dev/openpanel-main-2026/packages/sdks/astro/src/IdentifyComponent.astro",
+    "/Users/sergi/Documents/dev/openpanel-main-2026/apps/public/src/components/common-sdk-config.mdx",
+    "/Users/sergi/Documents/dev/openpanel-main-2026/apps/public/src/components/web-sdk-config.mdx"
+  ],
+  "omitted": [
+    "scriptUrl is RESTORED in the init snippet as https://privytics.com/op1.js, now confirmed: the file exists at apps/public/public/op1.js and is served as a static asset by this marketing site itself (the earlier HTTP 522 was only because privytics.com is not deployed yet). Context worth keeping: OpenPanelComponent.astro hardcodes CDN_URL = 'https://openpanel.dev/op1.js' and renders <script src={scriptUrl ?? cdnUrl ?? CDN_URL}>, so scriptUrl is optional and the component works without it. We set it so the tracker comes from a domain we control rather than a third party. apiUrl is the one that genuinely must be set, otherwise ingestion goes to OpenPanel's host.",
+    "cdnUrl: documented upstream but marked deprecated in both the docs and the component's Props type. Deliberately not shown.",
+    "The 'daily-rotating salted hash' visitor-id claim was removed from the cookieless section. It is a product-level privacy claim not evidenced by the SDK docs or source, so the copy now only asserts what is verifiable: the SDK is cookieless and writes nothing to the device.",
+    "Astro View Transitions / ClientRouter: the docs say nothing about whether trackScreenViews fires on astro:page-load soft navigations, so no claim is made either way. Worth confirming before writing about it.",
+    "npm and yarn install commands: the doc page shows only the pnpm form (`pnpm install @openpanel/astro`), kept verbatim rather than inventing equivalents.",
+    "Server-side tracking from Astro API endpoints or SSR pages: the Astro doc page covers only the client component. clientSecret is a documented common option but has no Astro example.",
+    "sessionReplay: a documented web option, but the Astro page shows no example of passing it through the component, so it is left out of the snippets.",
+    "filter, globalProperties, profileId (as a prop on OpenPanelComponent), and SetGlobalPropertiesComponent are all real and documented upstream, but omitted to keep setup to essentials. Note filter on the Astro component must be a STRINGIFIED function that closes over nothing, which is unusual enough to deserve its own section if added later.",
+    "Supported Astro version: npm 1.4.1 declares peer astro ^4 || ^5, while the local checkout declares ^4 || ^5 || ^6. Because published and in-development ranges differ, no version range is stated on the page."
+  ]
+}

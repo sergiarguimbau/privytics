@@ -10,6 +10,7 @@ export const zUsageNearLimit = z.object({
   billingUrl: z.string(),
   eventsCount: z.number(),
   eventsLimit: z.number(),
+  isFreePlan: z.boolean().default(false),
 });
 
 const formatNumber = (count: number) =>
@@ -20,9 +21,10 @@ export default UsageNearLimit;
 export function UsageNearLimit({
   firstName,
   organizationName,
-  billingUrl = 'https://dashboard.openpanel.dev',
+  billingUrl = 'https://app.privytics.com',
   eventsCount,
   eventsLimit,
+  isFreePlan,
   unsubscribeUrl,
 }: Props & { unsubscribeUrl?: string }) {
   const percent = Math.round((eventsCount / eventsLimit) * 100);
@@ -33,11 +35,19 @@ export function UsageNearLimit({
         Heads up: {organizationName} has used {formatNumber(eventsCount)} of its{' '}
         {formatNumber(eventsLimit)} monthly events ({percent}%).
       </Text>
-      <Text>
-        If you go over the limit, we keep collecting every event — nothing is
-        lost — but your charts stop showing new data until you upgrade or the
-        next billing cycle starts.
-      </Text>
+      {isFreePlan ? (
+        <Text>
+          Once you reach the limit, new events are not collected until next
+          month starts or you choose a plan. Everything collected before that
+          is safe.
+        </Text>
+      ) : (
+        <Text>
+          If you go over the limit, we keep collecting every event, so nothing
+          is lost, but your charts stop showing new data until you upgrade or
+          the next billing cycle starts.
+        </Text>
+      )}
       <Text>
         <Button href={withUtm(billingUrl, 'usage-near-limit')}>
           See usage &amp; plans
@@ -47,7 +57,7 @@ export function UsageNearLimit({
         Questions about which plan fits? Reply to this email and I'll help you
         pick.
       </Text>
-      <Text>Carl</Text>
+      <Text>The Privytics team</Text>
     </Layout>
   );
 }
@@ -55,7 +65,7 @@ export function UsageNearLimit({
 UsageNearLimit.PreviewProps = {
   firstName: 'Alex',
   organizationName: 'Acme',
-  billingUrl: 'https://dashboard.openpanel.dev/org-id/billing',
+  billingUrl: 'https://app.privytics.com/org-id/billing',
   eventsCount: 4200,
   eventsLimit: 5000,
 };

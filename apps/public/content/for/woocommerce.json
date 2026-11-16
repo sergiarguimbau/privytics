@@ -1,0 +1,82 @@
+{
+  "slug": "woocommerce",
+  "kind": "sdk",
+  "name": "WooCommerce",
+  "category": "Web",
+  "title": "Track WooCommerce orders and revenue",
+  "tagline": "See orders and revenue next to your traffic, cookieless and EU-hosted.",
+  "description": "Add one small snippet to your WooCommerce store so orders and revenue show up right next to your traffic in Privytics. Cookieless, hosted in the EU, and works with any payment gateway.",
+  "intro": "You already track page views on your store with the Privytics WordPress guide. This guide adds one more snippet so your orders and revenue show up right next to your traffic, so you can see which pages and campaigns actually turn into sales. It is cookieless, hosted in the EU, and works with any payment gateway. There is just one small piece of code to paste. You do not need to read it or understand it, just drop it in and you are done.",
+  "why": [
+    {
+      "title": "Revenue next to your traffic",
+      "body": "Every completed order lands in the same dashboard as your visits, so you never have to jump between WooCommerce reports and your analytics to see how the store is doing."
+    },
+    {
+      "title": "See what actually sells",
+      "body": "Because orders sit right beside traffic, you can see which pages, campaigns, and traffic sources turn into real sales instead of just clicks."
+    },
+    {
+      "title": "Works with any payment gateway",
+      "body": "It hooks into WooCommerce itself rather than one specific provider, so Stripe, PayPal, and every other gateway get counted the same way."
+    },
+    {
+      "title": "Cookieless and EU-hosted",
+      "body": "No cookie banner needed for anonymous visitors, and your data is stored in the EU, so you get clean numbers without adding any privacy overhead to your checkout."
+    }
+  ],
+  "steps": [
+    {
+      "title": "Set up page views first",
+      "body": "Order tracking builds on the page-view tracking from the Privytics WordPress guide. If page views already show up in Privytics, you are all set here, so skip to step 2. If not, follow the WordPress guide first and then come back.",
+      "lang": "text",
+      "code": "Follow the Privytics WordPress guide to add page-view tracking first.\nAlready seeing page views in Privytics? Skip to step 2."
+    },
+    {
+      "title": "Add order tracking",
+      "body": "This is the only code you need. In your WordPress admin open WPCode, choose Add Snippet, then PHP Snippet, paste the code below, and set it to run everywhere. If you prefer, you can paste the same code at the end of your child theme's functions.php instead. You do not need to read or change any of it, just paste it and save.",
+      "lang": "php",
+      "code": "add_action( 'woocommerce_thankyou', 'privytics_track_order' );\n\nfunction privytics_track_order( $order_id ) {\n\t$order = wc_get_order( $order_id );\n\n\t// Send each order only once, even if the thank-you page is refreshed.\n\tif ( ! $order || $order->get_meta( '_privytics_tracked' ) ) {\n\t\treturn;\n\t}\n\t$order->update_meta_data( '_privytics_tracked', 'yes' );\n\t$order->save();\n\n\t$data = array(\n\t\t'revenue'  => (float) $order->get_total(),\n\t\t'currency' => $order->get_currency(),\n\t\t'order_id' => (string) $order->get_order_number(),\n\t);\n\n\techo '<script>window.op(\"track\",\"purchase_completed\",'\n\t\t. wp_json_encode( $data, JSON_HEX_TAG | JSON_HEX_AMP ) . ');</script>';\n}"
+    },
+    {
+      "title": "Check it worked",
+      "body": "Place a test order in your store and complete the checkout. Within a minute or two, open Privytics and look for a purchase_completed event with the order revenue on it. If you see it, order tracking is live.",
+      "lang": "text",
+      "code": "Place a test order, then open Privytics and look for a purchase_completed event with the order revenue."
+    }
+  ],
+  "faq": [
+    {
+      "q": "Do I need a developer?",
+      "a": "For page views, no, the Privytics WordPress guide is a copy-and-paste setup. For orders, you paste one PHP snippet into WPCode. That snippet is the only code involved, and you do not need to understand it, just drop it in and save."
+    },
+    {
+      "q": "Will ad blockers affect my order counts?",
+      "a": "It can, a little. Order tracking runs in the shopper's browser, so the small share of shoppers who block scripts will not be counted, and some setups that do not return the shopper to the thank-you page, like classic PayPal Standard, can be missed too. For most stores this is a tiny fraction of orders. If you need exact counts, a fully reliable server-side version is available that counts every paid order straight from your server. Just ask Privytics for it."
+    },
+    {
+      "q": "Does it work with Stripe, PayPal, and other gateways?",
+      "a": "Yes. It uses WooCommerce's own order hooks rather than anything specific to a gateway, so Stripe, PayPal, and the rest all work the same way. The one thing to watch is off-site gateways that do not send the shopper back to your thank-you page, since the browser snippet needs that page to load. The server-side version mentioned above avoids that entirely."
+    },
+    {
+      "q": "Is it cookieless, where is my data stored, and what does it cost?",
+      "a": "It is fully cookieless, so it needs no cookie banner of its own. Your data is stored in Germany, inside the EU. The free tier includes 10,000 events a month with 12 months of retention, and paid plans add session replay and 5 years of event history."
+    }
+  ],
+  "sourcesUsed": [
+    "https://developer.wordpress.org/reference/functions/wp_json_encode/",
+    "https://woocommerce.github.io/code-reference/classes/WC-Order.html",
+    "https://developer.woocommerce.com/docs/features/high-performance-order-storage/ (HPOS: use CRUD get_meta/update_meta_data/save, not get_post_meta)",
+    "https://raw.githubusercontent.com/woocommerce/woocommerce/trunk/plugins/woocommerce/templates/checkout/thankyou.php (woocommerce_thankyou fires on the order-received page with $order_id)",
+    "https://openpanel.dev/docs/sdks/script",
+    "https://wordpress.org/plugins/insert-headers-and-footers/ (WPCode, PHP Snippet)",
+    "Local repo: apps/api/src/routes/track.router.ts, apps/api/src/utils/auth.ts (verified ingestion contract), packages/validation/src/track.validation.ts (zTrackPayload: name required, properties optional flat record; __revenue integer refine only applies when name==='revenue'), packages/sdks/web/src/index.ts + init-snippet.ts (window.op queue shape)"
+  ],
+  "omitted": [
+    "Dropped the separate server-side tracking step to keep the guide to one snippet; the server-side method (a POST to https://api.privytics.com/track) is now only mentioned in words in FAQ 2, with code available on request.",
+    "The client-side purchase_completed event is session-attributed, tied to the shopper's existing page-view session, which is a feature here rather than a caveat, so it is not called out on the page.",
+    "get_total() returns the gross order total including tax, shipping, and discounts; not explained on the page to avoid complexity.",
+    "The _privytics_tracked dedup is HPOS-safe because it uses WooCommerce CRUD (get_meta/update_meta_data/save) rather than get_post_meta; not explained on the page.",
+    "The __revenue-integer nuance: a plain 'revenue' property is stored as a custom property, not OpenPanel's built-in revenue metric, which keys off an integer properties.__revenue; omitted to avoid confusing non-technical readers."
+  ]
+}

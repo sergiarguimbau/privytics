@@ -325,7 +325,7 @@ function Cell<Row>({
       {share !== null && column.decorate === 'bar' && (
         <span
           aria-hidden
-          className="absolute inset-y-2 left-0 rounded-r bg-def-200 group-hover/row:bg-blue-200 dark:group-hover/row:bg-blue-900"
+          className="absolute inset-y-2 left-0 rounded-r bg-def-200 group-hover/row:bg-teal-200 dark:group-hover/row:bg-teal-900"
           style={{ width: `${share * 100}%` }}
         />
       )}

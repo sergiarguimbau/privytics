@@ -1,0 +1,98 @@
+{
+  "slug": "express",
+  "kind": "sdk",
+  "name": "Express",
+  "title": "Express analytics middleware, cookieless and EU-hosted data",
+  "description": "Add product analytics to Express with the @openpanel/express middleware. Server-side events, no cookies, and event data stored in Germany on Privytics.",
+  "tagline": "Track events from your Express routes. Cookieless, EU-hosted, a few lines to wire up.",
+  "category": "Backend",
+  "intro": "Privytics tracks Express apps through `@openpanel/express`, a middleware that wraps the OpenPanel JavaScript SDK and attaches an SDK instance to every request as `req.op`. You call `req.op.track()` inside your route handlers, so events are sent from your server rather than from the browser. Setup is one install, one `app.use()` call, and a track call wherever something worth measuring happens.",
+  "why": [
+    {
+      "title": "Server-side events are not blocked",
+      "body": "Events leave your own Express process and go straight to https://api.privytics.com. There is no browser script for content blockers, privacy extensions, or ITP to intercept, so backend counts stay complete even when frontend analytics is stripped out."
+    },
+    {
+      "title": "You already have the truth on the server",
+      "body": "Sign-ups, payments, plan changes and API usage are all confirmed in your route handlers. Tracking them where they actually succeed avoids the usual browser problem of firing an event for something that later failed server-side."
+    },
+    {
+      "title": "No cookies to add to a backend",
+      "body": "Privytics is cookieless by default and writes nothing to the device, so adding analytics to an Express API does not introduce a cookie banner, a session cookie, or new state you have to carry through your middleware chain."
+    },
+    {
+      "title": "Per-route control over what gets tracked",
+      "body": "The middleware takes `trackRequest(url)` and `getProfileId(req)`, so you can keep health checks, webhooks and static routes out of your data and attach your own authenticated user id to everything else without a separate identify call on each route."
+    }
+  ],
+  "steps": [
+    {
+      "title": "Install the package",
+      "body": "The package declares Express as a peer dependency and supports Express 4.17 and above as well as Express 5.",
+      "lang": "bash",
+      "code": "pnpm install @openpanel/express"
+    },
+    {
+      "title": "Add the middleware",
+      "body": "The default export returns an Express middleware and attaches the SDK to `req.op`. Point `apiUrl` at Privytics. `clientSecret` is required because these are server-side events. `trackRequest` and `getProfileId` are optional.",
+      "lang": "ts",
+      "code": "import express from 'express';\n\nimport createOpenpanelMiddleware from '@openpanel/express';\n\nconst app = express();\n\napp.use(\n  createOpenpanelMiddleware({\n    apiUrl: 'https://api.privytics.com',\n    clientId: 'YOUR_CLIENT_ID',\n    clientSecret: 'YOUR_CLIENT_SECRET',\n    // trackRequest(url) {\n    //   return url.includes('/v1')\n    // },\n    // getProfileId(req) {\n    //   return req.user.id\n    // }\n  })\n);\n\napp.listen(3000);"
+    },
+    {
+      "title": "Track an event in a route handler",
+      "body": "Use `req.op.track()` with an event name and any properties you want to break the numbers down by.",
+      "lang": "ts",
+      "code": "app.get('/sign-up', (req, res) => {\n  // track sign up events\n  req.op.track('sign-up', {\n    email: req.body.email,\n  });\n  res.send('Hello World');\n});"
+    },
+    {
+      "title": "Identify a user and their company",
+      "body": "On an authenticated route you can attach your own user id for cross-session profiles, and group events under an account with `upsertGroup` and `setGroup`.",
+      "lang": "ts",
+      "code": "app.post('/login', async (req, res) => {\n  const user = await loginUser(req.body);\n\n  // Identify the user\n  req.op.identify({ profileId: user.id, email: user.email });\n\n  // Create/update the group entity\n  req.op.upsertGroup({\n    id: user.organizationId,\n    type: 'company',\n    name: user.organizationName,\n    properties: { plan: user.plan },\n  });\n\n  // Assign the user to the group\n  req.op.setGroup(user.organizationId);\n\n  res.json({ ok: true });\n});"
+    }
+  ],
+  "faq": [
+    {
+      "q": "Why is req.op not typed in TypeScript?",
+      "a": "The middleware adds `op` to the request object at runtime, so TypeScript needs a declaration to know about it. Add this to a `.d.ts` file or any module in your project:\n\n```ts\nimport { OpenPanel } from '@openpanel/express';\n\ndeclare global {\n  namespace Express {\n    export interface Request {\n      op: OpenPanel;\n    }\n  }\n}\n```"
+    },
+    {
+      "q": "Do I need a client secret for Express?",
+      "a": "Yes. `clientSecret` is required for server-side events, unlike browser SDKs where the client id alone is enough. Keep it in an environment variable and never ship it to a frontend bundle."
+    },
+    {
+      "q": "Which versions of Express are supported?",
+      "a": "The package declares `express` as a peer dependency with the range `^4.17.0 || ^5.0.0`, so Express 4.17 and later on the 4.x line, and Express 5, are both supported."
+    },
+    {
+      "q": "Does Express analytics use cookies?",
+      "a": "No. Privytics is cookieless by default and stores nothing on the device. On the server side there is no device to identify in the first place, so the way you get stable profiles is to call `identify()` with your own user id, or to return one from `getProfileId(req)`. That is opt-in and needs your own lawful basis. For browser traffic, the anonymous visitor id is a daily-rotating salted hash of IP, user agent and project id that rotates at midnight UTC."
+    },
+    {
+      "q": "How do I stop tracking health checks and internal routes?",
+      "a": "Pass a `trackRequest(url)` function to the middleware and return `false` for the paths you want to skip. There is also a `filter` option that runs before an event is sent and drops it if it returns false, plus `disabled` to turn sending off entirely in local or test environments."
+    },
+    {
+      "q": "Where is the data stored?",
+      "a": "Event data is stored in EU data centres in Germany. Privytics is a managed service built on the open-source OpenPanel engine (AGPL-3.0) and is not affiliated with, endorsed by, or sponsored by OpenPanel. The SDK packages are OpenPanel's, published under the @openpanel npm scope."
+    }
+  ],
+  "docsUrl": "https://openpanel.dev/docs/sdks/express",
+  "sourcesUsed": [
+    "https://openpanel.dev/docs/sdks/express",
+    "https://registry.npmjs.org/@openpanel/express",
+    "https://openpanel.dev/docs/how-it-works",
+    "https://api.github.com/repos/Openpanel-dev/openpanel"
+  ],
+  "omitted": [
+    "The npm web page for @openpanel/express returned HTTP 403, so the package name and version (1.3.1, MIT licensed) were confirmed via the npm registry API instead. The registry README matches the docs page snippet for snippet.",
+    "No flush, shutdown or await-on-track behaviour is documented, so nothing is said about draining pending events before process exit. Left out rather than guessed.",
+    "No page-view or automatic request-event name is documented, so the page does not state what the middleware sends automatically for tracked requests beyond the fact that trackRequest controls which requests are tracked.",
+    "The default value of apiUrl is not shown in the docs, so the snippets set it explicitly rather than describing what it falls back to.",
+    "The script tag and scriptUrl are not applicable to a backend SDK and are not mentioned. scriptUrl is only relevant to the Next.js style component.",
+    "Session replay is browser-only and paid-plan-only, so it is not referenced on this page.",
+    "docs.openpanel.dev appears in search results but does not resolve (DNS failure), so only openpanel.dev was used.",
+    "Corrected during verification: an earlier draft claimed no Express version range was documented. The registry metadata does declare peerDependencies express ^4.17.0 || ^5.0.0, so that claim was removed and the real range is now stated in the install step and FAQ.",
+    "Corrected during verification: the cookieless FAQ previously offered the daily-rotating IP and user-agent hash as the visitor-id story for Express. That mechanism is real and documented, but every server-side event originates from your server's IP, so the answer now leads with identify() and getProfileId() as the server-side identity path."
+  ]
+}

@@ -15,7 +15,7 @@ import React from 'react';
 
 export * from '@openpanel/web';
 
-const CDN_URL = 'https://openpanel.dev/op1.js';
+const CDN_URL = 'https://privytics.com/op1.js';
 
 type OpenPanelComponentProps = Omit<OpenPanelOptions, 'filter'> & {
   profileId?: string;

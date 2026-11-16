@@ -174,7 +174,7 @@ export class S3Adapter implements IObjectStoreAdapter {
       ExternalId?: string;
     } = {
       RoleArn: this.config.roleArn,
-      RoleSessionName: 'OpenPanelExport',
+      RoleSessionName: 'PrivyticsExport',
       DurationSeconds: 3600, // 1 hour
     };
 

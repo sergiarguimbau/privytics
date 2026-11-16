@@ -47,7 +47,7 @@ export function OnboardingWhatToTrack({
       ) : (
         <>
           <Text>
-            You created your OpenPanel account two days ago, but no events have
+            You created your Privytics account two days ago, but no events have
             come in yet.
           </Text>
           <Text>
@@ -55,7 +55,7 @@ export function OnboardingWhatToTrack({
             blocking the script. Both are quick to sort out:{' '}
             <Link
               href={withUtm(
-                'https://openpanel.dev/docs/get-started/install-openpanel',
+                'https://privytics.com/docs',
                 'onboarding-what-to-track'
               )}
             >
@@ -69,7 +69,7 @@ export function OnboardingWhatToTrack({
           </Text>
         </>
       )}
-      <Text>Carl</Text>
+      <Text>The Privytics team</Text>
     </Layout>
   );
 }

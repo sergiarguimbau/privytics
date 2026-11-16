@@ -1,0 +1,17 @@
+# Do NOT add `apps/public/** merge=ours` here. It was tried, and it silently did
+# the opposite of what it looks like.
+#
+# During a REBASE git replays our commits on top of upstream, so the merge
+# machinery's "ours" is the branch being replayed ONTO (upstream/main) and
+# "theirs" is our own commit. A `merge=ours` driver therefore keeps UPSTREAM's
+# file and discards ours. Worse, the resulting commit becomes an empty no-op, so
+# git drops it and reports the rebase as clean. Verified in a scratch repo: an
+# overlay commit touching a `merge=ours` path was dropped with "patch contents
+# already upstream", leaving upstream's content in place.
+#
+# Our apps/public shares 15 paths with upstream's marketing site, including
+# next.config.mjs, package.json and public/op1.js, so this was a live risk of
+# silently reverting our own config and tracker to OpenPanel's.
+#
+# We now rebase manually and resolve apps/public conflicts by hand, always
+# keeping our version. See docs/upstream-sync.md.

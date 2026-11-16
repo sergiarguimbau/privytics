@@ -4,7 +4,7 @@ export interface SnippetContext {
   clientId: string;
   /** Known only in the browser session that created the client. */
   clientSecret: string | null;
-  /** Set on self-hosted installs so snippets point at the right API. */
+  /** Ingestion host. Always set on Privytics: the published SDKs default to OpenPanel's host. */
   apiUrl: string | null;
 }
 
@@ -15,7 +15,9 @@ export interface InstallSnippet {
 }
 
 const SECRET_PLACEHOLDER = 'YOUR_CLIENT_SECRET';
-export const SCRIPT_URL = 'https://openpanel.dev/op1.js';
+// The published @openpanel/nextjs and @openpanel/astro components otherwise
+// load op1.js from openpanel.dev, so their snippets pass it as scriptUrl.
+export const SCRIPT_URL = 'https://privytics.com/op1.js';
 
 const secretOf = (context: SnippetContext) =>
   context.clientSecret ?? SECRET_PLACEHOLDER;
@@ -74,7 +76,7 @@ op.track('my_event', { foo: 'bar' });`,
 }
 
 const trackUrl = (context: SnippetContext) =>
-  `${context.apiUrl ?? 'https://api.openpanel.dev'}/track`;
+  `${context.apiUrl ?? 'https://api.privytics.com'}/track`;
 
 export function curlSnippet(context: SnippetContext, eventName: string) {
   return `curl -X POST ${trackUrl(context)} \\
@@ -113,6 +115,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body>
         <OpenPanelComponent${context.apiUrl ? `\n          apiUrl="${context.apiUrl}"` : ''}
+          scriptUrl="${SCRIPT_URL}"
           clientId="${context.clientId}"
           trackScreenViews={true}
           trackOutgoingLinks={true}
@@ -161,6 +164,7 @@ import { OpenPanelComponent } from '@openpanel/astro';
 <html>
   <head>
     <OpenPanelComponent${context.apiUrl ? `\n      apiUrl="${context.apiUrl}"` : ''}
+      scriptUrl="${SCRIPT_URL}"
       clientId="${context.clientId}"
       trackScreenViews={true}
       trackOutgoingLinks={true}

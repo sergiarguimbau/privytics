@@ -21,8 +21,6 @@ export type SubscriptionStateMeta = {
   } | null;
   /** Inline status line on the billing page, or null. */
   statusLine: { text: string; tone: Tone } | null;
-  /** BillingPrompt copy key when this state blocks the dashboard. */
-  blockType: 'expired' | 'trialEnded' | 'unpaid' | 'paused' | null;
 };
 
 const fmt = (date: Date | null | undefined) =>
@@ -30,8 +28,12 @@ const fmt = (date: Date | null | undefined) =>
 
 /**
  * Single source of truth for how every subscription state is presented across
- * the dashboard (billing page status line, app banner, sidebar badge, and the
- * blocking BillingPrompt). All lifecycle dates come from `subscriptionEndsAt`.
+ * the dashboard (billing page status line, app banner, sidebar badge). All
+ * lifecycle dates come from `subscriptionEndsAt`.
+ *
+ * Privytics has no trial and never blocks the dashboard: a paid plan that ends
+ * drops the organization to the permanent free tier, so the copy here talks
+ * about moving to the free plan rather than losing access.
  */
 export function getSubscriptionStateMeta(
   state: SubscriptionState,
@@ -42,7 +44,6 @@ export function getSubscriptionStateMeta(
   }
 ): SubscriptionStateMeta {
   const endsAt = fmt(opts.endsAt);
-  const canceledAt = fmt(opts.canceledAt);
   const resumesAt = fmt(opts.resumesAt);
 
   switch (state) {
@@ -54,38 +55,16 @@ export function getSubscriptionStateMeta(
         statusLine: endsAt
           ? { text: `Your subscription renews on ${endsAt}`, tone: 'default' }
           : null,
-        blockType: null,
       };
 
-    case 'trialing':
+    case 'free':
       return {
-        badge: { label: 'Trial', variant: 'secondary' },
-        banner: {
-          title: 'Free trial',
-          description: endsAt
-            ? `Your organization is on a free trial. It ends on ${endsAt}.`
-            : 'Your organization is on a free trial.',
-          cta: 'Upgrade from $2.5/month',
+        badge: { label: 'Free', variant: 'secondary' },
+        banner: null,
+        statusLine: {
+          text: 'You are on the free plan. Upgrade any time to raise your limit and unlock session replay.',
           tone: 'default',
         },
-        statusLine: endsAt
-          ? { text: `Your trial ends on ${endsAt}`, tone: 'default' }
-          : null,
-        blockType: null,
-      };
-
-    case 'trial_expired':
-      return {
-        badge: { label: 'Trial ended', variant: 'destructive' },
-        banner: {
-          title: 'Trial ended',
-          description:
-            'Your free trial has ended. Upgrade to keep using OpenPanel.',
-          cta: 'Upgrade',
-          tone: 'destructive',
-        },
-        statusLine: { text: 'Your free trial has ended.', tone: 'destructive' },
-        blockType: 'trialEnded',
       };
 
     case 'canceling':
@@ -94,38 +73,17 @@ export function getSubscriptionStateMeta(
         banner: {
           title: 'Subscription will be canceled',
           description: endsAt
-            ? `You have canceled your subscription. It will be canceled on ${endsAt} — reactivate it to keep your access.`
-            : 'You have canceled your subscription. Reactivate it to keep your access.',
+            ? `You have canceled your subscription. On ${endsAt} your organization moves to the free plan. Reactivate to keep your current limits.`
+            : 'You have canceled your subscription. Your organization will move to the free plan at the end of the period. Reactivate to keep your current limits.',
           cta: 'Reactivate',
           tone: 'warning',
         },
         statusLine: endsAt
           ? {
-              text: `Your subscription will be canceled on ${endsAt}`,
-              tone: 'destructive',
+              text: `Your subscription ends on ${endsAt}, then you move to the free plan`,
+              tone: 'warning',
             }
           : null,
-        blockType: null,
-      };
-
-    case 'canceled':
-      return {
-        badge: { label: 'Canceled', variant: 'destructive' },
-        banner: {
-          title: 'Subscription canceled',
-          description: canceledAt
-            ? `Your subscription was canceled on ${canceledAt}. Choose a plan to regain access.`
-            : 'Your subscription was canceled. Choose a plan to regain access.',
-          cta: 'Choose a plan',
-          tone: 'destructive',
-        },
-        statusLine: {
-          text: canceledAt
-            ? `Your subscription was canceled on ${canceledAt}`
-            : 'Your subscription was canceled',
-          tone: 'destructive',
-        },
-        blockType: 'expired',
       };
 
     case 'pausing':
@@ -134,8 +92,8 @@ export function getSubscriptionStateMeta(
         banner: {
           title: 'Subscription will be paused',
           description: endsAt
-            ? `Your subscription pauses on ${endsAt}. We keep collecting your events while it's paused${resumesAt ? `, and billing resumes on ${resumesAt}` : ''}.`
-            : `Your subscription is scheduled to pause at the end of the current period. We keep collecting your events while it's paused.`,
+            ? `Your subscription pauses on ${endsAt}. While it is paused your organization is on the free plan${resumesAt ? `, and billing resumes on ${resumesAt}` : ''}.`
+            : 'Your subscription pauses at the end of the current period. While it is paused your organization is on the free plan.',
           cta: 'Keep subscription',
           tone: 'warning',
         },
@@ -148,7 +106,6 @@ export function getSubscriptionStateMeta(
               text: 'Your subscription will be paused at the end of the current period',
               tone: 'warning',
             },
-        blockType: null,
       };
 
     case 'paused':
@@ -157,8 +114,8 @@ export function getSubscriptionStateMeta(
         banner: {
           title: 'Subscription paused',
           description: resumesAt
-            ? `Your subscription is paused and resumes on ${resumesAt}. Your events are still being collected.`
-            : 'Your subscription is paused. Your events are still being collected — resume any time to pick up where you left off.',
+            ? `Your subscription is paused and resumes on ${resumesAt}. Until then your organization is on the free plan.`
+            : 'Your subscription is paused and your organization is on the free plan. Resume any time to get your plan limits back.',
           cta: 'Resume subscription',
           tone: 'warning',
         },
@@ -168,7 +125,6 @@ export function getSubscriptionStateMeta(
             : 'Your subscription is paused',
           tone: 'warning',
         },
-        blockType: 'paused',
       };
 
     case 'past_due':
@@ -177,32 +133,14 @@ export function getSubscriptionStateMeta(
         banner: {
           title: 'Payment past due',
           description:
-            'Your last payment failed. Update your payment method to avoid losing access.',
+            'Your last payment failed. Update your payment method to stay on your current plan, otherwise your organization moves to the free plan.',
           cta: 'Update payment',
           tone: 'warning',
         },
         statusLine: {
-          text: 'Your last payment failed — please update your payment method.',
+          text: 'Your last payment failed. Please update your payment method.',
           tone: 'destructive',
         },
-        blockType: null,
-      };
-
-    case 'unpaid':
-      return {
-        badge: { label: 'Unpaid', variant: 'destructive' },
-        banner: {
-          title: 'Subscription unpaid',
-          description:
-            'Your subscription is unpaid. Update your payment method to restore access.',
-          cta: 'Update payment',
-          tone: 'destructive',
-        },
-        statusLine: {
-          text: 'Your subscription is unpaid.',
-          tone: 'destructive',
-        },
-        blockType: 'unpaid',
       };
 
     case 'incomplete':
@@ -219,27 +157,6 @@ export function getSubscriptionStateMeta(
           text: 'Your subscription setup is incomplete.',
           tone: 'destructive',
         },
-        blockType: null,
-      };
-
-    case 'expired':
-      return {
-        badge: { label: 'Expired', variant: 'destructive' },
-        banner: {
-          title: 'Subscription expired',
-          description: endsAt
-            ? `Your subscription expired on ${endsAt}. Choose a plan to regain access.`
-            : 'Your subscription expired. Choose a plan to regain access.',
-          cta: 'Choose a plan',
-          tone: 'destructive',
-        },
-        statusLine: {
-          text: endsAt
-            ? `Your subscription expired on ${endsAt}`
-            : 'Your subscription expired',
-          tone: 'destructive',
-        },
-        blockType: 'expired',
       };
 
     default: {

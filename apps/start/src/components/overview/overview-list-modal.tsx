@@ -186,7 +186,7 @@ export function OverviewListModal<T extends OverviewListItem>({
               >
                 <div className="absolute inset-0 overflow-hidden">
                   <div
-                    className="h-full bg-def-200 transition-colors group-hover/row:bg-blue-200 dark:group-hover/row:bg-blue-900"
+                    className="h-full bg-def-200 transition-colors group-hover/row:bg-teal-200 dark:group-hover/row:bg-teal-900"
                     style={{ width: `${percentage * 100}%` }}
                   />
                 </div>

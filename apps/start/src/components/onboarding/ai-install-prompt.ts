@@ -2,6 +2,7 @@ import type { Framework } from '@openpanel/sdk-info';
 import {
   curlSnippet,
   getInstallSnippets,
+  SCRIPT_URL,
   type SnippetContext,
   scriptTagSnippet,
   usesClientSecret,
@@ -33,9 +34,9 @@ const TYPE_LABELS: Record<ProjectType, string> = {
 // the packages we publish so it cannot invent one.
 const PACKAGES_BY_TYPE: Record<ProjectType, string[]> = {
   website: [
-    'Next.js: @openpanel/nextjs (render <OpenPanelComponent clientId="…" /> in the root layout)',
+    `Next.js: @openpanel/nextjs (render <OpenPanelComponent clientId="…" scriptUrl="${SCRIPT_URL}" /> in the root layout)`,
     'Nuxt: @openpanel/nuxt (add the module and an `openpanel` block to nuxt.config)',
-    'Astro: @openpanel/astro (render <OpenPanelComponent /> in the layout head)',
+    `Astro: @openpanel/astro (render <OpenPanelComponent scriptUrl="${SCRIPT_URL}" /> in the layout head)`,
     'React, Vue, Svelte, Remix or any other browser app: @openpanel/web (one shared `new OpenPanel({ clientId })` instance)',
     'Plain HTML or no build step: the script tag at the end of this prompt',
   ],
@@ -63,9 +64,15 @@ function needsSecret(input: AiPromptInput): boolean {
   return input.projectTypes.some((type) => type !== 'website');
 }
 
+function targetsWebsite(input: AiPromptInput): boolean {
+  return input.framework
+    ? input.framework.type.includes('website')
+    : input.projectTypes.includes('website');
+}
+
 function contextLines(input: AiPromptInput): string[] {
   const lines = [
-    `- OpenPanel project: "${input.projectName}" (${describeTarget(input)})`,
+    `- Privytics project: "${input.projectName}" (${describeTarget(input)})`,
     `- Client ID: ${input.context.clientId} (public; fine to ship to a browser)`,
   ];
   if (needsSecret(input)) {
@@ -75,7 +82,12 @@ function contextLines(input: AiPromptInput): string[] {
   }
   if (input.context.apiUrl) {
     lines.push(
-      `- API URL: ${input.context.apiUrl} (self-hosted instance; pass it as the \`apiUrl\` option)`
+      `- API URL: ${input.context.apiUrl} (always pass it as the \`apiUrl\` option; the SDK default is not this service)`
+    );
+  }
+  if (targetsWebsite(input)) {
+    lines.push(
+      `- Script URL: ${SCRIPT_URL} (always pass it as the \`scriptUrl\` option of @openpanel/nextjs and @openpanel/astro, and load the plain script tag from it; the SDK default is not this service)`
     );
   }
   lines.push(
@@ -102,7 +114,7 @@ function installSteps(input: AiPromptInput): string[] {
   }
   const packages = input.projectTypes.flatMap((type) => PACKAGES_BY_TYPE[type]);
   return [
-    '1. Detect the framework from this repository and pick the matching OpenPanel package:',
+    '1. Detect the framework from this repository and pick the matching OpenPanel SDK package (Privytics uses the OpenPanel SDKs):',
     ...packages.map((line) => `   - ${line}`),
     '2. Install it with the package manager this repository already uses, then initialize it once, where the app starts, with the credentials above. Follow its guide for the exact code.',
   ];
@@ -110,12 +122,12 @@ function installSteps(input: AiPromptInput): string[] {
 
 function verificationStep(input: AiPromptInput, number: number): string[] {
   const lines = [
-    `${number}. Make one event reach OpenPanel: start the app and open a screen, or send a test request. The OpenPanel dashboard is open and shows the first event as soon as it arrives.`,
+    `${number}. Make one event reach Privytics: start the app and open a screen, or send a test request. The Privytics dashboard is open and shows the first event as soon as it arrives.`,
   ];
   if (needsSecret(input) && input.context.clientSecret) {
     lines.push(
       '   Test request:',
-      indent(curlSnippet(input.context, 'openpanel_test_event'))
+      indent(curlSnippet(input.context, 'privytics_test_event'))
     );
   }
   return lines;
@@ -142,7 +154,7 @@ export function buildAiInstallPrompt(input: AiPromptInput): string {
     ? steps.length + 1
     : steps.filter((line) => /^\d+\. /.test(line)).length + 1;
   return [
-    'Set up OpenPanel analytics in this repository.',
+    'Set up Privytics analytics (OpenPanel SDKs) in this repository.',
     '',
     'Context',
     ...contextLines(input),

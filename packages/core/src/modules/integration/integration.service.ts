@@ -298,7 +298,7 @@ export async function createOrUpdateSlackIntegration(
   });
   if (!installUrl) {
     throw new TRPCBadRequestError(
-      'Slack is not configured on this OpenPanel deployment'
+      'Slack is not configured on this deployment'
     );
   }
 
@@ -447,7 +447,7 @@ export async function completeSlackOAuthCallback(
     fetcher: safeWebhookFetcher,
     webhookUrl: parsedJson.data.incoming_webhook.url,
     message:
-      '👋 Hello. You have successfully connected OpenPanel.dev to your Slack workspace.',
+      '👋 Hello. You have successfully connected Privytics to your Slack workspace.',
   });
 
   await db.integration.update({

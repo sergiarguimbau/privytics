@@ -1,0 +1,97 @@
+{
+  "slug": "java",
+  "kind": "sdk",
+  "name": "Java",
+  "title": "Java analytics SDK, cookieless and EU-hosted event tracking",
+  "description": "Track events from any Java backend with the OpenPanel Java SDK. Cookieless by default, event data stored in Germany. Setup takes a few lines.",
+  "tagline": "Server-side event tracking for JVM backends, cookieless and hosted in Germany.",
+  "category": "Backend",
+  "intro": "Privytics collects product analytics from Java backends using the OpenPanel Java SDK, a community-maintained library targeting Java 11+. It is a plain JVM library with no framework coupling, so it drops into any Java application. You add one dependency, build a client with your client ID and secret, and point apiUrl at https://api.privytics.com. Tracking calls are asynchronous and return CompletableFuture, so they do not block your request threads.",
+  "why": [
+    {
+      "title": "Server-side events are never blocked",
+      "body": "Events sent from your JVM process go straight from your server to the Privytics ingestion API. There is no browser script for adblockers, tracking protection or extensions to interfere with, so backend event counts do not silently under-report."
+    },
+    {
+      "title": "Track what actually happened, not what the client guessed",
+      "body": "Your backend is the source of truth for payments captured, jobs completed, webhooks processed and orders shipped. Calling track() at the point the transaction commits records the real outcome rather than a click that may never have succeeded."
+    },
+    {
+      "title": "Nothing is written to a user device",
+      "body": "Privytics is cookieless by default and the Java SDK runs entirely on your server, so there is no device storage and no client-side identifier to disclose. If you want cross-session profiles you pass your own user id to identify(), which is opt-in and needs your own lawful basis."
+    },
+    {
+      "title": "Async calls with retries, built for request threads",
+      "body": "Every tracking method returns CompletableFuture<Void>, so you can fire and forget or chain error handling. Failed 5xx and network requests retry automatically with exponential backoff (3 retries starting at 500ms by default), and 4xx errors are not retried."
+    }
+  ],
+  "steps": [
+    {
+      "title": "Add the dependency",
+      "body": "The package is published to Maven Central as fr.idcapture:openpanel-java. For Gradle use implementation 'fr.idcapture:openpanel-java:0.4.0' (Groovy) or implementation(\"fr.idcapture:openpanel-java:0.4.0\") (Kotlin DSL).",
+      "lang": "xml",
+      "code": "<dependency>\n    <groupId>fr.idcapture</groupId>\n    <artifactId>openpanel-java</artifactId>\n    <version>0.4.0</version>\n</dependency>"
+    },
+    {
+      "title": "Initialise the client",
+      "body": "Set apiUrl to https://api.privytics.com. The SDK hardcodes OpenPanel's own host as the default, so this line is required. The client secret is needed for server-side events.",
+      "lang": "java",
+      "code": "import fr.idcapture.openpanel.OpenPanel;\nimport fr.idcapture.openpanel.OpenPanelOptions;\n\nOpenPanel op = OpenPanel.create(\n    OpenPanelOptions.builder()\n        .clientId(\"YOUR_CLIENT_ID\")\n        .clientSecret(\"YOUR_CLIENT_SECRET\")\n        .apiUrl(\"https://api.privytics.com\")\n        .build()\n);"
+    },
+    {
+      "title": "Track an event",
+      "body": "Pass an event name on its own, or add properties and the user id the event belongs to.",
+      "lang": "java",
+      "code": "// Minimal\nop.track(\"page_viewed\");\n\n// With properties\nop.track(\"button_clicked\", Map.of(\"button_id\", \"submit_form\"));\n\n// With the user it belongs to\nop.track(\"checkout_started\", Map.of(\"cart_value\", 149.99), \"user123\");"
+    },
+    {
+      "title": "Set global properties and shut down cleanly",
+      "body": "Global properties are merged into every track() call, which is a good fit for backend metadata like release version and environment. OpenPanel implements AutoCloseable, so close it explicitly or use try-with-resources when your application stops.",
+      "lang": "java",
+      "code": "op.setGlobalProperties(Map.of(\n    \"app_version\", \"2.1.0\",\n    \"env\", \"production\"\n));\n\n// Subsequent calls include app_version and env automatically\nop.track(\"feature_used\", Map.of(\"feature\", \"export\"));\n\n// Shut down the client when your application stops\nop.close();"
+    }
+  ],
+  "faq": [
+    {
+      "q": "Is the OpenPanel Java SDK official?",
+      "a": "No. The docs describe it as a community-maintained SDK by idcapture, and the published POM lists a single third-party developer at idcapture.fr rather than the OpenPanel team. Privytics is likewise independent and not affiliated with or endorsed by OpenPanel."
+    },
+    {
+      "q": "Does Java analytics tracking need a cookie banner?",
+      "a": "The SDK runs on your server and Privytics is cookieless by default, so nothing is stored on the visitor's device by this integration. You remain the data controller and are responsible for deciding what consent your own processing requires."
+    },
+    {
+      "q": "Do I need the client secret?",
+      "a": "Yes for server-side events. The docs list clientSecret as required for server-side tracking, so keep it in your server configuration or secret manager and never ship it to a client application."
+    },
+    {
+      "q": "Will tracking slow down my request handling?",
+      "a": "Every tracking method returns CompletableFuture<Void>, so you can ignore the future and let the call complete in the background. Connection and read timeouts default to 10 and 30 seconds and are configurable on the options builder."
+    },
+    {
+      "q": "Where is the event data stored?",
+      "a": "Event data is stored in EU data centres in Germany. The Java SDK sends it to https://api.privytics.com, which you set via apiUrl when building the client."
+    }
+  ],
+  "docsUrl": "https://openpanel.dev/docs/sdks/java",
+  "sourcesUsed": [
+    "https://openpanel.dev/docs/sdks/java",
+    "https://repo1.maven.org/maven2/fr/idcapture/",
+    "https://repo1.maven.org/maven2/fr/idcapture/openpanel-java/maven-metadata.xml",
+    "https://repo1.maven.org/maven2/fr/idcapture/openpanel-java/0.4.0/openpanel-java-0.4.0.pom",
+    "https://repo1.maven.org/maven2/fr/idcapture/openpanel-java/0.4.0/openpanel-java-0.4.0.jar",
+    "https://search.maven.org/solrsearch/select?q=a:openpanel-java"
+  ],
+  "omitted": [
+    "The brief's assumption that the package sits under the @openpanel scope does not hold for Java. The real coordinates are fr.idcapture:openpanel-java, a community SDK. The docs page calls it 'a community-maintained SDK by idcapture' and the 0.4.0 POM lists one third-party developer (idcapture.fr) as its sole author, so the page states the community status explicitly rather than implying first-party OpenPanel authorship.",
+    "The op1.js script tag and scriptUrl were omitted entirely. They apply to browser tracker injection and have no meaning for a server-side JVM SDK.",
+    "Removed the claim that close() flushes queued events. close() disassembles to a single internal shutdown() call and no flush-on-close behaviour is documented, so the step now says only that the client should be closed on shutdown.",
+    "Corrected 'every method returns CompletableFuture<Void>' to 'every tracking method'. Verified against the compiled class: close() returns void, setGlobalProperties() returns void and getGlobalProperties() returns Map, so the original blanket claim was false.",
+    "Dropped the Spring Boot / Quarkus / Micronaut framework list from the intro, description and tagline. The SDK has no framework-specific modules and its only runtime dependencies are okhttp, jackson-databind and jetbrains annotations, so the page now says Java 11+ and any JVM application instead of implying documented framework integrations.",
+    "Did not include revenue(), group(), assignGroup(), identify(), increment() or decrement() in the steps. All six were confirmed to exist with the documented signatures in the published JAR, but the steps were kept to the core install / init / track / global-properties path for brevity. They can be added safely if the page needs more depth.",
+    "The upstream error-handling example was left out. It references HttpTracker.OpenPanelApiException, which resolves to fr.idcapture.openpanel.internal.HttpTracker$OpenPanelApiException, and the docs never show the import. Pointing readers at a class in an internal package is not a safe recommendation.",
+    "The Maven Central solrsearch index returns zero results for both a:openpanel-java and g:fr.idcapture, though it answers control queries correctly. The artifact was confirmed to exist by fetching the group directory listing, maven-metadata.xml, the 0.4.0 POM and the 0.4.0 JAR directly from repo1.maven.org, with a nonexistent sibling path returning 404 as a control. Versions 0.1.0 to 0.4.0, latest 0.4.0, lastUpdated 20260408. Treat 0.4.0 as correct as of that date; the version may move.",
+    "Not added to the page, but flagged for a publishing decision: the 0.4.0 POM declares the license as AGPL-3.0, which is material for anyone linking this into a closed-source backend and is not mentioned in the current copy.",
+    "The page describes only what the SDK and the service do. It makes no performance or reliability claims and draws no comparison against any other product."
+  ]
+}

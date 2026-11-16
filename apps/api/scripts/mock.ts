@@ -389,7 +389,7 @@ async function simultaneousRequests() {
       'openpanel-client-id': 'ef38d50e-7d8e-4041-9c62-46d4c3b3bb01',
       'x-client-ip': '',
       'user-agent': '',
-      origin: 'https://openpanel.dev',
+      origin: 'https://privytics.com',
     },
     track: {
       type: 'track',

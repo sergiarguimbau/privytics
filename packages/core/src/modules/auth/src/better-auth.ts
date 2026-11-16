@@ -299,7 +299,7 @@ function buildAuth(deps: AuthDeps, secret: string) {
             throw new APIError('BAD_REQUEST', {
               code: PASSWORD_RESET_REQUIRED,
               message:
-                'Your password was set in an older version of OpenPanel and has expired. Reset your password to continue.',
+                'Your password was set in an older version of Privytics and has expired. Reset your password to continue.',
             });
           }
           return verifyPasswordHash(hash, password);
@@ -351,7 +351,7 @@ function buildAuth(deps: AuthDeps, secret: string) {
     plugins: [
       exposedPathsPlugin,
       twoFactor({
-        issuer: 'OpenPanel',
+        issuer: 'Privytics',
         twoFactorCookieMaxAge: TWO_FACTOR_CHALLENGE_SECONDS,
       }),
       lastLoginMethod({

@@ -7,8 +7,8 @@ type RouteHandlerOptions = {
   apiUrl?: string;
 };
 
-const DEFAULT_API_URL = 'https://api.openpanel.dev';
-const SCRIPT_URL = 'https://openpanel.dev';
+const DEFAULT_API_URL = 'https://api.privytics.com';
+const SCRIPT_URL = 'https://api.privytics.com';
 const SCRIPT_PATH = '/op1.js';
 
 function getClientHeaders(req: Request): Headers {

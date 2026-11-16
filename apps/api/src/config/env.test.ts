@@ -114,14 +114,17 @@ describe('the boot flags main.ts branches on', () => {
     ).toBe(false);
   });
 
-  it('DISABLE_FAVICON_FETCH is 1 or true, so `false` keeps favicons', () => {
-    const disabled = (value?: string) =>
-      loadConfig({ ...base, DISABLE_FAVICON_FETCH: value }).core
-        .faviconFetchDisabled;
-    expect(disabled()).toBe(false);
-    expect(disabled('1')).toBe(true);
-    expect(disabled('true')).toBe(true);
-    expect(disabled('false')).toBe(false);
+  it('favicon fetch is off unless ENABLE_FAVICON_FETCH, and DISABLE_FAVICON_FETCH still wins', () => {
+    const disabled = (env: Record<string, string>) =>
+      loadConfig({ ...base, ...env }).core.faviconFetchDisabled;
+    // Privytics: unset sends no hostnames to DuckDuckGo.
+    expect(disabled({})).toBe(true);
+    expect(disabled({ ENABLE_FAVICON_FETCH: 'true' })).toBe(false);
+    expect(disabled({ ENABLE_FAVICON_FETCH: '1' })).toBe(false);
+    expect(disabled({ ENABLE_FAVICON_FETCH: 'false' })).toBe(true);
+    expect(
+      disabled({ ENABLE_FAVICON_FETCH: 'true', DISABLE_FAVICON_FETCH: '1' })
+    ).toBe(true);
   });
 
   it('QUEUE_NAMESPACE and QUEUE_CLUSTER default to off, so queue keys stay unprefixed', () => {

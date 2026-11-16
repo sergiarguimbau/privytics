@@ -1,0 +1,109 @@
+{
+  "slug": "vue",
+  "kind": "sdk",
+  "name": "Vue",
+  "category": "Web",
+  "title": "Vue analytics, cookieless event tracking hosted in the EU",
+  "description": "Add product analytics to your Vue 3 app with the @openpanel/web SDK. Cookieless by default, event data stored in Germany, and setup takes about ten lines.",
+  "tagline": "Cookieless analytics for Vue 3, built on the OpenPanel web SDK.",
+  "intro": "Privytics tracks page views and custom events in Vue applications using the OpenPanel web SDK, `@openpanel/web`. There is no separate Vue package and none is needed: you create a single OpenPanel instance in one file, import it wherever you need it, and automatic screen view tracking follows Vue Router without extra wiring. Setup is roughly ten lines plus one import in your entry point.",
+  "why": [
+    {
+      "title": "No Vue wrapper to keep in sync",
+      "body": "The SDK is plain framework-agnostic JavaScript, so the same instance works in `<script setup>`, the Options API, composables, Pinia stores and router guards. Nothing binds to a specific Vue minor release, and the upstream Vue guide confirms it works in Vue 2 projects as well as Vue 3."
+    },
+    {
+      "title": "Vue Router navigations are counted as screen views",
+      "body": "A Vue SPA never reloads the document, so naive page-view tracking records one visit and stops. With `trackScreenViews: true` the SDK listens for URL changes, so every client-side route transition is recorded. When you need route names or params on the event, an `afterEach` guard gives you full control instead."
+    },
+    {
+      "title": "Declarative click tracking straight from templates",
+      "body": "With `trackAttributes: true` the SDK attaches one global click listener. Put `data-track=\"event_name\"` on a `<button>` or an `<a>` in your template and clicking it fires that event; any other `data-*` attribute on the same element is sent as a property with a camelCased name, so `data-plan=\"pro\"` arrives as `plan: 'pro'`. It matches only buttons and links, so wrap other clickable elements in a button. Simple CTA tracking stays in the markup instead of threading handler props through components."
+    },
+    {
+      "title": "Cookieless, so nothing is written to the visitor's device",
+      "body": "Vue apps often ship as a public marketing SPA where a consent wall costs you data. Privytics sets no cookies and stores nothing on the device; the anonymous visitor id resets every day. Event data is stored in EU data centres in Germany."
+    }
+  ],
+  "steps": [
+    {
+      "title": "Install the SDK",
+      "body": "Vue uses the OpenPanel web SDK directly. There is no @openpanel/vue package.",
+      "lang": "bash",
+      "code": "npm install @openpanel/web"
+    },
+    {
+      "title": "Create a shared instance",
+      "body": "Create one OpenPanel instance for the whole app. Setting apiUrl is required, because the SDK otherwise defaults to OpenPanel's own hosted endpoint.",
+      "lang": "ts",
+      "code": "// src/lib/op.ts\nimport { OpenPanel } from '@openpanel/web';\n\nexport const op = new OpenPanel({\n  clientId: 'YOUR_CLIENT_ID',\n  apiUrl: 'https://api.privytics.com',\n  trackScreenViews: true,\n  trackOutgoingLinks: true,\n  trackAttributes: true,\n});"
+    },
+    {
+      "title": "Initialise it on app load",
+      "body": "Import the module in your entry point so the instance is created when the app boots. That alone starts automatic screen view tracking.",
+      "lang": "ts",
+      "code": "// src/main.ts\nimport { createApp } from 'vue';\nimport App from './App.vue';\nimport router from './router';\nimport './lib/op'; // initialise Privytics\n\nconst app = createApp(App);\napp.use(router);\napp.mount('#app');"
+    },
+    {
+      "title": "Track an event in a component",
+      "body": "Import the instance and call track with an event name and an optional properties object. To link events to a logged-in user, call op.identify with a single object that has a profileId, for example op.identify({ profileId: user.id }), when you have a lawful basis for it.",
+      "lang": "vue",
+      "code": "<template>\n  <button type=\"button\" @click=\"handleClick\">Sign up</button>\n</template>\n\n<script setup lang=\"ts\">\nimport { op } from '../lib/op';\n\nfunction handleClick() {\n  op.track('button_clicked', {\n    button_name: 'signup',\n    button_location: 'hero',\n  });\n}\n</script>"
+    },
+    {
+      "title": "Optional: track routes with a Vue Router guard",
+      "body": "Use this only if you want route names or params on the event. Set trackScreenViews to false in step 2 when you do, otherwise every navigation is counted twice.",
+      "lang": "ts",
+      "code": "// src/router/index.ts\nimport { createRouter, createWebHistory } from 'vue-router';\nimport { op } from '../lib/op';\nimport routes from './routes';\n\nconst router = createRouter({\n  history: createWebHistory(),\n  routes,\n});\n\nrouter.afterEach((to) => {\n  op.track('screen_view', {\n    path: to.path,\n    name: String(to.name),\n  });\n});\n\nexport default router;"
+    }
+  ],
+  "faq": [
+    {
+      "q": "Is there an @openpanel/vue package?",
+      "a": "No. The name is unpublished on npm and the upstream docs state that Vue SPAs should use @openpanel/web directly. You create one OpenPanel instance and import it across your components, so a Vue-specific wrapper is not needed."
+    },
+    {
+      "q": "Does it track page views with Vue Router?",
+      "a": "Yes. With trackScreenViews set to true the SDK records a screen view whenever the URL changes, which covers Vue Router's client-side navigation. If you want route names or params attached, use an afterEach guard instead and turn trackScreenViews off to avoid double counting."
+    },
+    {
+      "q": "Does it work with Vue 2 or the Options API?",
+      "a": "Yes. The SDK is framework-agnostic JavaScript with no Vue bindings, so the same imported instance works in Vue 2, in Options API methods and in <script setup>. The upstream Vue guide confirms Vue 2 support."
+    },
+    {
+      "q": "How does data-track work in a template?",
+      "a": "Set trackAttributes to true, then put data-track=\"event_name\" on a button or a link. Clicking it sends that event, and every other data-* attribute on the element is sent as a property with a camelCased name. It only matches button and anchor elements, so wrap anything else you want to track in a button."
+    },
+    {
+      "q": "Does Privytics set cookies in my Vue app?",
+      "a": "No. It is cookieless by default and writes nothing to the visitor's device. The anonymous visitor id is a salted hash of IP, user agent and project id, and the salt rotates daily at midnight UTC. You remain the data controller and decide what consent your own use case requires."
+    },
+    {
+      "q": "Where is the event data stored?",
+      "a": "Event data is stored in EU data centres in Germany. Privytics is a managed service built on the open-source OpenPanel engine and is not affiliated with or endorsed by OpenPanel."
+    }
+  ],
+  "docsUrl": "https://openpanel.dev/docs/sdks/vue",
+  "sourcesUsed": [
+    "https://openpanel.dev/docs/sdks/vue (refetched and read directly)",
+    "https://registry.npmjs.org/@openpanel/web (200, latest 1.4.1)",
+    "https://registry.npmjs.org/@openpanel/vue (404, package does not exist)",
+    "local repo: /Users/sergi/Documents/dev/openpanel-main-2026/apps/public/content/docs/(tracking)/sdks/vue.mdx",
+    "local repo: /Users/sergi/Documents/dev/openpanel-main-2026/apps/public/content/guides/vue-analytics.mdx",
+    "local repo: /Users/sergi/Documents/dev/openpanel-main-2026/packages/sdks/web/src/index.ts (OpenPanel class, option types, trackAttributes implementation)",
+    "local repo: /Users/sergi/Documents/dev/openpanel-main-2026/packages/sdks/sdk/src/index.ts (apiUrl option and its default)",
+    "local repo: /Users/sergi/Documents/dev/openpanel-main-2026/packages/sdks/web/package.json (confirms package name @openpanel/web)",
+    "local repo: /Users/sergi/Documents/dev/openpanel-main-2026/apps/public/content/docs/(tracking)/how-it-works.mdx (device id hashing and daily salt rotation)",
+    "local repo: /Users/sergi/Documents/dev/openpanel-main-2026/apps/public/content/pages/privacy.mdx and pages/dpa.mdx (data residency in Germany)"
+  ],
+  "omitted": [
+    "CORRECTED, not omitted: the draft described adding `data-track` and `data-track-*` attributes to arbitrary elements. The SDK source (packages/sdks/web/src/index.ts, trackAttributes) reads `data-track` for the event name and treats every OTHER `data-*` attribute as a camelCased property, and its click handler only matches <button> and <a> via closest(). There is no `data-track-*` convention. The why-block and a new FAQ entry now describe the real behaviour.",
+    "Script tag / op1.js snippet: the upstream Vue page documents no script-tag install path, only the npm package, so no script tag step was written rather than guessing one.",
+    "scriptUrl option: it exists on the web SDK type but is not shown here. It is only meaningful for the Next.js style component that injects the tracking script for you; Vue has no such component, so including it would imply a required setting that is not required.",
+    "Session replay: `sessionReplay` is a real option on @openpanel/web (SessionReplayOptions in the web SDK source, and the shared web SDK option table renders on the Vue docs page), but the Vue page contains no Vue-specific setup snippet for it, so none was invented.",
+    "Full option reference: the upstream page renders shared option tables via MDX components (CommonSdkConfig, WebSdkConfig) that did not resolve to plain text on fetch. Only options explicitly listed in the page body were used: clientId, apiUrl, trackScreenViews, trackOutgoingLinks, trackAttributes, trackHashChanges, disabled. All were cross-checked against the SDK source.",
+    "Nuxt: a separate @openpanel/nuxt package exists upstream (packages/sdks/nuxt) and is out of scope for this page.",
+    "npmjs.com web UI was not used. Package existence was confirmed against the npm registry API: @openpanel/web resolves at 1.4.1, @openpanel/vue returns 404, and there is no packages/sdks/vue directory in the upstream repo.",
+    "docsUrl still points at openpanel.dev on purpose: it is an attribution link to the upstream documentation, not a snippet host, and the same URL appears in sourcesUsed."
+  ]
+}

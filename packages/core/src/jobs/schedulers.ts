@@ -186,9 +186,15 @@ function upsert(
   queue: SchedulerQueue,
   scheduler: SchedulerDefinition
 ): Promise<unknown> {
+  // Privytics: cron patterns run in UTC whatever the container's TZ. The
+  // Privacy, Cookie and DPA pages promise the salt rotates at midnight UTC.
+  const schedule =
+    'pattern' in scheduler.schedule
+      ? { tz: 'UTC', ...scheduler.schedule }
+      : scheduler.schedule;
   // Envelope-shaped for every scheduler-created job — these are freshly
   // enqueued, so there is nothing for the `cron` compat hook to do here.
-  return queue.upsertJobScheduler(scheduler.id, scheduler.schedule, {
+  return queue.upsertJobScheduler(scheduler.id, schedule, {
     data: wrap(null, {}),
   });
 }

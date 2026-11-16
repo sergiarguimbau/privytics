@@ -390,8 +390,8 @@ function BadgeWidgetSection({ widget, dashboardUrl }: BadgeWidgetSectionProps) {
       ? `${dashboardUrl}/widget/badge?shareId=${widget.id}`
       : null;
   const badgeEmbedCode = badgeUrl
-    ? `<a href="https://openpanel.dev" style="display: inline-block; overflow: hidden; border-radius: 8px;">
-  <iframe src="${badgeUrl}" height="48" width="250" style="border: none; overflow: hidden; pointer-events: none;" title="OpenPanel Analytics Badge"></iframe>
+    ? `<a href="https://privytics.com" style="display: inline-block; overflow: hidden; border-radius: 8px;">
+  <iframe src="${badgeUrl}" height="48" width="250" style="border: none; overflow: hidden; pointer-events: none;" title="Privytics Analytics Badge"></iframe>
 </a>`
     : null;
 
@@ -406,7 +406,7 @@ function BadgeWidgetSection({ widget, dashboardUrl }: BadgeWidgetSectionProps) {
           <span className="title">Analytics Badge</span>
           <p className="text-muted-foreground">
             A Product Hunt-style badge showing your 30-day unique visitor count.
-            Perfect for showcasing your analytics powered by OpenPanel.
+            Perfect for showcasing your analytics powered by Privytics.
           </p>
         </div>
       </WidgetHead>
@@ -432,7 +432,7 @@ function BadgeWidgetSection({ widget, dashboardUrl }: BadgeWidgetSectionProps) {
           <h3 className="font-medium text-sm">Preview</h3>
           <div className="rounded-lg border bg-muted/30 p-4">
             <a
-              href="https://openpanel.dev"
+              href="https://privytics.com"
               rel="noopener noreferrer"
               style={{
                 overflow: 'hidden',

@@ -22,7 +22,7 @@ const GCS_PROVIDER = 'gcs';
 const CREDENTIAL_REJECTED_RETRYABLE = false;
 
 /** Object written by `testConnection`; named so it is obvious in a bucket. */
-const CONNECTION_TEST_FILENAME = '.openpanel-connection-test';
+const CONNECTION_TEST_FILENAME = '.privytics-connection-test';
 
 export class GCSAdapter implements IObjectStoreAdapter {
   private config: IGCSExportConfig;
@@ -167,10 +167,10 @@ export class GCSAdapter implements IObjectStoreAdapter {
     try {
       const storage = this.getStorage();
       const bucket = storage.bucket(this.config.bucket);
-      const prefix = this.config.prefix || 'openpanel-exports';
+      const prefix = this.config.prefix || 'privytics-exports';
       const file = bucket.file(`${prefix}/${CONNECTION_TEST_FILENAME}`);
 
-      await file.save(Buffer.from('openpanel connection test\n'), {
+      await file.save(Buffer.from('privytics connection test\n'), {
         contentType: 'text/plain',
         resumable: false,
       });

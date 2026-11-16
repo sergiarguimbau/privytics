@@ -144,20 +144,21 @@ export function assessTracking(facts: TrackingFacts): Finding[] {
       findings.push({
         level: 'ok',
         check: 'snippet',
-        message: 'The OpenPanel snippet is on the page.',
+        message: 'The Privytics snippet is on the page.',
       });
     } else if (snippet.sdkPackage) {
       findings.push({
         level: 'ok',
         check: 'snippet',
-        message: 'An OpenPanel SDK package is referenced by the page.',
+        message:
+          'A Privytics SDK package (@openpanel/*) is referenced by the page.',
       });
     } else {
       findings.push({
         level: 'warn',
         check: 'snippet',
         message:
-          'No OpenPanel snippet was found in the HTML. A framework SDK loaded from a JavaScript bundle is not visible here, so this is only a problem if the site uses the script tag.',
+          'No Privytics snippet was found in the HTML. A framework SDK loaded from a JavaScript bundle is not visible here, so this is only a problem if the site uses the script tag.',
       });
     }
   }
@@ -287,7 +288,7 @@ async function fetchPage(
     const result = await safeFetch(url, {
       timeoutMs: FETCH_TIMEOUT_MS,
       maxBytes: MAX_HTML_BYTES,
-      headers: { 'user-agent': 'OpenPanel tracking check' },
+      headers: { 'user-agent': 'Privytics tracking check' },
     });
     const html = result.body.toString('utf8');
     return {
@@ -447,7 +448,7 @@ export function trackingTools(ctx: ChatToolContext) {
   return {
     diagnose_tracking: tool({
       description:
-        "Check why events from a website are not showing up. Loads the page, looks for the OpenPanel snippet and client id, and checks them against this project's clients, allowed origins (CORS), event filters and the page views that actually arrived. Pass the URL the user mentions; without one it uses the project's configured domain, so confirm that domain with the user first when it is unclear. A URL on another site waits for the user to confirm it.",
+        "Check why events from a website are not showing up. Loads the page, looks for the Privytics snippet and client id, and checks them against this project's clients, allowed origins (CORS), event filters and the page views that actually arrived. Pass the URL the user mentions; without one it uses the project's configured domain, so confirm that domain with the user first when it is unclear. A URL on another site waits for the user to confirm it.",
       inputSchema: z.object({
         url: z
           .string()

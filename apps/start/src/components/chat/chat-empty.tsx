@@ -147,7 +147,7 @@ export function ChatEmpty({
         </h1>
         <p className="mx-auto max-w-md text-muted-foreground">
           Ask about your numbers, get charts inline, build dashboards, or ask
-          how OpenPanel works.
+          how Privytics works.
         </p>
       </div>
       <div className="space-y-2">

@@ -1,0 +1,101 @@
+{
+  "slug": "javascript",
+  "kind": "sdk",
+  "name": "JavaScript",
+  "category": "Web",
+  "title": "JavaScript analytics, cookieless and EU-hosted by default",
+  "description": "Add product analytics to any JavaScript site with the @openpanel/web SDK. Cookieless by default, event data stored in Germany, and setup takes a few lines.",
+  "tagline": "Cookieless JavaScript analytics, EU-hosted, running in a few lines of code.",
+  "intro": "Privytics tracks page views, custom events and user profiles in any JavaScript application, whether it is a plain HTML page or a bundled single page app. You install the @openpanel/web package, point it at the Privytics ingestion API with apiUrl, and call op.track() wherever something interesting happens. Event data is stored in Germany, and the tracker sets no cookies.",
+  "why": [
+    {
+      "title": "No cookies, nothing stored on the device",
+      "body": "The browser tracker does not set cookies and writes nothing to the visitor's device. Visitors are counted with an anonymous id that resets every day rather than a persistent identifier. You remain the data controller and decide what your own consent notice says."
+    },
+    {
+      "title": "Screen views work in single page apps",
+      "body": "Set trackScreenViews: true and the SDK records a screen view on history navigation, so client side route changes in React, Vue, Svelte or vanilla routers are captured without wiring anything into your router."
+    },
+    {
+      "title": "Track clicks straight from HTML",
+      "body": "With trackAttributes: true you add data-track=\"my_event\" and data-* properties to any element and the SDK fires the event. Useful for marketing pages and server rendered templates where you do not want to ship extra JavaScript per button."
+    },
+    {
+      "title": "Session replay from the same SDK",
+      "body": "Enable replay per project on a paid plan with sessionReplay: { enabled: true }. Text and inputs are masked by default, and you can widen or narrow what is hidden with maskTextSelector and blockSelector rather than adding a second vendor script."
+    }
+  ],
+  "steps": [
+    {
+      "title": "Install the SDK",
+      "body": "Privytics runs the open source OpenPanel engine, so you use OpenPanel's official npm package.",
+      "lang": "bash",
+      "code": "npm install @openpanel/web"
+    },
+    {
+      "title": "Initialise the client",
+      "body": "Set apiUrl so the SDK sends events to the Privytics ingestion API instead of the upstream default host.",
+      "lang": "ts",
+      "code": "// op.ts\nimport { OpenPanel } from '@openpanel/web';\n\nexport const op = new OpenPanel({\n  apiUrl: 'https://api.privytics.com',\n  clientId: 'YOUR_CLIENT_ID',\n  trackScreenViews: true,\n  trackOutgoingLinks: true,\n  trackAttributes: true,\n});"
+    },
+    {
+      "title": "Track an event",
+      "body": "The first argument is the event name, the second is an optional properties object.",
+      "lang": "ts",
+      "code": "// main.ts\nimport { op } from './op.js';\n\nop.track('my_event', { foo: 'bar' });"
+    },
+    {
+      "title": "Identify a signed in user",
+      "body": "Optional. Call identify() with your own user id to get profiles that join sessions together. profileId is the only required field. This is opt in and needs your own lawful basis.",
+      "lang": "ts",
+      "code": "import { op } from './op.js';\n\nop.identify({\n  profileId: '123', // Required\n  firstName: 'Joe',\n  lastName: 'Doe',\n  email: 'joe@doe.com',\n  properties: {\n    tier: 'premium',\n  },\n});"
+    },
+    {
+      "title": "Or drop in a script tag, with no build step",
+      "body": "If you are not running a bundler, paste this into the <head> of your HTML instead of installing the package. The first block queues calls until the tracker loads, the second loads it. apiUrl still points ingestion at Privytics.",
+      "lang": "html",
+      "code": "<script>\n  window.op = window.op || function (...args) { (window.op.q = window.op.q || []).push(args); };\n  window.op('init', {\n    apiUrl: 'https://api.privytics.com',\n    clientId: 'YOUR_CLIENT_ID',\n    trackScreenViews: true,\n    trackOutgoingLinks: true,\n  });\n</script>\n<script src=\"https://privytics.com/op1.js\" defer></script>"
+    }
+  ],
+  "faq": [
+    {
+      "q": "Does Privytics use cookies for JavaScript tracking?",
+      "a": "No. The browser tracker sets no cookies and stores nothing on the device. Repeat visits are matched with a rotating salted hash rather than a persistent identifier stored in the browser."
+    },
+    {
+      "q": "Why is the npm package called @openpanel/web and not @privytics?",
+      "a": "Privytics is built on the open source OpenPanel engine and uses OpenPanel's official SDK packages unchanged. You set apiUrl to https://api.privytics.com so events reach us instead of the upstream default host. Privytics is independent and not affiliated with or endorsed by OpenPanel."
+    },
+    {
+      "q": "How do I track page views in a React or Vue single page app?",
+      "a": "Pass trackScreenViews: true when you initialise the SDK. It listens for history navigation and records a screen view on each route change, so you do not need to hook into your router."
+    },
+    {
+      "q": "Do I need a client secret in browser code?",
+      "a": "No. clientSecret is only required for server side events. Browser setups use clientId alone, which is safe to ship in your frontend bundle."
+    },
+    {
+      "q": "Can I use Privytics without npm or a build step?",
+      "a": "Yes. Paste the script tag snippet into the <head> of your HTML and you are done. It loads the tracker from https://privytics.com/op1.js and takes the same options as the npm setup, so plain HTML pages and server rendered templates need no bundler at all."
+    },
+    {
+      "q": "What else can the SDK do besides track and identify?",
+      "a": "The underlying SDK also documents setGlobalProperties, increment, decrement, clear, upsertGroup, setGroup and setGroups. See the OpenPanel JavaScript SDK reference for the full API surface."
+    }
+  ],
+  "docsUrl": "https://openpanel.dev/docs/sdks/web",
+  "sourcesUsed": [
+    "https://openpanel.dev/docs/sdks/web",
+    "https://openpanel.dev/docs/sdks/javascript",
+    "https://openpanel.dev/docs/sdks/script",
+    "https://registry.npmjs.org/@openpanel/web"
+  ],
+  "omitted": [
+    "The claim that the visitor hash is derived from IP, user agent and project id and resets at midnight UTC. The cookieless/salted-hash behaviour is real, but I could not confirm those exact hash inputs or the exact rotation time from the docs I fetched, so the wording is now generic.",
+    "Plan gating for session replay comes from the Privytics plan spec, not from the SDK docs. The web SDK docs describe replay as disabled by default and enabled via config, with no mention of plans, so the paid-plan wording in the copy is sourced from pricing rather than upstream documentation.",
+    "scriptUrl. It is a real documented option, but the web SDK docs scope it to \"custom URL for the replay script (script-tag builds only)\" and it is never required. It is not presented as a setup field in any snippet here.",
+    "trackHashChanges. Present in the SDK source types but not on the documented options list, so it is left out of the snippets.",
+    "The remaining sessionReplay sub-options (blockClass, ignoreSelector, flushIntervalMs, maxEventsPerChunk, maxPayloadBytes). Real and documented, but no snippet is shown for them here.",
+    "No package version is pinned in the install command. npm resolves the latest, which is 1.4.1 per the registry at the time of writing."
+  ]
+}

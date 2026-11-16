@@ -76,7 +76,7 @@ export default function YearlySwitchPrompt({
   return (
     <div className="col gap-1 border-b bg-card p-4 lg:p-8">
       <div className="font-medium text-lg">
-        Switch to yearly — get 2 months free
+        Switch to yearly and get 2 months free
       </div>
       <div className="mb-1">
         You've been with us for a while. Pay for 10 months and get 12: same

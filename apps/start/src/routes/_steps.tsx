@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet } from '@tanstack/react-router';
 import { LogOutIcon } from 'lucide-react';
+import { BRAND } from '@/brand';
 import { LogoSquare } from '@/components/logo';
 import {
   STEP_NAMES,
@@ -32,7 +33,7 @@ function OnboardingLayout() {
       >
         <a className="row items-center gap-2.5 font-medium" href="/">
           <LogoSquare className="size-8 shrink-0" />
-          <span>OpenPanel</span>
+          <span>{BRAND.name}</span>
         </a>
         <Button
           icon={LogOutIcon}

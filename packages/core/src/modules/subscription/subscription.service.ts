@@ -14,6 +14,8 @@ import {
   unpauseSubscription,
   validatePolarEvent,
 } from '@openpanel/payments';
+import { FREE_TIER_EVENTS_LIMIT } from '@openpanel/payments/prices';
+import { getSubscriptionState } from '@openpanel/payments/subscription-state';
 import { getCache, publishEvent } from '@openpanel/redis';
 import { addMonths, subDays } from 'date-fns';
 import { z } from 'zod';
@@ -98,7 +100,10 @@ export async function getCurrentSubscriptionProduct(
 ) {
   const organization = await getOrganizationById(deps, organizationId);
 
-  if (!organization.subscriptionProductId) {
+  // Only a live Polar subscription has a current product. An org that dropped
+  // to free is on the free plan whatever it last paid for, and a plan set up
+  // by hand (active, no product) has none.
+  if (!(organization.hasSubscription && organization.subscriptionProductId)) {
     return null;
   }
 
@@ -129,7 +134,7 @@ export async function checkout(
       organization.subscriptionPauseAtPeriodEnd)
   ) {
     throw new TRPCBadRequestError(
-      'Your subscription is paused or scheduled to pause — resume it before changing plans'
+      'Your subscription is paused or scheduled to pause. Resume it before changing plans.'
     );
   }
 
@@ -206,9 +211,12 @@ export async function getUsage(
   // number on the plan card. `subscriptionCurrentPeriodStart` is already the
   // monthly cycle for yearly plans, since limits are per month. Gated on the
   // product too, as the plan card is: without one there is no counter to match.
+  // A paused org keeps its product but is metered per calendar month, like free.
   const today = new Date();
   const hasPlan =
-    organization.hasSubscription && organization.subscriptionProductId !== null;
+    organization.hasSubscription &&
+    organization.subscriptionProductId !== null &&
+    organization.subscriptionState !== 'paused';
   const periodStart = hasPlan
     ? organization.subscriptionCurrentPeriodStart
     : null;
@@ -505,6 +513,126 @@ async function clearOrganizationCache(
 }
 
 /**
+ * Privytics: the free tier is the floor, never a lockout. Once a paid
+ * subscription is genuinely over (revoked, terminally unpaid, canceled with no
+ * paid period left, never paid) the organization drops back to the `free`
+ * status and the free allowance. A paused subscription keeps its Polar status
+ * but is held to the free tier's limits until it resumes. Read through the
+ * state machine itself, so the stored row and every reader of it agree.
+ */
+export function resolveFreeDowngrade(
+  data: Pick<
+    PolarSubscriptionData,
+    | 'status'
+    | 'cancelAtPeriodEnd'
+    | 'currentPeriodEnd'
+    | 'canceledAt'
+    | 'pauseAtPeriodEnd'
+  >,
+  eventType: string,
+  now: Date = new Date()
+) {
+  const isCanceled = data.status === 'canceled';
+  const paidPeriodEndsAt = isCanceled
+    ? data.cancelAtPeriodEnd
+      ? data.currentPeriodEnd
+      : data.canceledAt
+    : data.currentPeriodEnd;
+  const state = getSubscriptionState(
+    {
+      subscriptionStatus: data.status,
+      subscriptionCanceledAt: data.canceledAt,
+      subscriptionEndsAt: paidPeriodEndsAt,
+      subscriptionPauseAtPeriodEnd: data.pauseAtPeriodEnd,
+    },
+    now
+  );
+  // Only a snapshot that is no longer `active` persists `free`. Polar never
+  // signals a real end with an `active` one: when the clock alone reads an
+  // `active` period as over (a delayed retry, a late redelivery), the row keeps
+  // its paid status and the state machine applies the free limits, so the
+  // stored row never claims a downgrade that did not happen (12-month
+  // retention trusts it).
+  const isDowngradedToFree =
+    eventType === 'subscription.revoked' ||
+    (state === 'free' && data.status !== 'active');
+  return {
+    paidPeriodEndsAt,
+    isDowngradedToFree,
+    onFreeLimits: isDowngradedToFree || state === 'free' || state === 'paused',
+  };
+}
+
+/**
+ * The monthly event limit a webhook leaves on the organization. A checkout
+ * that was never paid grants nothing: `incomplete` keeps the limit the org
+ * already had, and `incomplete_expired` never lifts it to the free allowance
+ * (a user's later organizations start with none). Otherwise free limits get
+ * the free allowance and a paid subscription its product's.
+ */
+export function resolvePeriodEventsLimit(
+  status: string,
+  onFreeLimits: boolean,
+  limits: { product: number; current: number }
+): number {
+  if (status === 'incomplete') {
+    return limits.current;
+  }
+  if (status === 'incomplete_expired') {
+    return Math.min(limits.current, FREE_TIER_EVENTS_LIMIT);
+  }
+  return onFreeLimits ? FREE_TIER_EVENTS_LIMIT : limits.product;
+}
+
+/**
+ * Polar can deliver subscription events out of order and retries failed
+ * deliveries later, so an event can describe an older state than the one we
+ * stored. An organization maps to a single subscription in our DB but can have
+ * several in Polar (re-subscribing, a second checkout while past due), so an
+ * event that cancels or ends a subscription that is no longer the org's
+ * current one (canceled, revoked, unpaid, expired, lapsed) must not clobber
+ * the newer one. For the organization's own subscription:
+ * - a billing period never moves backwards, so an event for an earlier period
+ *   is stale (otherwise the usage counter, recomputed over that window, gets
+ *   stuck);
+ * - Polar never revives a subscription that ended (revoked, canceled, unpaid,
+ *   expired: resubscribing creates a new one). Once we moved it to free, only
+ *   a new billing period (a late renewal) may bring paid state back, never a
+ *   delayed retry of an earlier event.
+ */
+export function isStaleSubscriptionEvent(
+  organization: {
+    subscriptionId: string | null;
+    subscriptionStatus: string | null;
+    subscriptionStartsAt: Date | null;
+  },
+  data: Pick<PolarSubscriptionData, 'id' | 'currentPeriodStart' | 'status'>,
+  {
+    isDowngradedToFree,
+    onFreeLimits,
+  }: Pick<
+    ReturnType<typeof resolveFreeDowngrade>,
+    'isDowngradedToFree' | 'onFreeLimits'
+  >
+): boolean {
+  if (organization.subscriptionId !== data.id) {
+    return data.status === 'canceled' || onFreeLimits;
+  }
+  const storedPeriodStart = organization.subscriptionStartsAt;
+  if (!storedPeriodStart) {
+    return false;
+  }
+  if (data.currentPeriodStart < storedPeriodStart) {
+    return true;
+  }
+  return (
+    organization.subscriptionStatus === 'free' &&
+    !isDowngradedToFree &&
+    data.currentPeriodStart <= storedPeriodStart
+  );
+}
+
+/**
  * Syncs the full Polar subscription state onto the organization. Every
  * `subscription.*` event carries the same Subscription object and `status`
  * drives the rest, so one function handles new subscriptions, cancellations,
@@ -517,49 +645,26 @@ async function syncSubscriptionToOrg(
   logger: Logger
 ) {
   const metadata = subscriptionMetadataSchema.parse(data.metadata);
-  const isCanceled = data.status === 'canceled';
 
   const organization = await deps.db.organization.findUniqueOrThrow({
     where: { id: metadata.organizationId },
   });
 
-  // An organization maps to a single subscription in our DB, but can have
-  // several in Polar (e.g. after re-subscribing). A canceled/revoked event for
-  // a subscription that is no longer the org's current one must not clobber the
-  // newer active subscription.
-  if (isCanceled && organization.subscriptionId !== data.id) {
+  const downgrade = resolveFreeDowngrade(data, eventType);
+  const { paidPeriodEndsAt, isDowngradedToFree, onFreeLimits } = downgrade;
+
+  if (isStaleSubscriptionEvent(organization, data, downgrade)) {
     logger.info(
       {
         organizationId: metadata.organizationId,
         eventType,
         eventSubscriptionId: data.id,
         orgSubscriptionId: organization.subscriptionId,
-      },
-      'polar webhook: ignoring canceled event for non-current subscription'
-    );
-    return;
-  }
-
-  // Polar can deliver subscription events out of order: at renewal the new
-  // period can arrive first, then a stale event for the *previous* period lands
-  // a few seconds later. A billing period never moves backwards, so for the
-  // same subscription we ignore any event whose period starts before the one we
-  // already stored — otherwise the stale event resets the org to the expired
-  // period and the usage counter (recomputed over that window) gets stuck.
-  if (
-    organization.subscriptionId === data.id &&
-    organization.subscriptionStartsAt &&
-    data.currentPeriodStart < organization.subscriptionStartsAt
-  ) {
-    logger.info(
-      {
-        organizationId: metadata.organizationId,
-        eventType,
-        eventSubscriptionId: data.id,
         eventPeriodStart: data.currentPeriodStart,
         storedPeriodStart: organization.subscriptionStartsAt,
+        storedStatus: organization.subscriptionStatus,
       },
-      'polar webhook: ignoring stale subscription event (older billing period)'
+      'polar webhook: ignoring stale subscription event (ends a non-current subscription, older billing period, or a retry after it ended)'
     );
     return;
   }
@@ -573,7 +678,7 @@ async function syncSubscriptionToOrg(
         ? Number(rawEventsLimit)
         : Number.NaN;
   const hasValidEventsLimit = Number.isFinite(parsedEventsLimit);
-  const subscriptionPeriodEventsLimit = hasValidEventsLimit
+  const productEventsLimit = hasValidEventsLimit
     ? parsedEventsLimit
     : organization.subscriptionPeriodEventsLimit;
 
@@ -586,19 +691,27 @@ async function syncSubscriptionToOrg(
 
   const { DbNull } = deps.prisma;
 
+  const subscriptionPeriodEventsLimit = resolvePeriodEventsLimit(
+    data.status,
+    onFreeLimits,
+    {
+      product: productEventsLimit,
+      current: organization.subscriptionPeriodEventsLimit,
+    }
+  );
+
   const updateData = {
     subscriptionId: data.id,
     subscriptionCustomerId: data.customer.id,
-    subscriptionPriceId: data.prices[0]?.id ?? null,
-    subscriptionProductId: data.productId,
-    subscriptionStatus: data.status,
+    // An org that dropped to free has no plan: no product to show or preselect.
+    subscriptionPriceId: isDowngradedToFree
+      ? null
+      : (data.prices[0]?.id ?? null),
+    subscriptionProductId: isDowngradedToFree ? null : data.productId,
+    subscriptionStatus: isDowngradedToFree ? 'free' : data.status,
     subscriptionStartsAt: data.currentPeriodStart,
     subscriptionCanceledAt: data.canceledAt,
-    subscriptionEndsAt: isCanceled
-      ? data.cancelAtPeriodEnd
-        ? data.currentPeriodEnd
-        : data.canceledAt
-      : data.currentPeriodEnd,
+    subscriptionEndsAt: isDowngradedToFree ? null : paidPeriodEndsAt,
     subscriptionInterval: data.recurringInterval,
     // Cancellation feedback + pause state mirror Polar so portal-driven cancels
     // and pauses are captured too (our in-app flows also set them via the API,
@@ -628,6 +741,10 @@ async function syncSubscriptionToOrg(
     ...(typeof subscriptionPeriodEventsLimit === 'number' &&
     typeof organization.subscriptionPeriodEventsLimit === 'number' &&
     organization.subscriptionPeriodEventsLimit < subscriptionPeriodEventsLimit
+      ? { usageWarningSentAt: null, usageExceededSentAt: null }
+      : {}),
+    // Dropping to free limits starts the calendar-month allowance afresh.
+    ...(onFreeLimits
       ? { usageWarningSentAt: null, usageExceededSentAt: null }
       : {}),
     // Reaching checkout takes the org out of the wind-down population for good

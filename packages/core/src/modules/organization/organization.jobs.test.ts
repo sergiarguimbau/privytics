@@ -94,7 +94,9 @@ test('the cron queue declares delete on the cron queue', () => {
 
 test('the organization cron fragment is spread into the cron queue', () => {
   expect(queues.cron.jobs.delete).toBeDefined();
-  expect(queues.cron.jobs.windDown).toBeDefined();
+  expect(queues.cron.jobs.dataRetention).toBeDefined();
+  expect(queues.cron.jobs.usageRefresh).toBeDefined();
+  expect('windDown' in queues.cron.jobs).toBe(false);
 });
 
 test('delete delegates to runDeleteCron', async () => {
@@ -114,5 +116,6 @@ test('delete delegates to runDeleteCron', async () => {
 // Pins the cadences, read straight off the registry.
 test('the organization cron fragment keeps its scheduler id and cadence', () => {
   expect(queues.cron.jobs.delete.cron).toEqual({ pattern: '0 * * * *' });
-  expect(queues.cron.jobs.windDown.cron).toEqual({ pattern: '0 * * * *' });
+  expect(queues.cron.jobs.dataRetention.cron).toEqual({ pattern: '0 5 * * *' });
+  expect(queues.cron.jobs.usageRefresh.cron).toEqual({ pattern: '5 * * * *' });
 });

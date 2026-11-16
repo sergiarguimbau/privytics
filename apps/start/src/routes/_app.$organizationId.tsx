@@ -1,4 +1,3 @@
-import { subscriptionBlocksDashboard } from '@openpanel/payments/subscription-state';
 import { getSubscriptionStateMeta } from '@openpanel/payments/subscription-state-meta';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import {
@@ -6,14 +5,13 @@ import {
   notFound,
   Outlet,
   useLocation,
-  useMatches,
 } from '@tanstack/react-router';
 import { format } from 'date-fns';
 import { Building2Icon } from 'lucide-react';
 import { EmptyState } from '@/components/empty-state';
 import FullPageLoadingState from '@/components/full-page-loading-state';
 import FeedbackPrompt from '@/components/organization/feedback-prompt';
-import SupporterPrompt from '@/components/organization/supporter-prompt';
+import { isOnFreeLimits } from '@/components/organization/plan-state';
 import YearlySwitchPrompt from '@/components/organization/yearly-switch-prompt';
 import { LinkButton } from '@/components/ui/button';
 import { useTRPC } from '@/integrations/trpc/react';
@@ -126,18 +124,32 @@ function Component() {
     resumesAt: organization.subscriptionResumesAt,
   });
 
-  // Project routes show the full-screen BillingPrompt for blocking states;
-  // don't stack the (sometimes contradicting) banner on top. Org-level pages
-  // have no prompt, so the banner still shows there.
-  const isProjectRoute = useMatches({
-    select: (matches) =>
-      matches.some(
-        (match) => match.routeId === '/_app/$organizationId/$projectId'
-      ),
-  });
-  const hideBannerForPrompt =
-    isProjectRoute &&
-    subscriptionBlocksDashboard(organization.subscriptionState);
+  // Nothing blocks the dashboard (the free tier is the floor), so there is no
+  // full-screen prompt to avoid stacking the banner on top of.
+
+  // The free plan is hard-capped at ingestion: events over the allowance are
+  // rejected, not stored. Paid plans are soft-capped: events keep coming in and
+  // only the charts pause. The usage banners must not promise the free plan
+  // what only paid plans do. A paused org, or one with an unpaid checkout, is
+  // held to the free plan's cap.
+  const isFreePlan = isOnFreeLimits(organization);
+  // isActive is false while paused or incomplete, but the cap still applies.
+  const showsUsage = organization.isActive || isFreePlan;
+  // Checkout is refused while paused: resuming is the way out of the cap.
+  const isPaused = organization.subscriptionState === 'paused';
+  const freeCapLiftsWhen = isPaused
+    ? 'next month starts or you resume your subscription'
+    : 'next month starts or you choose a plan';
+  const usagePercent =
+    organization.subscriptionPeriodEventsLimit > 0
+      ? Math.round(
+          (organization.subscriptionPeriodEventsCount /
+            organization.subscriptionPeriodEventsLimit) *
+            100
+        )
+      : 0;
+  const eventsLimitLabel =
+    organization.subscriptionPeriodEventsLimit.toLocaleString();
 
   const location = useLocation();
   const isBillingPage = /\/.+\/billing/.test(location.pathname);
@@ -147,7 +159,7 @@ function Component() {
       {!(stateMeta.banner || isBillingPage) && (
         <YearlySwitchPrompt organization={organization} />
       )}
-      {stateMeta.banner && !hideBannerForPrompt && (
+      {stateMeta.banner && (
         <Alert
           description={stateMeta.banner.description}
           title={stateMeta.banner.title}
@@ -162,13 +174,17 @@ function Component() {
           </LinkButton>
         </Alert>
       )}
-      {organization.isActive &&
+      {showsUsage &&
         !organization.isExceeded &&
         organization.subscriptionPeriodEventsLimit > 0 &&
         organization.subscriptionPeriodEventsCount >=
           organization.subscriptionPeriodEventsLimit * 0.8 && (
           <Alert
-            description={`You've used ${Math.round((organization.subscriptionPeriodEventsCount / organization.subscriptionPeriodEventsLimit) * 100)}% of your ${organization.subscriptionPeriodEventsLimit.toLocaleString()} monthly events. If you go over, we keep collecting your events but charts pause until you upgrade.`}
+            description={
+              isFreePlan
+                ? `You've used ${usagePercent}% of your ${eventsLimitLabel} free monthly events. Once you reach the limit, new events are not collected until ${freeCapLiftsWhen}.`
+                : `You've used ${usagePercent}% of your ${eventsLimitLabel} monthly events. If you go over, we keep collecting your events but charts pause until you upgrade.`
+            }
             title="Approaching your events limit"
           >
             <LinkButton
@@ -177,15 +193,19 @@ function Component() {
               }}
               to="/$organizationId/billing"
             >
-              See plans
+              {isPaused ? 'Resume subscription' : 'See plans'}
             </LinkButton>
           </Alert>
         )}
       {organization.subscriptionPeriodEventsCountExceededAt &&
-        organization.isActive &&
+        showsUsage &&
         organization.isExceeded && (
           <Alert
-            description={`You hit your monthly events limit on ${format(organization.subscriptionPeriodEventsCountExceededAt, 'PPP')}. We're still collecting your events — nothing is lost — but charts won't show new data until you upgrade or your next cycle starts.`}
+            description={
+              isFreePlan
+                ? `You hit your free monthly events limit on ${format(organization.subscriptionPeriodEventsCountExceededAt, 'PPP')}. New events are not being collected until ${freeCapLiftsWhen}. Everything collected before that is safe.`
+                : `You hit your monthly events limit on ${format(organization.subscriptionPeriodEventsCountExceededAt, 'PPP')}. We're still collecting your events, so nothing is lost, but charts won't show new data until you upgrade or your next cycle starts.`
+            }
             title="Events limit exceeded"
           >
             <LinkButton
@@ -194,12 +214,11 @@ function Component() {
               }}
               to="/$organizationId/billing"
             >
-              Upgrade now
+              {isPaused ? 'Resume subscription' : 'Upgrade now'}
             </LinkButton>
           </Alert>
         )}
       <Outlet />
-      <SupporterPrompt />
       <FeedbackPrompt />
     </>
   );

@@ -1,38 +1,32 @@
 import { useEffect, useState } from 'react';
 import { ChatPreview } from './chat-preview';
+import { BRAND } from '@/brand';
 import { cn } from '@/utils/cn';
 
 const ROTATE_EVERY_MS = 7000;
 
+// Privytics: product value propositions, not customer quotes, so they stay
+// honest for a new service. Upstream's customer testimonials are not ours.
 const TESTIMONIALS: { quote: string; author: string; site?: string }[] = [
   {
     quote:
-      "OpenPanel is by far the best open-source analytics I've ever seen. Better UX, more features, and incredible support from the founder.",
-    author: 'Thomas Sanlis',
-    site: 'uneed.best',
+      'Funnels, retention, and session replay. The depth of the big tools, without the mess.',
+    author: BRAND.name,
   },
   {
     quote:
-      'It combines the power of Mixpanel with the ease of use of Plausible into a fully open-source product.',
-    author: 'Steven Tey',
-    site: 'dub.co',
+      'Cookieless by default. No banner to add, and analytics data stored in the EU.',
+    author: BRAND.name,
   },
   {
     quote:
-      'After testing several product analytics tools we chose OpenPanel. Profiles and conversion events are our favorite features.',
-    author: 'Julien Hany',
-    site: 'strackr.com',
+      'Your first 10,000 events every month are free, forever. No credit card.',
+    author: BRAND.name,
   },
   {
     quote:
-      'The Overview tab has everything I need: stats, graph, traffic sources, locations, devices. Clean, modern, very pleasing to the eye.',
-    author: 'Piotr Kulpinski',
-    site: 'producthunt.com',
-  },
-  {
-    quote:
-      'After paying a lot to PostHog for years, OpenPanel gives us the same analytics while keeping full ownership of our data.',
-    author: 'Self-hosting team',
+      'Own your data. Export it anytime, or self-host the open-source engine.',
+    author: BRAND.name,
   },
 ];
 
@@ -66,8 +60,8 @@ export function AuthShowcase() {
           Ask your analytics a question. Get the chart back.
         </h2>
         <p className="text-base text-muted-foreground [@media(max-height:820px)]:hidden">
-          Web and product analytics in one place, open source, and a chat that
-          answers with charts.
+          Web and product analytics in one place, open source, and, on paid
+          plans, a chat that answers with charts.
         </p>
       </div>
       <div className="relative mt-6 min-h-0 max-w-lg flex-1">
@@ -77,7 +71,7 @@ export function AuthShowcase() {
       <figure className="col relative mt-6 max-w-lg shrink-0 gap-5 rounded-xl bg-background p-6 shadow-sm">
         <blockquote
           className="fade-in animate-in text-base leading-relaxed duration-500 motion-reduce:animate-none"
-          key={testimonial.author}
+          key={testimonial.quote}
         >
           “{testimonial.quote}”
         </blockquote>
@@ -100,7 +94,7 @@ export function AuthShowcase() {
                     ? 'w-5 bg-foreground'
                     : 'w-1.5 bg-def-400 hover:bg-foreground/60'
                 )}
-                key={item.author}
+                key={item.quote}
                 onClick={() => setIndex(dotIndex)}
                 tabIndex={-1}
                 type="button"

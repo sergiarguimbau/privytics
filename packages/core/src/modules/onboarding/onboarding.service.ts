@@ -1,6 +1,6 @@
-import { getRecommendedPlan } from '@openpanel/payments';
+import { FREE_TIER_EVENTS_LIMIT } from '@openpanel/payments/prices';
+import { getSubscriptionState } from '@openpanel/payments/subscription-state';
 import { stripTrailingSlash } from '@openpanel/shared';
-import { format } from 'date-fns';
 import type { Logger } from '../../logger';
 import type { ServiceDeps, Services } from '../../services';
 import { hashClientSecret, newClientSecret } from '../../shared/client-secret';
@@ -16,6 +16,7 @@ import {
   step,
 } from '../email/src/sequence';
 import {
+  countOwnedOrganizations,
   getOrganizationById,
   getOrganizationEventsCount,
 } from '../organization/organization.service';
@@ -25,17 +26,13 @@ import {
   type OrganizationContact,
   type OrganizationWithAdmins,
 } from '../organization/src/contact';
+import { assertCanCreateProject } from '../project/project.service';
 import { getUserById } from '../user/user.service';
 import type {
   IOnboardingProject,
   IOrganizationAttribution,
   IOrganizationAttributionStored,
 } from './onboarding.constants';
-
-const TRIAL_DURATION_IN_DAYS = 30;
-// Generous trial allowance so trialing orgs never get flagged as
-// "limit exceeded" (the limit defaults to 0, which trips on the first event).
-const TRIAL_EVENTS_LIMIT = 10_000_000;
 
 export async function canSkipOnboarding(
   deps: ServiceDeps,
@@ -96,6 +93,17 @@ async function createOrGetOnboardingOrganization(
   const db = deps.db;
   const organizationId = await getId(deps, 'organization', input.organization);
 
+  // The free allowance is granted per organization, so granting it on every
+  // creation would let one account spin up an organization per project and
+  // collect unlimited free tiers. Only the first organization a user creates
+  // carries the allowance.
+  //
+  // Counted by `createdByUserId`, not by membership: organizations the user
+  // was invited to belong to whoever created them and must not count against
+  // this, even when the invite made them an admin.
+  const isFirstOwnedOrganization =
+    (await countOwnedOrganizations(deps, userId)) === 0;
+
   // Create the organization and its owner atomically. The `delete` cron
   // treats an organization with no admin member as ownerless and removes it,
   // so an organization must never exist without one.
@@ -105,11 +113,16 @@ async function createOrGetOnboardingOrganization(
         id: organizationId,
         name: input.organization,
         createdByUserId: userId,
-        subscriptionEndsAt: new Date(
-          Date.now() + TRIAL_DURATION_IN_DAYS * 24 * 60 * 60 * 1000
-        ),
-        subscriptionStatus: 'trialing',
-        subscriptionPeriodEventsLimit: TRIAL_EVENTS_LIMIT,
+        // Privytics: a user's first organization starts on the permanent free
+        // tier: full dashboard access, capped at FREE_TIER_EVENTS_LIMIT events
+        // per month, with no expiry. Any further organization they create
+        // starts with no allowance and needs its own subscription; ingestion
+        // refuses its events until then. Upgrading is handled by the Polar
+        // webhook, which overwrites these subscription fields.
+        subscriptionStatus: 'free',
+        subscriptionPeriodEventsLimit: isFirstOwnedOrganization
+          ? FREE_TIER_EVENTS_LIMIT
+          : 0,
         timezone: input.timezone,
         attribution: toStoredAttribution(input.attribution),
         onboarding: '',
@@ -139,6 +152,12 @@ export interface CreateOnboardingProjectResult {
   secret: string;
   /** Token for the read-only MCP client created alongside; only ever returned here. */
   mcpToken: string;
+  /**
+   * True when this organization has no event allowance, i.e. it is not the
+   * user's first. The tracking snippet would be refused, so the client sends
+   * them to billing instead of the connect step.
+   */
+  requiresPlan: boolean;
 }
 
 const toMcpToken = (clientId: string, secret: string) =>
@@ -171,6 +190,9 @@ export async function createOnboardingProject(
   if (!organization) {
     throw new Error('Organization name or id is required');
   }
+
+  // A new organization has no projects yet, so the first one always passes.
+  await assertCanCreateProject(deps, organization.id);
 
   const cors = [...input.cors];
   if (cors.length === 0 && input.website) {
@@ -224,7 +246,14 @@ export async function createOnboardingProject(
     return { client: createdClient, mcpClient: createdMcpClient };
   });
 
-  return { ...client, secret, mcpToken: toMcpToken(mcpClient.id, mcpSecret) };
+  return {
+    ...client,
+    secret,
+    mcpToken: toMcpToken(mcpClient.id, mcpSecret),
+    requiresPlan:
+      getSubscriptionState(organization) === 'free' &&
+      organization.subscriptionPeriodEventsLimit <= 0,
+  };
 }
 
 // The onboarding email drip cron. The `organization.onboarding` column
@@ -233,8 +262,9 @@ export async function createOnboardingProject(
 // strands every org sitting on it (the runner completes them rather than
 // replaying the sequence, but they still stop early).
 //
-// Stops at day 26 — what happens after the trial expires belongs to the
-// wind-down cron, anchored on expiry rather than signup.
+// Privytics has no trial, so the sequence ends at day 14. Upstream's day-26
+// "trial ending" email was removed along with the trial itself: the free plan
+// is permanent, so there is nothing to expire.
 
 interface OnboardingUsage {
   eventsCount: number;
@@ -272,32 +302,10 @@ function createUsageGetter(deps: ServiceDeps, org: OnboardingCronOrg) {
   };
 }
 
-// Split by sync/async so a call site's own code (awaited or not) is the
-// type-level signal of which is which, instead of one object where only
-// `recommendedPlan` happens to return a Promise.
 const syncGetters = {
   firstName: (ctx: OnboardingContext) => ctx.user.firstName || undefined,
   dashboardUrl: (ctx: OnboardingContext) => {
     return `${ctx.dashboardUrl}/${ctx.org.id}`;
-  },
-  billingUrl: (ctx: OnboardingContext) => {
-    return `${ctx.dashboardUrl}/${ctx.org.id}/billing`;
-  },
-  trialEndDate: (ctx: OnboardingContext) => {
-    return ctx.org.subscriptionEndsAt
-      ? format(ctx.org.subscriptionEndsAt, 'MMMM d')
-      : undefined;
-  },
-} as const;
-
-const asyncGetters = {
-  recommendedPlan: async (ctx: OnboardingContext) => {
-    const { eventsCount } = await ctx.getUsage();
-    return getRecommendedPlan(
-      eventsCount,
-      (plan: { formattedEvents: string; formattedPrice: string }) =>
-        `${plan.formattedEvents} events per month for ${plan.formattedPrice}`
-    );
   },
 } as const;
 
@@ -347,28 +355,6 @@ const ONBOARDING_EMAILS: SequenceStep<OnboardingContext>[] = [
       firstName: syncGetters.firstName(ctx),
       hasData: (await ctx.getUsage()).hasData,
     }),
-  }),
-  step<OnboardingContext, 'onboarding-trial-ending'>({
-    day: 26,
-    step: 'onboarding-trial-ending',
-    template: 'onboarding-trial-ending',
-    shouldSend: async ({ org }) => {
-      if (org.subscriptionStatus === 'active') {
-        return 'complete';
-      }
-      return true;
-    },
-    data: async (ctx) => {
-      const usage = await ctx.getUsage();
-      return {
-        firstName: syncGetters.firstName(ctx),
-        billingUrl: syncGetters.billingUrl(ctx),
-        recommendedPlan: await asyncGetters.recommendedPlan(ctx),
-        trialEndDate: syncGetters.trialEndDate(ctx),
-        hasData: usage.hasData,
-        eventsCount: usage.eventsCount,
-      };
-    },
   }),
 ];
 

@@ -1,6 +1,8 @@
 import { db, Prisma } from '@openpanel/db';
 import { Polar } from '@polar-sh/sdk';
 import type { Subscription } from '@polar-sh/sdk/dist/esm/models/components/subscription';
+import { FREE_TIER_EVENTS_LIMIT } from '../src/prices';
+import { getSubscriptionState } from '../src/subscription-state';
 
 // Mirrors toSubscriptionDiscount in apps/api webhook.controller.ts — a compact
 // summary of Polar's embedded discount so the dashboard can show it.
@@ -45,7 +47,8 @@ const ACTIVE_LIKE_STATUSES: PolarSubscriptionStatus[] = [
   'paused',
 ];
 const IGNORED_PRODUCT_IDS = new Set(['ac5fe58b-0a89-4851-ae41-67be34ae696f']);
-const IGNORED_ORGANIZATION_IDS = new Set(['openpanel-dev']);
+// 'privytics' is comped by SQL with no Polar ids and must never be synced.
+const IGNORED_ORGANIZATION_IDS = new Set(['openpanel-dev', 'privytics']);
 
 const isDryRun = process.argv.includes('--dry');
 const includeCanceled = process.argv.includes('--include-canceled');
@@ -300,20 +303,56 @@ async function main() {
       }
     }
 
+    // Same downgrade rules as the Polar webhook (resolveFreeDowngrade and
+    // resolvePeriodEventsLimit in core's subscription.service.ts): a
+    // subscription the state machine reads as over drops the org to free.
+    const paidPeriodEndsAt = calculateSubscriptionEndsAt({
+      status,
+      cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
+      canceledAt: subscription.canceledAt,
+      currentPeriodEnd: subscription.currentPeriodEnd,
+    });
+    const state = getSubscriptionState({
+      subscriptionStatus: status,
+      subscriptionCanceledAt: subscription.canceledAt,
+      subscriptionEndsAt: paidPeriodEndsAt,
+      subscriptionPauseAtPeriodEnd: subscription.pauseAtPeriodEnd,
+    });
+    // Only a status that is no longer `active` is stored as `free`; an
+    // `active` one the clock reads as over keeps its row, on free limits.
+    const isDowngradedToFree = state === 'free' && status !== 'active';
+    const onFreeLimits = state === 'free' || state === 'paused';
+    // An ended subscription must not clobber the org's newer one.
+    if (
+      (onFreeLimits || status === 'canceled') &&
+      organization.subscriptionId &&
+      organization.subscriptionId !== subscription.id
+    ) {
+      continue;
+    }
+    const currentLimit = organization.subscriptionPeriodEventsLimit;
+    if (status === 'incomplete') {
+      subscriptionPeriodEventsLimit = currentLimit;
+    } else if (status === 'incomplete_expired') {
+      subscriptionPeriodEventsLimit = Math.min(
+        currentLimit,
+        FREE_TIER_EVENTS_LIMIT
+      );
+    } else if (onFreeLimits) {
+      subscriptionPeriodEventsLimit = FREE_TIER_EVENTS_LIMIT;
+    }
+
     const data = {
       subscriptionId: subscription.id,
       subscriptionCustomerId: subscription.customerId,
-      subscriptionPriceId: subscription.prices[0]?.id ?? null,
-      subscriptionProductId: subscription.productId,
-      subscriptionStatus: status,
+      subscriptionPriceId: isDowngradedToFree
+        ? null
+        : (subscription.prices[0]?.id ?? null),
+      subscriptionProductId: isDowngradedToFree ? null : subscription.productId,
+      subscriptionStatus: isDowngradedToFree ? 'free' : status,
       subscriptionStartsAt: subscription.currentPeriodStart,
       subscriptionCanceledAt: subscription.canceledAt,
-      subscriptionEndsAt: calculateSubscriptionEndsAt({
-        status,
-        cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
-        canceledAt: subscription.canceledAt,
-        currentPeriodEnd: subscription.currentPeriodEnd,
-      }),
+      subscriptionEndsAt: isDowngradedToFree ? null : paidPeriodEndsAt,
       subscriptionCreatedByUserId:
         metadataUserId ?? organization.subscriptionCreatedByUserId,
       subscriptionInterval: subscription.recurringInterval,

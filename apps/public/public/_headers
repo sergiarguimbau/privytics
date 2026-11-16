@@ -1,0 +1,77 @@
+# Cloudflare Pages reads this file from the deployed output root.
+#
+# It replaces the `headers()` block in next.config.mjs, which Next ignores under
+# `output: 'export'`. Anything in public/ is copied to the output root verbatim,
+# so this lands where Pages expects it.
+#
+# Scope note: Pages already serves every file from Cloudflare's global edge, so
+# the CDN half of "caching" is on by default and needs no configuration. What
+# this file controls is the BROWSER cache, which Pages otherwise leaves at
+# `public, max-age=0, must-revalidate` — cached, but revalidated on every single
+# request, so each asset costs a round trip (for a 304) on every page load.
+
+
+# --- Build output: safe to cache forever ------------------------------------
+#
+# These filenames contain a content hash (chunks/264db70q2w4pf.js, and the build
+# id folder). A new build produces a NEW URL, so an old cached copy can never be
+# served for new content. That makes `immutable` risk-free, and it is the single
+# biggest win here: without it a repeat visitor revalidates every JS and CSS
+# chunk on every page load.
+/_next/static/*
+  Cache-Control: public, max-age=31536000, immutable
+
+
+# --- Tracker: stable URL, changing content ----------------------------------
+#
+# op1.js is the opposite case. Its URL is hardcoded into customer HTML by every
+# SDK snippet we publish, so it can never be hashed, while its content changes
+# on each tracker release. Upstream's history of this file: 20 changes in 21
+# months, and 16 of 19 gaps between releases were under 30 days.
+#
+# So the max-age IS the update latency, and a browser cache cannot be purged.
+#   max-age=86400            24h fully fresh, zero requests. Covers the case
+#                            that dominates: one visitor, many pages.
+#   stale-while-revalidate   For the next 30 days serve the cached copy
+#     =2592000               INSTANTLY and refresh in the background, so a
+#                            returning visitor never waits and picks up the new
+#                            version on their next pageview.
+#
+# Net: 30-day performance, ~24h update latency. Browsers without
+# stale-while-revalidate (Chrome 75+ / Firefox 68+) just honour max-age and fall
+# back to plain 24h caching.
+/op1.js
+  Cache-Control: public, max-age=86400, stale-while-revalidate=2592000
+
+# Same policy. 181 KB, and only loads for paid session replay, so avoiding a
+# re-fetch matters even more here.
+/op1-replay.js
+  Cache-Control: public, max-age=86400, stale-while-revalidate=2592000
+
+
+# --- Brand images: unhashed, but rarely change ------------------------------
+#
+# Listed individually rather than by extension so the match is unambiguous. A
+# week of staleness on a logo or an OG card is harmless; if one is ever
+# replaced, expect the old one to linger for up to a week or rename the file.
+/og.png
+  Cache-Control: public, max-age=604800
+/logo.png
+  Cache-Control: public, max-age=604800
+/logo.svg
+  Cache-Control: public, max-age=604800
+/favicon.svg
+  Cache-Control: public, max-age=604800
+
+
+# --- HTML is deliberately NOT listed ----------------------------------------
+#
+# Leaving pages on the `must-revalidate` default is intentional, not an
+# oversight. HTML references the hashed chunks above; a deploy rotates those
+# filenames, and old chunks are not guaranteed to survive in the new deployment.
+# A visitor holding long-cached HTML would request chunk URLs that no longer
+# exist and get a blank or broken page, with no way for us to purge their cache.
+#
+# The cost of the default is one conditional request per page load that returns
+# 304 (~200 bytes), served from the nearest Cloudflare PoP. That is a cheap
+# price for deploys that are always coherent.

@@ -49,9 +49,9 @@ export function Layout({ children, unsubscribeUrl }: Props) {
           >
             <Section className="p-6">
               <Img
-                alt="OpenPanel Logo"
+                alt="Privytics"
                 height="80"
-                src={'https://openpanel.dev/logo.png'}
+                src={'https://privytics.com/logo.png'}
                 style={{ borderRadius: 4 }}
                 width="80"
               />

@@ -38,7 +38,7 @@ export function ClientCredentials({
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
     anchor.href = url;
-    anchor.download = 'openpanel-credentials.txt';
+    anchor.download = 'privytics-credentials.txt';
     anchor.click();
     URL.revokeObjectURL(url);
   };

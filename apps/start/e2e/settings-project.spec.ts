@@ -264,7 +264,7 @@ test.describe('tracking script', () => {
       `clientId: '${project.clientId}'`,
       SLOW_ASSERT
     );
-    await expect(snippet).toContainText('https://openpanel.dev/op1.js');
+    await expect(snippet).toContainText('https://privytics.com/op1.js');
 
     await page
       .getByRole('combobox')

@@ -1,7 +1,9 @@
+import { isOrganizationAdminRole } from '@openpanel/core/modules/organization/organization.constants';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { CheckIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { hasNoAllowance } from '@/components/organization/plan-state';
 import { Ping } from '@/components/ping';
 import { Button } from '@/components/ui/button';
 import { useAppParams } from '@/hooks/use-app-params';
@@ -31,16 +33,34 @@ const readDismissed = (projectId: string) => {
 const HEADLINES = {
   'first-event': {
     title: 'Waiting for your first event',
-    sub: 'Install the snippet — this banner lights up the moment data arrives.',
+    sub: 'Install the snippet. This banner lights up the moment data arrives.',
+    cta: 'Set up tracking',
   },
   'first-report': {
-    title: 'Data is flowing — now shape it',
+    title: 'Data is flowing, now shape it',
     sub: 'Build your first report from the events coming in.',
+    cta: 'Create a report',
   },
   'invite-teammate': {
     title: 'Bring your team in',
     sub: 'Invite a teammate to see what you are seeing.',
+    cta: 'Invite',
   },
+} as const;
+
+// An org without free events rejects every event, so an install could never
+// verify. Point to billing instead.
+const NO_PLAN_HEADLINE = {
+  title: 'Choose a plan to start collecting events',
+  sub: 'Free events cover your first organization only. This one needs a plan.',
+  cta: 'Choose a plan',
+} as const;
+
+// Only admins can open billing, so a member gets no button to a dead end.
+const NO_PLAN_MEMBER_HEADLINE = {
+  title: 'This organization needs a plan to collect events',
+  sub: 'Ask an admin of this organization to choose a plan.',
+  cta: null,
 } as const;
 
 type StepKey = keyof typeof HEADLINES;
@@ -69,6 +89,22 @@ export default function ActivationBanner() {
     )
   );
   const status = statusQuery.data;
+  const organizationQuery = useQuery(
+    trpc.organization.get.queryOptions({ organizationId })
+  );
+  const needsPlan = Boolean(
+    organizationQuery.data && hasNoAllowance(organizationQuery.data)
+  );
+  const accessQuery = useQuery(
+    trpc.organization.myAccess.queryOptions(
+      { organizationId },
+      { enabled: needsPlan }
+    )
+  );
+  // Until access loads, assume an admin (who created the org, usually).
+  const isMember = Boolean(
+    accessQuery.data && !isOrganizationAdminRole(accessQuery.data.role)
+  );
 
   if (dismissed || !status) {
     return null;
@@ -85,6 +121,15 @@ export default function ActivationBanner() {
       label: 'First event',
       done: status.hasFirstEvent,
       go: () => {
+        if (needsPlan) {
+          if (!isMember) {
+            navigate({
+              to: '/$organizationId/billing',
+              params: { organizationId },
+            });
+          }
+          return;
+        }
         op.track('activation_checklist_setup_clicked', { projectId });
         navigate({
           to: '/onboarding/$projectId/connect',
@@ -121,7 +166,11 @@ export default function ActivationBanner() {
   }
 
   const current = steps.find((step) => !step.done) ?? steps[0]!;
-  const headline = HEADLINES[current.key];
+  const noPlanHeadline = isMember ? NO_PLAN_MEMBER_HEADLINE : NO_PLAN_HEADLINE;
+  const headline: { title: string; sub: string; cta: string | null } =
+    current.key === 'first-event' && needsPlan
+      ? noPlanHeadline
+      : HEADLINES[current.key];
 
   const dismiss = () => {
     op.track('activation_checklist_dismissed', { projectId });
@@ -135,13 +184,11 @@ export default function ActivationBanner() {
 
   const actions = (
     <>
-      <Button onClick={current.go} size="sm">
-        {current.key === 'first-event'
-          ? 'Set up tracking'
-          : current.key === 'first-report'
-            ? 'Create a report'
-            : 'Invite'}
-      </Button>
+      {headline.cta && (
+        <Button onClick={current.go} size="sm">
+          {headline.cta}
+        </Button>
+      )}
       <Button onClick={dismiss} size="sm" variant="ghost">
         Skip setup
       </Button>

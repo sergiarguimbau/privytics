@@ -1,0 +1,88 @@
+{
+  "slug": "webflow",
+  "kind": "sdk",
+  "name": "Webflow",
+  "category": "Web",
+  "title": "Webflow analytics, cookieless and EU-hosted",
+  "description": "Add cookieless, EU-hosted analytics to your Webflow site by pasting one snippet into the Head Code field. It needs no cookie banner and no coding.",
+  "tagline": "Paste one snippet into Webflow and get cookieless analytics that needs no cookie banner.",
+  "intro": "Privytics adds page views and custom events to your Webflow site through one small snippet. You paste it into Webflow's Head Code field, swap in your client id, and publish. No coding, no plugins. Most Webflow sites add Google Analytics in that same box, which needs a cookie banner for EU visitors; Privytics is cookieless and EU-hosted, so there is nothing to consent to.",
+  "why": [
+    {
+      "title": "No cookie banner to add",
+      "body": "The snippet sets no cookies and stores nothing on the visitor's device. For the anonymous case there is nothing to consent to, so Privytics adds no banner to your EU pages."
+    },
+    {
+      "title": "Your data is stored in Europe",
+      "body": "Every event is stored on servers in Germany, fully inside the EU. Privytics is managed for you and runs the open-source OpenPanel engine underneath."
+    },
+    {
+      "title": "Nothing is written to the device",
+      "body": "Visitors are counted with an anonymous id that resets every day. No identifier is saved in the browser, so nothing follows people between days."
+    },
+    {
+      "title": "Free to start, no card",
+      "body": "The free plan includes 10,000 events a month with no credit card. Paid plans add session replay and five-year event history; the free plan keeps twelve months."
+    }
+  ],
+  "steps": [
+    {
+      "title": "Open Webflow's Head Code box",
+      "body": "First, a heads-up on plans: saving site-wide custom code needs a paid Webflow Site plan, Basic or above. On the free Starter plan you can open this box, but the Save button stays greyed out, so the snippet cannot go live. If you are on a paid plan, open your site's Site settings (older accounts call this Project settings), click the Custom Code tab, and find the Head Code field.",
+      "lang": "text",
+      "code": "Site settings  ›  Custom Code  ›  Head Code"
+    },
+    {
+      "title": "Paste the snippet and publish",
+      "body": "Paste both tags into the Head Code box. Replace YOUR_CLIENT_ID with the client id from your Privytics project, click Save, then hit Publish so it goes live on your real site. Webflow can take a moment to refresh the published pages, so give it a minute before you check.",
+      "lang": "html",
+      "code": "<script>\n  window.op=window.op||function(){var n=[];return new Proxy(function(){arguments.length&&n.push([].slice.call(arguments))},{get:function(t,r){return\"q\"===r?n:function(){n.push([r].concat([].slice.call(arguments)))}} ,has:function(t,r){return\"q\"===r}}) }();\n  window.op('init', {\n    apiUrl: 'https://api.privytics.com',\n    clientId: 'YOUR_CLIENT_ID',\n    trackScreenViews: true,\n    trackOutgoingLinks: true,\n  });\n</script>\n<script src=\"https://privytics.com/op1.js\" defer async></script>"
+    },
+    {
+      "title": "Check that page views arrive",
+      "body": "That is the whole setup. Open your published site and click through a couple of pages, then open your Privytics dashboard and watch the Realtime view. Page views are tracked automatically, so your visits should appear within a few seconds. Nothing else to switch on.",
+      "lang": "text",
+      "code": "yoursite.com  →  Privytics ›  Realtime"
+    },
+    {
+      "title": "Track one button click (optional)",
+      "body": "Page views already track on their own, so this step is optional. To count one specific click, first give the button an ID in its Webflow element settings (open the element, then set the ID under the settings panel, for example signup-button). Then drop an HTML Embed element anywhere on that page and paste the small block below. It waits for the click and sends a single event named signup_click. Publish again and the clicks land in Privytics. Leave the snippet from step 2 exactly as it is; this block is separate.",
+      "lang": "html",
+      "code": "<script>\n  document.addEventListener('DOMContentLoaded', function () {\n    const button = document.getElementById('signup-button');\n    if (button) {\n      button.addEventListener('click', function () {\n        window.op('track', 'signup_click');\n      });\n    }\n  });\n</script>"
+    }
+  ],
+  "faq": [
+    {
+      "q": "Do I need a paid plan?",
+      "a": "You need a paid Webflow Site plan, Basic or above, to save site-wide custom code. On the free Starter plan the Custom Code tab is visible but Save is disabled, so the snippet cannot go live. Privytics itself is free to start: 10,000 events a month with no card."
+    },
+    {
+      "q": "Do I still need a cookie banner?",
+      "a": "The snippet writes nothing to the device and sends no cookie, so for the anonymous case there is nothing to consent to. You remain the data controller. This is why teams swap GA4 for Privytics on privacy-conscious Webflow sites."
+    },
+    {
+      "q": "Where is my data stored?",
+      "a": "In EU data centres in Germany. Privytics is managed for you and runs the open-source OpenPanel engine, so there is nothing for you to run or maintain."
+    },
+    {
+      "q": "Can I track button clicks or events?",
+      "a": "Yes. Page views track automatically once the snippet is in. For a specific click, add an HTML Embed to the page with a short window.op('track', 'event_name') block, as shown in the last step. Webflow runs embed scripts first-party in your own page, so no separate tool or developer is required."
+    }
+  ],
+  "sourcesUsed": [
+    "Webflow Help Center: Custom code in head and body tags (Site settings > Custom Code > Head code, applied before </head> on every page)",
+    "Webflow Help Center: custom code requires a paid Site plan (or paid Workspace plan); on a free Starter site the code cannot be saved or edited",
+    "Webflow: Custom code embed / Code Embed element runs script tags first-party on the published site",
+    "Privytics script-tag install (op1.js + window.op init, apiUrl https://api.privytics.com)"
+  ],
+  "omitted": [
+    "Plan gate: the site-wide Head Code field requires a paid Webflow Site plan (Basic or above); the free Starter plan shows the Custom Code tab but Save is disabled, so the snippet cannot be published.",
+    "Plan gate nuance (verified via Webflow Help Center 2026): custom code is also available if the site's Workspace is on a paid Workspace plan; on a fully free setup (free Workspace plus Starter Site plan) Save is unavailable. The guide states the common paid-Site-plan requirement.",
+    "Naming (verified via Webflow Help Center 2026): the menu is now labelled Site settings; older accounts and older docs call it Project settings. The Custom Code section and Head Code field are otherwise unchanged. The guide leads with the current Site settings name and notes the older one.",
+    "Custom events use a separate HTML Embed block calling window.op('track', ...). The data-track attribute is deliberately not used, because the pasted init snippet does not set trackAttributes to enable it, and Webflow buttons cannot carry a raw HTML attribute anyway.",
+    "Verified that Webflow's HTML Embed / Code Embed runs scripts first-party on the published site (not a sandboxed iframe like Wix), so window.op('track', ...) works without a developer. The optional custom-event block is wrapped in DOMContentLoaded and null-checked so it fires reliably regardless of where the embed sits on the page.",
+    "Webflow now offers its own first-party analytics add-on (Webflow Analyze), so the guide avoids claiming Webflow has no analytics; it only notes that most sites add Google Analytics, which needs a cookie banner for EU visitors.",
+    "Per-page Head Code (in individual page settings) also exists, but the guide keeps to the site-wide field for simplicity.",
+    "Webflow Ecommerce and Memberships specific event tracking is out of scope for this simple guide."
+  ]
+}

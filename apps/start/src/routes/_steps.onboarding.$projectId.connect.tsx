@@ -1,7 +1,9 @@
+import { isOrganizationAdminRole } from '@openpanel/core/modules/organization/organization.constants';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link, redirect } from '@tanstack/react-router';
 import { SearchXIcon } from 'lucide-react';
 import { useEffect, useRef } from 'react';
+import { BRAND } from '@/brand';
 import { EmptyState } from '@/components/empty-state';
 import FullPageLoadingState from '@/components/full-page-loading-state';
 import { ClientCredentials } from '@/components/onboarding/client-credentials';
@@ -14,6 +16,7 @@ import type { SnippetContext } from '@/components/onboarding/install-snippets';
 import { InstallTroubleshootingDialog } from '@/components/onboarding/install-troubleshooting';
 import { McpConnect } from '@/components/onboarding/mcp-connect';
 import { OnboardingHeading } from '@/components/onboarding/onboarding-heading';
+import { hasNoAllowance } from '@/components/organization/plan-state';
 import { LinkButton } from '@/components/ui/button';
 import { useAppContext } from '@/hooks/use-app-context';
 import {
@@ -37,11 +40,43 @@ export const Route = createFileRoute('/_steps/onboarding/$projectId/connect')({
   },
   component: Component,
   loader: async ({ context, params }) => {
-    await context.queryClient.prefetchQuery(
+    const projectQuery =
       context.trpc.project.getProjectWithClients.queryOptions({
         projectId: params.projectId,
+      });
+    await context.queryClient.prefetchQuery(projectQuery);
+    const project = context.queryClient.getQueryData(projectQuery.queryKey);
+    if (!project) {
+      return;
+    }
+    // An org without free events rejects every event, so the install could
+    // never verify. Billing first, as when the org was created. Fresh, not
+    // cached: a plan bought a moment ago must not bounce back to billing.
+    const organizationId = project.organizationId;
+    // A failed lookup must not block the install step, as the prefetch never did.
+    const organization = await context.queryClient
+      .fetchQuery({
+        ...context.trpc.organization.get.queryOptions({ organizationId }),
+        staleTime: 0,
       })
-    );
+      .catch(() => null);
+    if (organization && hasNoAllowance(organization)) {
+      // Only admins can open billing; a member goes back to the project,
+      // where the activation banner says to ask an admin.
+      const access = await context.queryClient.fetchQuery(
+        context.trpc.organization.myAccess.queryOptions({ organizationId })
+      );
+      if (!(access && isOrganizationAdminRole(access.role))) {
+        throw redirect({
+          to: '/$organizationId/$projectId',
+          params: { organizationId, projectId: params.projectId },
+        });
+      }
+      throw redirect({
+        to: '/$organizationId/billing',
+        params: { organizationId },
+      });
+    }
   },
   pendingComponent: FullPageLoadingState,
 });
@@ -49,7 +84,7 @@ export const Route = createFileRoute('/_steps/onboarding/$projectId/connect')({
 function Component() {
   const { projectId } = Route.useParams();
   const trpc = useTRPC();
-  const { apiUrl, isSelfHosted } = useAppContext();
+  const { apiUrl } = useAppContext();
   const { data: project } = useQuery(
     trpc.project.getProjectWithClients.queryOptions({ projectId })
   );
@@ -103,7 +138,8 @@ function Component() {
   const context: SnippetContext = {
     clientId: client.id,
     clientSecret: hasSecret ? secret : null,
-    apiUrl: isSelfHosted ? apiUrl : null,
+    // Privytics: always set, the published SDKs default to OpenPanel's host.
+    apiUrl,
   };
   const dashboard = {
     to: '/$organizationId/$projectId',
@@ -128,7 +164,7 @@ function Component() {
             can also do this later from the dashboard.
           </>
         }
-        title="Install OpenPanel"
+        title={`Install ${BRAND.name}`}
       />
       <aside className={sidebarPlacement}>
         <FirstEventStatus

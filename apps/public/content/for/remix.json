@@ -1,0 +1,107 @@
+{
+  "slug": "remix",
+  "kind": "sdk",
+  "name": "Remix",
+  "category": "Web",
+  "title": "Remix analytics with Privytics, cookieless and EU-hosted",
+  "description": "Add product analytics to your Remix app with the @openpanel/web SDK. Cookieless by default, event data stored in Germany, and setup takes a few lines.",
+  "tagline": "Cookieless analytics for Remix, with event data stored in the EU.",
+  "docsUrl": "https://openpanel.dev/docs/sdks/web",
+  "intro": "Privytics gives your Remix app page views, custom events, funnels and user profiles without cookies. You install the @openpanel/web SDK, point it at the Privytics ingestion API, and load it from your client entry file. Client-side navigations between Remix routes are picked up automatically, so the whole setup is one module and one import.",
+  "why": [
+    {
+      "title": "Remix route changes are tracked without router wiring",
+      "body": "With trackScreenViews enabled the SDK wraps history.pushState and history.replaceState and listens for popstate. Every navigation through a Remix <Link>, a form redirect or the back button fires a screen view, so you do not need to subscribe to useLocation or add an effect in root.tsx."
+    },
+    {
+      "title": "Safe to import in an SSR app",
+      "body": "Remix renders on the server first. The SDK checks for a server environment and skips all browser-only work, so the module does not blow up during SSR. Importing it from app/entry.client.tsx keeps tracking strictly in the browser, which is the behaviour you want anyway."
+    },
+    {
+      "title": "No consent banner to bolt onto your root layout",
+      "body": "Privytics is cookieless by default. Nothing is written to the device, and the anonymous visitor id is computed server side and resets every day. That removes the usual banner work in root.tsx. You remain the data controller and should still confirm your own obligations."
+    },
+    {
+      "title": "Progressive enhancement friendly event tracking",
+      "body": "Remix leans on real links and real forms. trackOutgoingLinks records clicks to external domains on its own, and trackAttributes lets you tag any element with data-track=\"your_event\" instead of attaching an onClick handler, so events still fire on markup that works before hydration."
+    }
+  ],
+  "steps": [
+    {
+      "title": "Install the SDK",
+      "body": "There is no dedicated Remix package. The OpenPanel web SDK is the supported path for Remix and is published on npm as @openpanel/web.",
+      "lang": "bash",
+      "code": "npm install @openpanel/web"
+    },
+    {
+      "title": "Create the client",
+      "body": "apiUrl is required. Without it the SDK falls back to its built-in default of https://api.openpanel.dev and your events go to OpenPanel's own host rather than Privytics.",
+      "lang": "ts",
+      "code": "// app/op.ts\nimport { OpenPanel } from '@openpanel/web';\n\nexport const op = new OpenPanel({\n  clientId: 'YOUR_CLIENT_ID',\n  apiUrl: 'https://api.privytics.com',\n  trackScreenViews: true,\n  trackOutgoingLinks: true,\n  trackAttributes: true,\n});"
+    },
+    {
+      "title": "Load it from your client entry",
+      "body": "Importing the module in entry.client.tsx runs the constructor once, in the browser only, before hydration.",
+      "lang": "tsx",
+      "code": "// app/entry.client.tsx\nimport { RemixBrowser } from '@remix-run/react';\nimport { StrictMode, startTransition } from 'react';\nimport { hydrateRoot } from 'react-dom/client';\n\nimport './op';\n\nstartTransition(() => {\n  hydrateRoot(\n    document,\n    <StrictMode>\n      <RemixBrowser />\n    </StrictMode>\n  );\n});"
+    },
+    {
+      "title": "Track a custom event",
+      "body": "Screen views are automatic. Call op.track for anything else. With trackAttributes enabled you can also write <button type=\"button\" data-track=\"signup_clicked\" /> and skip the handler.",
+      "lang": "tsx",
+      "code": "// app/routes/pricing.tsx\nimport { op } from '~/op';\n\nexport default function Pricing() {\n  return (\n    <button\n      type=\"button\"\n      onClick={() => op.track('signup_clicked', { plan: 'pro' })}\n    >\n      Start free\n    </button>\n  );\n}"
+    },
+    {
+      "title": "Identify signed-in users",
+      "body": "Optional. Pass your own user id to link sessions into a single profile. This is opt-in and needs your own lawful basis.",
+      "lang": "tsx",
+      "code": "import { op } from '~/op';\n\nop.identify({\n  profileId: '123', // Required\n  firstName: 'Joe',\n  lastName: 'Doe',\n  email: 'joe@doe.com',\n  properties: {\n    tier: 'premium',\n  },\n});"
+    },
+    {
+      "title": "Alternative: plain script tag",
+      "body": "If you cannot or would rather not add a client module, put this in the <head> of app/root.tsx instead of installing the SDK. The first block queues calls until the tracker loads, the second loads it. apiUrl still has to point at Privytics.",
+      "lang": "html",
+      "code": "<script>\n  window.op = window.op || function (...args) { (window.op.q = window.op.q || []).push(args); };\n  window.op('init', {\n    apiUrl: 'https://api.privytics.com',\n    clientId: 'YOUR_CLIENT_ID',\n    trackScreenViews: true,\n    trackOutgoingLinks: true,\n  });\n</script>\n<script src=\"https://privytics.com/op1.js\" defer></script>"
+    }
+  ],
+  "faq": [
+    {
+      "q": "Is there a dedicated Remix SDK?",
+      "a": "No. The upstream Remix doc page is a stub that tells Remix users to use the web SDK or a script tag for now. Install @openpanel/web and load it from app/entry.client.tsx."
+    },
+    {
+      "q": "Does it track Remix client-side route changes?",
+      "a": "Yes, when trackScreenViews is true. The SDK patches history.pushState and history.replaceState and listens for popstate, so navigations through <Link>, form redirects and the browser back button all record a screen view."
+    },
+    {
+      "q": "Do I need a cookie banner for Remix analytics?",
+      "a": "Privytics sets no cookies and writes nothing to the device, so the usual analytics banner is not triggered by our tracking. You are still the data controller, so check your own obligations and anything else running on the page."
+    },
+    {
+      "q": "Will it break server-side rendering?",
+      "a": "No. The SDK detects a server environment and skips browser-only work, so it is safe to import. Loading it from entry.client.tsx keeps all tracking in the browser."
+    },
+    {
+      "q": "Where is the event data stored?",
+      "a": "Event data is stored in EU data centres in Germany. Privytics is built on the open-source OpenPanel engine and is not affiliated with OpenPanel."
+    }
+  ],
+  "sourcesUsed": [
+    "https://openpanel.dev/docs/sdks/remix",
+    "https://openpanel.dev/docs/sdks/web",
+    "https://openpanel.dev/docs/sdks/script",
+    "https://openpanel.dev/docs/sdks/javascript",
+    "https://registry.npmjs.org/@openpanel/web",
+    "packages/sdks/web/src/index.ts",
+    "packages/sdks/sdk/src/index.ts",
+    "packages/common/server/profileId.ts",
+    "apps/worker/src/boot-cron.ts"
+  ],
+  "omitted": [
+    "A dedicated @openpanel/remix package. It does not exist. The upstream Remix doc page is a stub that says 'Use script tag or Web SDK for now. We'll add a dedicated remix sdk soon.'",
+    "scriptUrl. It is a real option on the web SDK type but the plain web SDK does not inject a script tag for you; it is only meaningful for framework components that do (Next.js style), and for the separate sessionReplay.scriptUrl sub-option. Not shown in any Remix snippet.",
+    "Server-side tracking from Remix loaders and actions. @openpanel/sdk with clientSecret exists for Node, but no upstream doc shows it wired into a Remix loader or action, so I did not invent that snippet.",
+    "Session replay configuration. It is supported by the web SDK but is paid-plan only and opt-in per project, and the setup is not Remix specific, so it belongs on its own page.",
+    "Groups (upsertGroup, setGroup, setGroups), increment, decrement, clear, setGlobalProperties and revenue methods. increment, decrement, clear and setGlobalProperties are confirmed real in the JavaScript SDK docs and in packages/sdks/sdk/src/index.ts, but are not Remix specific and would bloat the setup path. The group and revenue methods were not verified and are not claimed anywhere on this page."
+  ]
+}

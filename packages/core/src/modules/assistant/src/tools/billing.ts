@@ -1,4 +1,3 @@
-import { FREE_PRODUCT_IDS } from '@openpanel/payments';
 import { getSubscriptionState } from '@openpanel/payments/subscription-state';
 import { getSubscriptionStateMeta } from '@openpanel/payments/subscription-state-meta';
 import { tool } from 'ai';
@@ -134,9 +133,7 @@ export function billingTools(ctx: ChatToolContext) {
           statusLine: meta.statusLine?.text ?? meta.banner?.description ?? null,
           plan: {
             name: product?.name ?? null,
-            free: organization.subscriptionProductId
-              ? FREE_PRODUCT_IDS.includes(organization.subscriptionProductId)
-              : false,
+            free: state === 'free',
             price:
               typeof price?.priceAmount === 'number'
                 ? price.priceAmount / CENTS_PER_UNIT

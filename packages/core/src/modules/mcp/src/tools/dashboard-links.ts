@@ -8,7 +8,7 @@ import {
   withErrorHandling,
 } from './shared';
 
-const DEFAULT_DASHBOARD_URL = 'https://dashboard.openpanel.dev';
+const DEFAULT_DASHBOARD_URL = 'https://app.privytics.com';
 const TRAILING_SLASH = /\/$/;
 
 export function dashboardBaseUrl(config: CoreConfig) {

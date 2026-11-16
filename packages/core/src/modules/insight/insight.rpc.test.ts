@@ -1,7 +1,8 @@
-// Only the "is anyone logged in" boundary is exercised here, with no database;
-// the access checks and business logic are covered in insight.service.test.ts.
+// The "is anyone logged in" boundary and the paid-only AI gate are exercised
+// here, with no database; the access checks and business logic are covered in
+// insight.service.test.ts.
 
-import { expect, test } from 'bun:test';
+import { expect, mock, test } from 'bun:test';
 import { stubHttpCtx } from '../../../test/rpc-fixtures';
 import { makeTrpcContext } from '../../rpc/base';
 import type { CookieOptions } from '../../shared/cookie';
@@ -45,4 +46,54 @@ test('explain rejects an unauthenticated caller before reading an insight', asyn
   await expect(
     caller.explain({ insightId: 'insight_1' })
   ).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
+});
+
+test('explain refuses an organization on the free plan before calling the model', async () => {
+  // test/preload.ts pins SELF_HOSTED=true, which reads every org as self_hosted.
+  const preloadSelfHosted = process.env.SELF_HOSTED;
+  process.env.SELF_HOSTED = 'false';
+  try {
+    const explainInsight = mock(async () => ({ explanation: 'x' }));
+    // A project id no other test caches the organization lookup under.
+    const projectId = `proj_free_${crypto.randomUUID()}`;
+    const { ctx } = stubHttpCtx({
+      db: {
+        projectInsight: {
+          findUniqueOrThrow: async () => ({
+            projectId,
+            title: 'Traffic up',
+            lastUpdatedAt: new Date(),
+          }),
+        },
+        project: {
+          findUniqueOrThrow: async () => ({
+            organization: {
+              id: 'org_free',
+              subscriptionStatus: 'free',
+              subscriptionCanceledAt: null,
+              subscriptionEndsAt: null,
+              subscriptionPauseAtPeriodEnd: false,
+              subscriptionPeriodEventsLimit: 10_000,
+            },
+          }),
+        },
+      },
+      services: {
+        auth: { requireProjectAccess: async () => ({ level: 'read' }) },
+        insight: { explainInsight },
+      },
+    } as unknown as Parameters<typeof stubHttpCtx>[0]);
+    const caller = insightRouter.createCaller(
+      await makeTrpcContext(ctx, new Headers(), {
+        cookieOptions: COOKIE_OPTIONS,
+      })
+    );
+
+    await expect(
+      caller.explain({ insightId: 'insight_1' })
+    ).rejects.toMatchObject({ code: 'TOO_MANY_REQUESTS' });
+    expect(explainInsight).not.toHaveBeenCalled();
+  } finally {
+    process.env.SELF_HOSTED = preloadSelfHosted;
+  }
 });

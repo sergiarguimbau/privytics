@@ -3,6 +3,7 @@ import { useMutation } from '@tanstack/react-query';
 import { SparklesIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { DeltaChip } from '@/components/delta-chip';
+import { useOverviewAICommandEnabled } from '@/components/overview/overview-ai-command';
 import { ReportChart } from '@/components/report-chart';
 import { Badge } from '@/components/ui/badge';
 import { SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
@@ -94,6 +95,8 @@ function buildInsightReport(insight: Insight): IReportInput | null {
 export default function InsightDetails({ insight }: { insight: Insight }) {
   const trpc = useTRPC();
   const [explanation, setExplanation] = useState<Explanation>(null);
+  // Privytics: AI is paid-only, the server refuses the explanation otherwise.
+  const aiEnabled = useOverviewAICommandEnabled();
 
   const mutation = useMutation(
     trpc.insight.explain.mutationOptions({
@@ -101,10 +104,12 @@ export default function InsightDetails({ insight }: { insight: Insight }) {
     })
   );
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: run once on mount
+  // Once, as soon as the plan is known to allow it.
   useEffect(() => {
-    mutation.mutate({ insightId: insight.id });
-  }, []);
+    if (aiEnabled) {
+      mutation.mutate({ insightId: insight.id });
+    }
+  }, [aiEnabled]);
 
   // Primary metric (mirrors the card's selection).
   const metrics = Object.entries(insight.payload?.metrics ?? {});
@@ -184,45 +189,47 @@ export default function InsightDetails({ insight }: { insight: Insight }) {
         </div>
       )}
 
-      <div>
-        <div className="mb-2 flex items-center gap-2 font-medium text-sm">
-          <SparklesIcon className="size-4" /> Why did this happen?
-        </div>
-
-        {mutation.isPending && (
-          <p className="text-muted-foreground text-sm">Analyzing…</p>
-        )}
-
-        {explanation && (
-          <div className="flex flex-col gap-3 text-sm">
-            <p>{explanation.summary}</p>
-            {explanation.drivers.length > 0 && (
-              <ul className="flex flex-col gap-2">
-                {explanation.drivers.map((d) => (
-                  <li key={d.label}>
-                    <span className="font-medium">{d.label}:</span>{' '}
-                    <span className="text-muted-foreground">{d.detail}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-            {explanation.relatedReference && (
-              <p className="text-muted-foreground">
-                Possibly related: {explanation.relatedReference}
-              </p>
-            )}
-            <p className="text-3xs text-muted-foreground uppercase tracking-wide">
-              Confidence: {explanation.confidence}
-            </p>
+      {aiEnabled && (
+        <div>
+          <div className="mb-2 flex items-center gap-2 font-medium text-sm">
+            <SparklesIcon className="size-4" /> Why did this happen?
           </div>
-        )}
 
-        {!mutation.isPending && mutation.isSuccess && !explanation && (
-          <p className="text-muted-foreground text-sm">
-            Couldn't generate an explanation for this one.
-          </p>
-        )}
-      </div>
+          {mutation.isPending && (
+            <p className="text-muted-foreground text-sm">Analyzing…</p>
+          )}
+
+          {explanation && (
+            <div className="flex flex-col gap-3 text-sm">
+              <p>{explanation.summary}</p>
+              {explanation.drivers.length > 0 && (
+                <ul className="flex flex-col gap-2">
+                  {explanation.drivers.map((d) => (
+                    <li key={d.label}>
+                      <span className="font-medium">{d.label}:</span>{' '}
+                      <span className="text-muted-foreground">{d.detail}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {explanation.relatedReference && (
+                <p className="text-muted-foreground">
+                  Possibly related: {explanation.relatedReference}
+                </p>
+              )}
+              <p className="text-3xs text-muted-foreground uppercase tracking-wide">
+                Confidence: {explanation.confidence}
+              </p>
+            </div>
+          )}
+
+          {!mutation.isPending && mutation.isSuccess && !explanation && (
+            <p className="text-muted-foreground text-sm">
+              Couldn't generate an explanation for this one.
+            </p>
+          )}
+        </div>
+      )}
     </SheetContent>
   );
 }

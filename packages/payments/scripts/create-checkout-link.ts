@@ -218,7 +218,7 @@ async function main() {
       products: [input.productId],
       successUrl: getSuccessUrl(
         isProduction
-          ? 'https://dashboard.openpanel.dev'
+          ? 'https://app.privytics.com'
           : 'http://localhost:3000',
         organization.id
       ),

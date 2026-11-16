@@ -17,7 +17,7 @@ function redactEmail(email: string): string {
 
 export * from './unsubscribe';
 
-const FROM = process.env.EMAIL_SENDER ?? 'hello@openpanel.dev';
+const FROM = process.env.EMAIL_SENDER ?? 'hello@privytics.com';
 
 export type EmailData<T extends TemplateKey> = z.infer<Templates[T]['schema']>;
 export type EmailTemplate = keyof Templates;

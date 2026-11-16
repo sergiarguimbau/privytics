@@ -1,0 +1,95 @@
+{
+  "slug": "python",
+  "kind": "sdk",
+  "name": "Python",
+  "category": "Backend",
+  "title": "Python analytics for Django and Flask, cookieless and EU-hosted",
+  "description": "Track server-side events from Python with the OpenPanel SDK. Works in Django, Flask and any Python service, sets no cookies, and keeps event data in Germany.",
+  "tagline": "Server-side analytics for Django, Flask and any Python app. Event data stored in the EU.",
+  "intro": "Privytics tracks product events straight from your Python backend using the open-source OpenPanel Python SDK. You install one package, create a client pointed at your Privytics ingestion URL, and call track() wherever something happens: a signup, a payment, a background job finishing. Setup is about five lines, and because the events come from your server there is no browser script and no cookie involved.",
+  "docsUrl": "https://openpanel.dev/docs/sdks/python",
+  "why": [
+    {
+      "title": "Server-side events do not get blocked",
+      "body": "Ad blockers, tracking protection and script blockers act on browser requests. A call from your Django or Flask process is a plain outbound HTTPS request from your own infrastructure, so events like signup_completed and subscription_renewed arrive regardless of what the visitor runs client-side."
+    },
+    {
+      "title": "Track what the browser never sees",
+      "body": "Stripe and other webhooks, Celery and RQ tasks, cron jobs, management commands and API-only clients all run with no page open. These are usually the events that matter most commercially, and the Python SDK is the only way to record them."
+    },
+    {
+      "title": "Your request handler never waits on the network",
+      "body": "Each call schedules the HTTP request onto a background daemon thread running its own asyncio event loop and returns immediately. Adding tracking to a hot Django view does not add latency to the response. Note that the send itself is a blocking requests.post on that single background thread, so events are delivered one at a time rather than in parallel."
+    },
+    {
+      "title": "No cookies and nothing stored on the device",
+      "body": "Server-side tracking writes nothing to the visitor's browser. If you want cross-session profiles you pass your own user id to identify(), which is opt-in and under your control, so you decide the lawful basis rather than inheriting one from a tracking script."
+    }
+  ],
+  "steps": [
+    {
+      "title": "Install the package",
+      "body": "The SDK is published on PyPI under the name openpanel. It requires Python 3.7 or newer and pulls in requests as its only dependency.",
+      "lang": "bash",
+      "code": "pip install openpanel"
+    },
+    {
+      "title": "Create the client",
+      "body": "Always pass api_url. It is an optional argument that defaults to OpenPanel's own host, so if you leave it out your events go to the wrong place. client_secret is needed for server-side events. The optional disabled flag is handy for local development.",
+      "lang": "python",
+      "code": "import os\n\nfrom openpanel import OpenPanel\n\nop = OpenPanel(\n    client_id=\"YOUR_CLIENT_ID\",\n    client_secret=os.environ[\"PRIVYTICS_CLIENT_SECRET\"],\n    api_url=\"https://api.privytics.com\",\n    disabled=os.getenv(\"ENV\") == \"development\",\n)"
+    },
+    {
+      "title": "Track an event",
+      "body": "track() takes an event name and an optional dictionary of properties. Properties are merged with anything you have set through set_global_properties(). Delivery failures are logged to stdout rather than raised, so a tracking outage will never break a request.",
+      "lang": "python",
+      "code": "op.set_global_properties({\n    \"app_version\": \"1.4.0\",\n    \"environment\": \"production\",\n})\n\nop.track(\"signup_completed\")\n\nop.track(\"purchase_completed\", {\n    \"plan\": \"pro\",\n    \"price\": 99.99,\n    \"currency\": \"EUR\",\n})"
+    },
+    {
+      "title": "Attach events to a user in Django or Flask",
+      "body": "identify() sends profile traits and also stores the profile id on the client instance, where every later track() call picks it up. That state is shared across threads, so in a web server one request's identify() can attribute another request's events. Call identify() deliberately, or keep a client per worker. increment() and decrement() take positional arguments and are unaffected, since you pass the profile id explicitly.",
+      "lang": "python",
+      "code": "from flask import Flask, jsonify\n\napp = Flask(__name__)\n\n\n@app.post(\"/checkout\")\ndef checkout():\n    user = get_current_user()\n\n    op.identify(str(user.id), {\n        \"email\": user.email,\n        \"firstName\": user.first_name,\n    })\n\n    op.track(\"checkout_started\", {\"cart_value\": 49.0})\n    op.increment(str(user.id), \"checkout_count\", 1)\n\n    return jsonify(ok=True)"
+    }
+  ],
+  "faq": [
+    {
+      "q": "Does the OpenPanel Python SDK work with Django and Flask?",
+      "a": "Yes. It is a plain Python library with no framework coupling, so it works in Django views, Flask routes, FastAPI handlers, Celery tasks and standalone scripts. There is no Django or Flask specific integration package, you create one client and call it from your code."
+    },
+    {
+      "q": "Will ad blockers block Python analytics events?",
+      "a": "No. The events are sent from your own server as outbound HTTPS requests, so browser-side blockers and tracking protection never see them. This is the main reason to track conversions and payments server-side."
+    },
+    {
+      "q": "Do I need a cookie banner for server-side Python tracking?",
+      "a": "Server-side tracking sets no cookies and stores nothing on the visitor's device, so there is nothing for a banner to consent to. If you call identify() with your own user id you are building a persistent profile, which needs your own lawful basis. You remain the data controller either way."
+    },
+    {
+      "q": "How do I point the SDK at Privytics instead of OpenPanel?",
+      "a": "Pass api_url=\"https://api.privytics.com\" to the OpenPanel constructor. The argument is optional and defaults to OpenPanel's own host, so you must set it explicitly or your events will go to the wrong place."
+    }
+  ],
+  "sourcesUsed": [
+    "https://openpanel.dev/docs/sdks/python",
+    "https://raw.githubusercontent.com/Openpanel-dev/python-sdk/main/README.md",
+    "https://raw.githubusercontent.com/Openpanel-dev/python-sdk/main/openpanel/openpanel.py",
+    "https://pypi.org/pypi/openpanel/json",
+    "Local verification: pip install openpanel into a clean venv, then inspect.signature() on every documented method and execution of each snippet in this page"
+  ],
+  "omitted": [
+    "VERIFIED BY EXECUTION: every snippet on this page was run against openpanel 0.0.1 installed from PyPI. pip install openpanel succeeds, from openpanel import OpenPanel works, and the constructor default api_url is confirmed to be https://api.openpanel.dev, which is why passing api_url is emphasised.",
+    "The official docs page shows op.track(\"purchase_completed\", {...}, profile_id=\"user_123\"). Executed against the released package this raises: TypeError: OpenPanel.track() got an unexpected keyword argument 'profile_id'. The real signature is track(name, properties=None). Omitted and replaced with identify() followed by track().",
+    "The official docs page shows op.increment({\"profile_id\": \"1\", \"property\": \"visits\", \"value\": 1}). Executed, this raises: TypeError: OpenPanel.increment() missing 1 required positional argument: 'property'. The real signature is increment(profile_id, property, value=None), matching the GitHub README. Used the positional form.",
+    "The official docs page lists global_properties as a constructor option. Executed, OpenPanel(client_id=..., global_properties={...}) raises TypeError: unexpected keyword argument. The constructor accepts only client_id, client_secret, api_url, filter and disabled. Used set_global_properties() instead.",
+    "Removed the original claim that api_url is a 'required' argument. It is an optional parameter with a default, so calling it required was inaccurate. Reworded to state that it defaults to OpenPanel's host and must therefore be set explicitly, which is the accurate and equally forceful framing.",
+    "Corrected the concurrency description. The original said the SDK 'pushes each event onto an internal queue'. The class does instantiate a queue.Queue but never uses it; dispatch actually goes through asyncio.run_coroutine_threadsafe onto a daemon-thread event loop. Also added the caveat that _send uses a blocking requests.post, so sends are serialised on that one thread.",
+    "Removed the claim that the anonymous visitor id is a daily-rotating salted hash. It could not be verified from any SDK source, and it is not applicable to server-side tracking where no anonymous visitor id is generated at all. Confirm this separately before making it anywhere on the site.",
+    "No flush() method exists in the SDK (confirmed via hasattr on the installed package), so no flush or graceful-shutdown step is shown. The class implements __enter__/__exit__, whose _cleanup stops the loop, joins with a 5s timeout and then calls _thread.interrupt_main() if the thread survives. That last behaviour is aggressive and was not exercised, so no context-manager example is given.",
+    "alias() and clear() are real and verified but were not included, to keep the page to four steps. Note that clear() also wipes global properties, not just the profile id.",
+    "No Django or Flask middleware, app config or integration package exists. Nothing framework-specific was invented; the Flask example is plain library usage and get_current_user() is an obvious placeholder for your own auth lookup.",
+    "scriptUrl and any op1.js script tag are not applicable to a server-side Python SDK, so none is shown. No snippet on this page references api.openpanel.dev or openpanel.dev/op1.js.",
+    "MATURITY RISK, please read before publishing: PyPI has exactly one release, version 0.0.1, uploaded October 2024, with no update in the ~21 months since. The packaged PyPI description also still carries a stale warning reading 'This package is not yet published. So you cannot install it with pip', which directly contradicts the working pip install directly beneath it. Installation does work, but anyone who lands on the PyPI page will see that contradiction. Worth deciding how you want to frame SDK maturity. No stability claim was made either way on the page.",
+    "The filter callback option is real (Optional[Callable[[Dict], bool]], applied inside _send before the request) but no example is given, as the exact payload shape passed to it was not exercised."
+  ]
+}

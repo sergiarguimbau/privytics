@@ -1,0 +1,80 @@
+{
+  "slug": "vibe-coded-apps",
+  "kind": "usecase",
+  "name": "Vibe-coded apps",
+  "title": "Analytics for AI-generated apps, set up in one file",
+  "description": "Add analytics to an app you built with Cursor, Claude Code, v0, Lovable or Bolt. One script tag, a small event taxonomy, cookieless by default, free to start.",
+  "tagline": "One script tag, ten event names, and you finally know if anyone uses it.",
+  "category": "Audience",
+  "intro": "You built something with Cursor, Claude Code, v0, Lovable or Bolt, shipped it, and now you want to know whether anyone actually uses it. Privytics answers that with one script tag in your index.html or root layout, plus a handful of named events you define once and reuse. The free tier is 10,000 events a month with no credit card, so an agent can wire the whole thing up in a single pass without stopping to ask you for billing details.",
+  "docsUrl": "https://openpanel.dev/docs/sdks/script",
+  "why": [
+    {
+      "title": "One file is the whole install",
+      "body": "Generated apps usually have exactly one index.html or one root layout. That is the only file you touch. There is no package to install, no bundler config to edit, no provider component to thread through a tree you did not write and do not want to read."
+    },
+    {
+      "title": "An agent can finish the job without a card",
+      "body": "The free tier is 10,000 events a month, one project, 12 months retention, no credit card. That matters when you are handing the task to Cursor or Claude Code: the setup completes end to end instead of stalling on a checkout page you have to fill in by hand."
+    },
+    {
+      "title": "A named taxonomy survives the next regeneration",
+      "body": "The usual failure is not missing tracking, it is drift. Ask a generator for tracking three times and you get signup, user_signed_up and SignupSuccess, which land as three unrelated events and three broken charts. Put every event in one small module and the regenerated component imports the same names it did last week."
+    },
+    {
+      "title": "Cookieless by default, so there is nothing to retrofit",
+      "body": "Generated apps rarely ship with a consent layer, and bolting one on later is miserable. The tracker sets no cookies and writes nothing to the device. Visitors are counted with an anonymous id that resets every day. You are still the data controller and still decide what your notice says, but the default costs you no plumbing."
+    }
+  ],
+  "steps": [
+    {
+      "title": "Paste the script tag into your one HTML file",
+      "body": "Put both tags in the <head> of index.html, or in the root layout if your generator produced a framework app. Replace YOUR_CLIENT_ID with the client id from your Privytics project. Setting apiUrl is required: leave it out and the SDK sends your events to OpenPanel's hosted API instead of yours. With trackScreenViews on, page views start arriving on the next load and client-side route changes are picked up too. The global is called window.op and the file is op1.js because Privytics runs on the open-source OpenPanel engine and uses its official SDKs unchanged. Privytics is independent and is not affiliated with, endorsed by or sponsored by OpenPanel.",
+      "lang": "html",
+      "code": "<script>\n  window.op=window.op||function(){var n=[];return new Proxy(function(){arguments.length&&n.push([].slice.call(arguments))},{get:function(t,r){return\"q\"===r?n:function(){n.push([r].concat([].slice.call(arguments)))}} ,has:function(t,r){return\"q\"===r}}) }();\n  window.op('init', {\n    apiUrl: 'https://api.privytics.com',\n    clientId: 'YOUR_CLIENT_ID',\n    trackScreenViews: true,\n    trackOutgoingLinks: true,\n  });\n</script>\n<script src=\"https://privytics.com/op1.js\" defer async></script>"
+    },
+    {
+      "title": "Put every event in one file",
+      "body": "This is the step that decides whether the data is still useful in three months. Define the events once, in one module, and let the rest of the app import from it. Nothing else calls window.op directly. Keep it to five or ten events, name them object_verb in snake_case and past tense, and keep properties as short enums rather than free text. When you next ask an agent to add tracking, point it at this file and tell it to reuse an existing name or add exactly one.",
+      "lang": "js",
+      "code": "// src/analytics.js\n// Every event this app can send lives here.\n// Naming rule: snake_case, past tense, object first. Properties are short enums.\n\nconst track = (name, properties) => {\n  if (typeof window !== 'undefined' && window.op) {\n    window.op('track', name, properties);\n  }\n};\n\nexport const analytics = {\n  signupCompleted: (method) => track('signup_completed', { method }), // 'email' | 'google'\n  projectCreated: (source) => track('project_created', { source }), // 'onboarding' | 'dashboard'\n  generationRequested: (model) => track('generation_requested', { model }),\n  generationFailed: (reason) => track('generation_failed', { reason }), // 'timeout' | 'quota' | 'invalid_input'\n  exportDownloaded: (format) => track('export_downloaded', { format }), // 'csv' | 'pdf'\n  planUpgraded: (plan) => track('plan_upgraded', { plan }),\n};\n\n// src/components/SignupForm.jsx\nimport { analytics } from '../analytics';\n\nconst onSuccess = () => {\n  analytics.signupCompleted('google');\n};"
+    },
+    {
+      "title": "Keep personal data out of properties",
+      "body": "The second common accident: a generator wires up tracking by passing whatever object is in scope, and the user's email, name or raw prompt text ends up as an event property. Analytics properties are the wrong place for that. Describe the event, not the person. If you genuinely need cross-session profiles, use identify() with your own opaque user id and your own lawful basis, rather than smuggling identifiers into every event.",
+      "lang": "js",
+      "code": "// Wrong. Personal data in analytics properties, usually by accident.\nwindow.op('track', 'signup_completed', {\n  email: user.email,        // no\n  name: user.fullName,      // no\n  prompt: input.value,      // no, free text is full of personal data\n});\n\n// Right. Describe the event, not the person.\nwindow.op('track', 'signup_completed', {\n  method: 'google',\n  plan: 'free',\n  prompt_length: input.value.length,\n});\n\n// App-wide context belongs in global properties, set once after init.\nwindow.op('setGlobalProperties', {\n  app_version: '2026.07.19',\n  environment: 'production',\n});"
+    }
+  ],
+  "faq": [
+    {
+      "q": "How do I add analytics to an app built with Lovable, Bolt or v0?",
+      "a": "Paste the two script tags from step one into the <head> of index.html, or into the root layout if the generator gave you a framework app. Set clientId to your Privytics client id and apiUrl to https://api.privytics.com. Page views are recorded from the next load. Everything past that is your own track() calls."
+    },
+    {
+      "q": "Can Cursor or Claude Code set this up for me?",
+      "a": "Yes, and it is a reasonable thing to delegate. Give the agent the snippet from step one and the taxonomy file from step two, and tell it to reuse the existing event names rather than invent new ones. The free tier needs no credit card, so the agent will not hit a checkout wall halfway through. Review the diff for personal data in event properties before you deploy."
+    },
+    {
+      "q": "I accidentally sent email addresses as event properties. What do I do?",
+      "a": "First stop sending them: fix the track() call and ship it, because every hour it stays live adds more rows. Then decide what to do with what is already stored. On a small project the simplest clean fix is to delete the project, which removes its events, and start a fresh one with the corrected taxonomy. If deleting is not practical, contact us and describe what was sent and to which project."
+    },
+    {
+      "q": "When is Privytics the wrong choice?",
+      "a": "Three honest cases. If all you want is a visitor count on a static page and you will never send a custom event, a plain page view counter is less to think about. If session replay is the whole reason you are here, note that replay is a paid feature, so the free tier will not give you it. And if you want to join event data against your own production database in SQL, you want a warehouse and a BI tool, not a product analytics UI. Privytics fits when you want funnels, retention and named events over a small app you actually shipped."
+    }
+  ],
+  "sourcesUsed": [],
+  "omitted": [
+    "CONFIRMED: the tracker host in step one. https://privytics.com/op1.js is correct and needs no change. The tracker file exists at apps/public/public/op1.js and is served as a static asset by this marketing site itself, so the URL resolves as soon as privytics.com is deployed. The earlier connection failure reflected only the pending deploy, not a wrong URL.",
+    "The @openpanel/web npm install path. It is real and is the better route for a project with a build step, but this audience's defining trait is that they do not want to touch package.json, so the page commits to the script tag alone and links the JavaScript page instead.",
+    "trackAttributes and the data-track markup pattern. Real and verified in the web SDK source, but generated apps render markup from components, so the attribute route adds a concept without saving this audience any work.",
+    "identify() setup and a code sample. Mentioned in step three as the correct alternative to stuffing identifiers into properties, but no snippet is shown, because on a first-install page for this audience it invites exactly the over-collection the step warns against.",
+    "Session replay configuration. Paid plans only and opt-in per project. Named once in the honest-fit FAQ so nobody arrives expecting it on the free tier, but no setup snippet is given.",
+    "revenue(), increment(), decrement(), upsertGroup(), setGroup(), setGroups() and alias(). All real methods on the SDK, all out of scope for a page whose entire argument is that the taxonomy should stay small.",
+    "Salt rotation time is now stated in full: the worker cron is '0 0 * * *', so the copy says 'rotates daily at midnight UTC', matching the wording used on the other guides.",
+    "Any claim about speed, script weight or reliability against other tools. No comparative measurement was made, so no such claim appears.",
+    "Any customer count, testimonial, logo or usage figure. None of these are claimed anywhere on the page.",
+    "Storage location detail beyond what the free-tier copy needs. Data residency is covered on the dedicated pages; repeating a vendor-level claim here was not verifiable from the repo."
+  ]
+}

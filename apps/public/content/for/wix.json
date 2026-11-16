@@ -1,0 +1,79 @@
+{
+  "slug": "wix",
+  "kind": "sdk",
+  "name": "Wix",
+  "category": "Web",
+  "title": "Wix analytics, cookieless and EU-hosted",
+  "description": "Add cookieless, EU-hosted analytics to your Wix site by pasting one snippet into the Custom Code box. No coding, and no cookie banner for anonymous visitors.",
+  "tagline": "Paste one snippet into Wix. Cookieless page views that need no consent banner.",
+  "intro": "Privytics adds cookieless, EU-hosted analytics to your Wix site through a single snippet you paste into Wix's Custom Code box. There is no coding: open the box, paste, save, done. Wix has its own basic stats, but they do not give you full product analytics, and because Privytics sets no cookies, it adds no consent banner for EU visitors. One thing to know up front: Wix only shows the Custom Code box on a published site with a connected custom domain, which in practice means a paid Wix Premium plan.",
+  "why": [
+    {
+      "title": "No cookie banner to add",
+      "body": "The snippet sets no cookies and stores nothing on the visitor's device. People are counted with an anonymous id that resets every day, so for anonymous visits there is nothing to consent to."
+    },
+    {
+      "title": "Your data is stored in the EU",
+      "body": "Every event is stored in EU data centres in Germany. You stay the data controller, which keeps things simple for your European visitors."
+    },
+    {
+      "title": "More than basic visit counts",
+      "body": "Wix shows simple stats. Privytics runs the open-source OpenPanel engine for deeper product analytics, with session replay and five-year event history on paid plans, and twelve months on the free plan."
+    },
+    {
+      "title": "Free to start, no card",
+      "body": "The free plan covers 10,000 events per month with no credit card. Paste the snippet today and upgrade later only if you outgrow it."
+    }
+  ],
+  "steps": [
+    {
+      "title": "Open the Custom Code box in Wix",
+      "body": "In your Wix account, go to your Site dashboard, then Settings, then Custom Code, then click + Add Custom Code. Note: this box only appears on a published site with a connected custom domain, which usually means a paid Wix Premium plan. If you do not see Custom Code, that plan requirement is the reason.",
+      "lang": "text",
+      "code": "Site dashboard  >  Settings  >  Custom Code  >  + Add Custom Code"
+    },
+    {
+      "title": "Paste the snippet and add your client id",
+      "body": "Paste both tags below into the box. Replace YOUR_CLIENT_ID with the client id from your Privytics project. Set Place Code in to Head, set Add Code to Pages to All pages, and choose to load the code once. Click Apply, then publish your site. Wix can cache pages, so give it a moment and refresh if you do not see it right away.",
+      "lang": "html",
+      "code": "<script>\n  window.op=window.op||function(){var n=[];return new Proxy(function(){arguments.length&&n.push([].slice.call(arguments))},{get:function(t,r){return\"q\"===r?n:function(){n.push([r].concat([].slice.call(arguments)))}} ,has:function(t,r){return\"q\"===r}}) }();\n  window.op('init', {\n    apiUrl: 'https://api.privytics.com',\n    clientId: 'YOUR_CLIENT_ID',\n    trackScreenViews: true,\n    trackOutgoingLinks: true,\n  });\n</script>\n<script src=\"https://privytics.com/op1.js\" defer async></script>"
+    },
+    {
+      "title": "Watch your first page views arrive",
+      "body": "Open your live site in a new tab and click through a few pages. Then open Privytics: your page views show up on their own, usually within a minute. Page views are tracked automatically, so there is nothing else to wire up.",
+      "lang": "text",
+      "code": "Visit your live site, click through a few pages, then open Privytics."
+    }
+  ],
+  "faq": [
+    {
+      "q": "Do I need a paid plan?",
+      "a": "Privytics is free for up to 10,000 events a month with no card. The one cost is on the Wix side: the Custom Code box only appears on a published Wix site with a connected custom domain, which in practice needs a paid Wix Premium plan."
+    },
+    {
+      "q": "Do I still need a cookie banner?",
+      "a": "The snippet writes nothing to the device and sends no cookie, so for anonymous visits there is nothing to consent to. You remain the data controller."
+    },
+    {
+      "q": "Where is my data stored?",
+      "a": "In the EU, in Germany. History is kept for five years on paid plans and for twelve months on the free plan."
+    },
+    {
+      "q": "Can I track button clicks or events?",
+      "a": "Page views are tracked automatically once the snippet is in, and for most Wix sites that is all you need. Custom events are the one thing Wix makes hard: its HTML embeds run in sandboxed frames that cannot reach the tracker, and native buttons do not accept custom code. Firing your own events on Wix needs Wix Velo, which is developer work."
+    }
+  ],
+  "sourcesUsed": [
+    "Wix Help Center: Adding custom code to your site (Settings > Custom Code)",
+    "Privytics script-tag install (op1.js + window.op init)"
+  ],
+  "omitted": [
+    "Plan gate: Wix's Custom Code panel only appears on a published site with a connected custom domain, effectively a paid Wix Premium plan. Free Wix sites cannot use this method, so this is stated in the intro and step 1.",
+    "Custom events are not shown as a paste step because Wix HTML embeds are sandboxed iframes where window.op is unreachable, and native Wix elements take no custom attributes. Firing events needs Wix Velo (a developer), noted honestly in the FAQ.",
+    "The data-track attribute approach is intentionally not shown, since the pasted snippet does not enable it and Wix elements cannot carry the attribute anyway.",
+    "Wix's own built-in analytics is acknowledged but not compared feature by feature; the page keeps to automatic page views.",
+    "Verification (2026): Wix Help Center confirms the paste path used in steps 1-2, Site dashboard > Settings > Custom Code, Place Code in: Head, Add Code to Pages: All pages, load once, Apply. Some current Wix UI presents per-section 'Add Code' buttons (Head / Body-start / Body-end) instead of a single '+ Add Custom Code' button; the flow and result are equivalent and the draft matches the canonical label. Sources: support.wix.com/en/article/wix-editor-embedding-custom-code-on-your-site.",
+    "Verification (2026): the plan gate was confirmed against Wix support docs, custom tracking code requires a Premium plan plus a connected custom domain on a published site. Source: support.wix.com/en/article/upgrading-your-site-to-premium-3066683.",
+    "Product claims checked against the Privytics plan facts: session replay ships on paid plans and is opt-in per project, retention is 5 years on paid and 12 months on the free plan, the free plan covers 10,000 events a month, analytics data is stored in Germany inside the EU, and visitors are counted with a daily-rotating salted hash. These are consistent across intro, why, and faq."
+  ]
+}

@@ -19,6 +19,7 @@
   "workspaces": {
     "packages": [
       "apps/*",
+      "!apps/public",
       "packages/**",
       "tooling/*"
     ],
@@ -73,9 +74,9 @@
     "seed": "bun run --filter @openpanel/seed seed --",
     "send": "bun run --filter @openpanel/seed send --",
     "e2e": "bun run --filter start e2e --",
-    "postinstall:workspaces": "bun run --filter public postinstall && bun run --filter @openpanel/testbed postinstall",
+    "postinstall:workspaces": "bun run --filter @openpanel/testbed postinstall",
     "dev": "bun run --filter @openpanel/api testing & bun run --filter start dev & wait",
-    "dev:public": "bun run --filter public dev",
+    "dev:public": "cd apps/public && npm run dev",
     "typecheck": "bun tooling/scripts/typecheck-workspaces.ts",
     "update-simple-git-hooks": "npx simple-git-hooks",
     "check:workspace": "bunx sherif@1.13.0",

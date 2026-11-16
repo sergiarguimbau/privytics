@@ -15,7 +15,7 @@ export default TrackingNoData;
 export function TrackingNoData({
   firstName,
   projectNames,
-  dashboardUrl = 'https://dashboard.openpanel.dev',
+  dashboardUrl = 'https://app.privytics.com',
   unsubscribeUrl,
 }: Props & { unsubscribeUrl?: string }) {
   const single = projectNames.length === 1;
@@ -27,7 +27,7 @@ export function TrackingNoData({
         {single
           ? `Your project ${names} hasn't`
           : `Your projects (${names}) haven't`}{' '}
-        received any events yet — which usually means the tracking snippet isn't
+        received any events yet, which usually means the tracking snippet isn't
         installed, or something is blocking it.
       </Text>
       <Text>
@@ -44,16 +44,16 @@ export function TrackingNoData({
         Framework-specific instructions are in the{' '}
         <Link
           href={withUtm(
-            'https://openpanel.dev/docs/get-started/install-openpanel',
+            'https://privytics.com/docs',
             'tracking-no-data'
           )}
         >
           install guide
         </Link>
-        . And if you've tried and it still doesn't work, reply to this email —
-        I'll personally help you get it running.
+        . And if you've tried and it still doesn't work, reply to this email and
+        we'll help you get it running.
       </Text>
-      <Text>Carl</Text>
+      <Text>The Privytics team</Text>
     </Layout>
   );
 }
@@ -61,5 +61,5 @@ export function TrackingNoData({
 TrackingNoData.PreviewProps = {
   firstName: 'Alex',
   projectNames: ['My website'],
-  dashboardUrl: 'https://dashboard.openpanel.dev/org-id',
+  dashboardUrl: 'https://app.privytics.com/org-id',
 };

@@ -29,6 +29,15 @@ export const organizationRouter = createTRPCRouter({
     return ctx.services.organization.list(userId);
   }),
 
+  // Whether the next organization this user creates would carry the free
+  // allowance. Only the first one they create does; see onboarding.service.ts.
+  // Purely for messaging: the limit itself is applied server-side at
+  // creation, so a client that ignores this gains nothing.
+  hasFreeOrganization: protectedProcedureWithoutAccess.query(
+    async ({ ctx }) =>
+      (await ctx.services.organization.countOwned(ctx.session.userId)) > 0
+  ),
+
   // Membership-exempt on purpose: any logged-in user may ask whether they have
   // access to a given org. Returns null when they're not a member (instead of
   // throwing), which the org-layout guard uses to render a not-found page.

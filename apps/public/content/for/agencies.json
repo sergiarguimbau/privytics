@@ -1,201 +1,89 @@
 {
   "slug": "agencies",
-  "audience": "agencies",
-  "seo": {
-    "title": "Analytics for Agencies, Manage All Client Sites in One Place",
-    "description": "OpenPanel helps agencies manage analytics for all client websites from one account. Privacy-first, no cookie banners, unlimited projects, and affordable per-client pricing from $2.50/mo.",
-    "noindex": false
-  },
-  "hero": {
-    "heading": "Analytics for agencies",
-    "subheading": "Manage web and product analytics for every client from one account. No cookie banners to configure, no per-seat pricing, and one monthly bill based on events. From $2.50 a month, or self-host for free.",
-    "badges": [
-      "Unlimited projects",
-      "No per-seat fees",
-      "No cookie banners needed",
-      "Open source"
-    ]
-  },
-  "problem": {
-    "title": "Why analytics is painful for agencies",
-    "intro": "Managing analytics across dozens of client sites creates problems that most tools weren't designed to solve.",
-    "items": [
-      {
-        "title": "Google Analytics access management is a nightmare",
-        "description": "Creating GA4 properties, managing user permissions, switching between accounts, and dealing with Google's constantly changing interface. Multiply this by 20+ clients and it's a full-time job."
-      },
-      {
-        "title": "Cookie consent for every single client",
-        "description": "Every client site needs its own cookie consent banner configured correctly. Different jurisdictions, different requirements, different implementations, and one mistake can mean a GDPR fine."
-      },
-      {
-        "title": "Per-seat pricing kills agency margins",
-        "description": "Most analytics tools charge per user. When your team of 10 needs access to analytics for client reporting, the cost adds up fast. Then the client wants access too."
-      },
-      {
-        "title": "No easy way to show clients their data",
-        "description": "Clients want to see their analytics without logging into your tools. Exporting PDFs is tedious, sharing login credentials is insecure, and building custom dashboards takes time you don't have."
-      }
-    ]
-  },
-  "features": {
-    "title": "Analytics built for multi-client workflows",
-    "intro": "OpenPanel works the way agencies do: multiple projects, multiple team members, one interface.",
-    "items": [
-      {
-        "title": "Unlimited projects per account",
-        "description": "Add every client as a separate project under one account. No extra cost per project, just one monthly bill based on total event volume."
-      },
-      {
-        "title": "No per-seat pricing",
-        "description": "Invite your entire team at no extra cost. Account managers, developers, strategists, everyone gets access. No reason to share logins or limit who can see data."
-      },
-      {
-        "title": "No cookie consent required",
-        "description": "OpenPanel uses cookieless tracking by default. No consent banners to set up for any client, regardless of their location or audience. Saves hours of implementation per client."
-      },
-      {
-        "title": "Web analytics dashboard out of the box",
-        "description": "Every project gets the overview on day one: visitors, sources, pages, devices, countries and campaigns. No report building before a client sees useful data."
-      },
-      {
-        "title": "Privacy compliance built in",
-        "description": "Cookie-less tracking, data on Hetzner in Germany, and a GDPR data processing agreement included. Deploy analytics for clients in any market without a consent platform."
-      },
-      {
-        "title": "Web + product analytics combined",
-        "description": "Pageviews, referrers and campaigns next to events, funnels, retention and user profiles. One tool instead of Google Analytics plus Mixpanel for clients who need more."
-      },
-      {
-        "title": "Quick setup for new clients",
-        "description": "Add a script tag or install an SDK. Page views, outgoing links and data-track attributes are picked up automatically; custom events are one call each. Most client setups take under 15 minutes."
-      },
-      {
-        "title": "Self-hosting for full control",
-        "description": "Agencies in sensitive industries can self-host OpenPanel with Docker Compose on their own servers. Free, unlimited events, releases a month or two behind Cloud."
-      },
-      {
-        "title": "Share links, export and API",
-        "description": "Share an overview or dashboard with a client as a public link, with a password if you want. Pull data through the REST API, export events to S3 or GCS, or hand over the raw data."
-      }
-    ]
-  },
-  "benefits": {
-    "title": "Why agencies choose OpenPanel",
-    "intro": "Simpler analytics management means more time for the work clients actually pay you for.",
-    "items": [
-      {
-        "title": "One account for all clients",
-        "description": "Switch between client projects in one click. No separate logins, no Google account juggling, no access management headaches."
-      },
-      {
-        "title": "Predictable costs for easy billing",
-        "description": "Flat tiers based on total event volume. Pass the cost through to clients or absorb it in your retainer, the pricing is simple enough to do either."
-      },
-      {
-        "title": "Ship cookie-free analytics for every client",
-        "description": "Stop spending hours configuring consent banners. OpenPanel works without cookies, so there's nothing to configure for GDPR or CCPA."
-      },
-      {
-        "title": "Impress clients with real-time data",
-        "description": "Open the realtime map on a call. Visitors, pages and events in the last 30 minutes, updating as you speak."
-      },
-      {
-        "title": "Open source trust factor",
-        "description": "Clients in regulated industries appreciate that the analytics code is fully auditable. Open source means transparency about exactly what's being tracked."
-      },
-      {
-        "title": "Affordable at scale",
-        "description": "At $20 a month for 100K events across every project, OpenPanel costs less than separate Mixpanel or GA4 setups per client."
-      }
-    ]
-  },
-  "faqs": {
-    "title": "Frequently asked questions",
-    "intro": "Common questions from agencies evaluating OpenPanel.",
-    "items": [
-      {
-        "question": "How does pricing work with multiple client projects?",
-        "answer": "You pay based on total event volume across all projects, not per project. For example, if you have 20 client sites generating a combined 100K events/month, you pay $20/month total. All projects share the same plan."
-      },
-      {
-        "question": "Can clients see their own analytics without a login?",
-        "answer": "Two ways. Invite the client to their own project with read-only access; they see nothing else. Or share the overview or a dashboard as a public link, optionally behind a password, so they never need a login."
-      },
-      {
-        "question": "Do I need cookie consent banners for client sites?",
-        "answer": "No. OpenPanel uses cookieless tracking by default, which doesn't require consent under GDPR, CCPA, or PECR. This eliminates one of the most common compliance headaches for agency deployments."
-      },
-      {
-        "question": "How do I set up tracking for a new client?",
-        "answer": "Create a new project in your OpenPanel dashboard, copy the script tag, and add it to the client's website. Page views start tracking immediately. Custom events are one line of JavaScript each. Most setups take under 15 minutes."
-      },
-      {
-        "question": "Can I self-host for agency use?",
-        "answer": "Yes. Self-hosting is free and has no project or event limits. One install script brings up Docker Compose with ClickHouse, Postgres and Redis. Self-hosted releases follow Cloud by a month or two."
-      },
-      {
-        "question": "How does OpenPanel compare to Google Analytics for agencies?",
-        "answer": "OpenPanel is simpler to manage across multiple clients (one account, no Google permissions), privacy-compliant without cookies, and includes product analytics features that GA4 lacks. GA4 has more advanced attribution modeling and integrates with Google Ads. For most agency use cases, OpenPanel saves significant time on setup and compliance."
-      },
-      {
-        "question": "Is there an API for building custom reports?",
-        "answer": "Yes. OpenPanel has a REST API for querying analytics data, managing projects and exporting events, plus S3 and GCS exports of the raw events and an MCP server your AI client can use. Build custom client dashboards or automate monthly reports from it."
-      },
-      {
-        "question": "Can I white-label the analytics dashboard?",
-        "answer": "White-labelling is not a feature. Since OpenPanel is open source, agencies who self-host can change the dashboard's branding themselves. On Cloud, share links and the API are the way to put client data in your own reports."
-      }
-    ]
-  },
-  "related_links": {
-    "guides": [
-      {
-        "title": "Script tag SDK setup",
-        "url": "/docs/sdks/script"
-      },
-      {
-        "title": "Migrate from Google Analytics",
-        "url": "/guides/migrate-from-google-analytics"
-      }
-    ],
-    "articles": [
-      {
-        "title": "Cookieless analytics explained",
-        "url": "/articles/cookieless-analytics"
-      },
-      {
-        "title": "How to self-host OpenPanel",
-        "url": "/articles/how-to-self-host-openpanel"
-      },
-      {
-        "title": "Best open source analytics tools",
-        "url": "/articles/self-hosted-web-analytics"
-      }
-    ],
-    "comparisons": [
-      {
-        "title": "OpenPanel vs Google Analytics",
-        "url": "/compare/google-analytics-alternative"
-      },
-      {
-        "title": "OpenPanel vs Plausible",
-        "url": "/compare/plausible-alternative"
-      },
-      {
-        "title": "OpenPanel vs Matomo",
-        "url": "/compare/matomo-alternative"
-      }
-    ]
-  },
-  "ctas": {
-    "primary": {
-      "label": "Try OpenPanel Free",
-      "href": "https://dashboard.openpanel.dev/onboarding"
+  "kind": "usecase",
+  "name": "Agencies",
+  "category": "Audience",
+  "title": "Analytics for agencies and freelancers, one login, many clients",
+  "description": "Manage analytics for every client site from one Privytics login, with one project per client. Cookieless and EU-hosted, so the analytics adds no cookie banner to configure per client. Start free.",
+  "tagline": "One login. One project per client. Privacy your clients will actually like.",
+  "intro": "If you run sites for a stack of clients, the last thing you want is a separate analytics account and login for each one. Privytics keeps every client in its own project under a single account, so you switch between them from one login. It is cookieless and hosted in the EU, which turns privacy into something you can offer clients instead of a compliance chore you have to manage.",
+  "why": [
+    {
+      "title": "One login across all your client sites",
+      "body": "Add a project for each client under a single Privytics account. You manage every client's analytics from one login and move between them without juggling separate accounts, invites, or passwords."
     },
-    "secondary": {
-      "label": "View Source on GitHub",
-      "href": "https://github.com/Openpanel-dev/openpanel"
+    {
+      "title": "Privacy you can sell to clients",
+      "body": "Privytics is cookieless and hosted in Germany. Tracking uses an anonymous visitor id that resets every day, so nothing is stored on the visitor's device. For the anonymous case that means no consent banner, which is a real selling point when you pitch a client."
+    },
+    {
+      "title": "No per-client consent config to maintain",
+      "body": "Because the anonymous cookieless setup needs no cookie banner, there is nothing to wire up or keep updated per client. Across a portfolio of sites, that is one fewer moving part to maintain on every project."
+    },
+    {
+      "title": "Start free, pay only as a client grows",
+      "body": "Every account starts on the free tier: 10,000 events a month for one project, no card. Try Privytics on your first client site before you bill for it, then move to a paid plan to add more client projects or when traffic justifies it."
     }
-  }
+  ],
+  "steps": [
+    {
+      "title": "Create a project per client and add the snippet",
+      "body": "In your Privytics account, create a new project for the client and copy its client id. Drop this snippet into that client's site, swapping in the project's client id. Page views start flowing right away.",
+      "lang": "html",
+      "code": "<script>\n  window.op=window.op||function(){var n=[];return new Proxy(function(){arguments.length&&n.push([].slice.call(arguments))},{get:function(t,r){return\"q\"===r?n:function(){n.push([r].concat([].slice.call(arguments)))}} ,has:function(t,r){return\"q\"===r}}) }();\n  window.op('init', {\n    apiUrl: 'https://api.privytics.com',\n    clientId: 'YOUR_CLIENT_ID',\n    trackScreenViews: true,\n    trackOutgoingLinks: true,\n  });\n</script>\n<script src=\"https://privytics.com/op1.js\" defer async></script>"
+    },
+    {
+      "title": "Each client's data stays separate under one login",
+      "body": "Every project is its own isolated dataset. Switching projects in the dashboard swaps you cleanly between clients, so one client never sees another client's numbers and you never lose your place.",
+      "lang": "text",
+      "code": "Your account (org)\n  |- Project: Client A   ->  app.client-a.com\n  |- Project: Client B   ->  shop.client-b.com\n  |- Project: Client C   ->  client-c.io\n\nOne login. Switch clients from the project picker."
+    },
+    {
+      "title": "Share the dashboard or a report with the client",
+      "body": "Open the dashboard or overview for a client's project and create a share link, with an optional password. Send it over so the client can view their own numbers without needing a Privytics account of their own.",
+      "lang": "text",
+      "code": "Project  ->  Dashboard  ->  Share  ->  Create link (optional password)\n\nSend the link to your client. No account needed on their side."
+    }
+  ],
+  "faq": [
+    {
+      "q": "Can I manage many client sites from one account?",
+      "a": "Yes, on a paid plan. A single Privytics account (org) can hold many projects, one per client site, and you switch between them in the dashboard from one login. The free plan covers one project."
+    },
+    {
+      "q": "Is Privytics white-label? Can clients see my branding?",
+      "a": "No, and we want to be straight about that. Privytics gives you separate projects under your account, not per-client branded dashboards. Dashboards and share links carry Privytics branding, not your agency's logo or a client's. You get multi-client management and shareable reports, but not resell-under-your-own-brand."
+    },
+    {
+      "q": "Do my clients need a cookie banner?",
+      "a": "For standard anonymous analytics, no. Privytics is cookieless and stores nothing on the visitor's device, so the anonymous case does not trigger a consent banner. If a client identifies users with personal data through Profiles, or runs other tools or cookies that require consent, they may still need a banner for those."
+    },
+    {
+      "q": "What does it cost across several clients?",
+      "a": "The free tier covers one project: 10,000 events a month with 12-month retention and no card, enough to try Privytics on one client site. A second client project needs a paid plan, from EUR 10 a month for 100,000 events shared across all your projects, which also adds session replay and 5-year event history."
+    },
+    {
+      "q": "Can I export a client's data?",
+      "a": "Yes. Every project's event data is available through the REST API and export endpoints, so you can pull a client's data out at any time for reporting or migration. There is no lock-in."
+    },
+    {
+      "q": "When is Privytics the wrong choice for an agency?",
+      "a": "If a client needs deep ad-spend attribution across paid channels, or you want to fully white-label and resell analytics under your own brand, Privytics is not that tool. It is product and web analytics with multi-project management, not an attribution suite or a rebrandable reseller platform."
+    }
+  ],
+  "sourcesUsed": [
+    "Privytics feature basis: managed, cookieless product analytics (daily-rotating salted-hash visitor id, nothing stored on device, no consent banner for the anonymous case), EU-hosted in Germany, free tier of 10,000 events/month with 12-month retention and no card, paid tiers add session replay and 5-year retention.",
+    "OpenPanel engine multi-tenancy: one organization holds many projects. packages/db/prisma/schema.prisma (model Organization has 'projects Project[]'; model Project has organizationId relation to Organization).",
+    "Shareable dashboards and overviews with optional password: apps/start/src/modals/share-dashboard-modal.tsx, apps/start/src/modals/share-overview-modal.tsx, apps/start/src/routes/share.dashboard.$shareId.tsx, apps/start/src/components/auth/share-enter-password.tsx.",
+    "Data export via REST API: apps/api/src/routes/export.router.ts (plus profile and event routers, apps/api/src/routes/).",
+    "Web SDK init options verified real (not invented): apiUrl, clientId, trackScreenViews, trackOutgoingLinks in packages/sdks/web/src/index.ts and packages/sdks/sdk/src/index.ts; op1.js is the IIFE script build per packages/sdks/web/tsup.config.ts."
+  ],
+  "omitted": [
+    "No white-label or per-client branding: OpenPanel/Privytics has orgs plus multiple projects, but dashboards and share links render under Privytics branding, not the agency's or client's. The page positions on management and privacy, not resale, and the FAQ states this limit plainly.",
+    "Cookieless tracking loses visitors who block the script or use ad blockers, so counts can skew lower than cookie-based tools. Not called out on-page to keep the pitch tight; standard cookieless caveat.",
+    "No ad-spend attribution or marketing-mix modeling. Flagged only in the honest wrong-tool FAQ; a client needing deep paid-channel ROI is not a fit.",
+    "The no-consent-banner claim is scoped to the anonymous cookieless case. If an agency identifies users with PII via Profiles, or a client runs other cookies/tools that require consent, a banner may still be needed. Stated in the cookie-banner FAQ.",
+    "Pricing detail simplified: source gives the free tier (10,000 events/month) and that paid adds session replay plus 5-year retention, but does not specify whether event metering is per-project or combined per-account, nor paid tier prices. Copy kept general ('as your event volume grows') to avoid asserting the exact metering model.",
+    "Operating-entity context (independent European service, operated from Spain, event data stored in Germany) is omitted from the customer-facing copy as not relevant to the agency buying decision."
+  ]
 }

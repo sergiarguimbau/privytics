@@ -45,18 +45,35 @@ describe('resolveChatTier', () => {
     ).toBe('unlimited');
   });
 
-  test('trials and blocked billing states', () => {
+  test('free, paused and unfinished plans get no chat (Privytics)', () => {
+    expect(
+      resolveChatTier(organization({ subscriptionStatus: 'free' }), false)
+    ).toBe('blocked');
+    // Legacy trial rows resolve to the free plan.
     expect(
       resolveChatTier(organization({ subscriptionStatus: 'trialing' }), false)
-    ).toBe('trial');
+    ).toBe('blocked');
+    expect(
+      resolveChatTier(organization({ subscriptionStatus: 'paused' }), false)
+    ).toBe('blocked');
+    expect(
+      resolveChatTier(organization({ subscriptionStatus: 'incomplete' }), false)
+    ).toBe('blocked');
     expect(
       resolveChatTier(
         organization({ subscriptionStatus: null, subscriptionEndsAt: PAST }),
         false
       )
     ).toBe('blocked');
+    // Cancelled with paid time left is still paid; once it ends it is free.
     expect(
       resolveChatTier(organization({ subscriptionStatus: 'canceled' }), false)
+    ).toBe('starter');
+    expect(
+      resolveChatTier(
+        organization({ subscriptionStatus: 'canceled', subscriptionEndsAt: PAST }),
+        false
+      )
     ).toBe('blocked');
     expect(
       resolveChatTier(organization({ subscriptionStatus: 'past_due' }), false)

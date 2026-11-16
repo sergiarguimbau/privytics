@@ -14,7 +14,7 @@ type Props = Omit<OpenPanelOptions, 'filter'> & {
 const { profileId, cdnUrl, scriptUrl, globalProperties, ...options } =
   Astro.props;
 
-const CDN_URL = 'https://openpanel.dev/op1.js';
+const CDN_URL = 'https://api.privytics.com/op1.js';
 
 const stringify = (obj: unknown) => {
   if (typeof obj === 'object' && obj !== null && obj !== undefined) {

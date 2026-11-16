@@ -1,4 +1,13 @@
-import { afterAll, beforeAll, beforeEach, expect, mock, test } from 'bun:test';
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  mock,
+  setSystemTime,
+  test,
+} from 'bun:test';
 import { testCoreConfig } from '../../../test/config-fixture';
 import { recordingLogger } from '../../../test/service-deps';
 
@@ -14,9 +23,11 @@ interface FakeOrganization {
   subscriptionEndsAt: Date | null;
   subscriptionChartEndDate: Date | null;
   createdAt: Date;
+  subscriptionPeriodEventsLimit?: number;
   // Prisma `$extends` computed fields, set directly on the fixture.
   hasSubscription: boolean;
   isWillBeCanceled: boolean;
+  subscriptionState?: string;
 }
 
 interface FakeProject {
@@ -177,6 +188,29 @@ const organization = {
   delete: mock(async ({ where: { id } }: { where: { id: string } }) => {
     organizationStore.delete(id);
   }),
+  count: mock(
+    async ({
+      where,
+    }: {
+      where: {
+        createdByUserId: string;
+        deleteAt?: null;
+        id?: { not: string };
+        subscriptionPeriodEventsLimit?: { gt: number };
+        createdAt?: { gt: Date };
+      };
+    }) =>
+      [...organizationStore.values()].filter(
+        (org) =>
+          org.createdByUserId === where.createdByUserId &&
+          !('deleteAt' in where && org.deleteAt) &&
+          org.id !== where.id?.not &&
+          (!where.subscriptionPeriodEventsLimit ||
+            (org.subscriptionPeriodEventsLimit ?? 0) >
+              where.subscriptionPeriodEventsLimit.gt) &&
+          (!where.createdAt || org.createdAt > where.createdAt.gt)
+      ).length
+  ),
 };
 
 const project = {
@@ -1131,4 +1165,232 @@ test('getSettingsForOrganization falls back to UTC when the organization has no 
   );
   const result = await subject.getSettingsForOrganization(deps, 'org_1');
   expect(result).toEqual({ timezone: 'UTC' });
+});
+
+// Privytics: delete, create, cancel-deletion must not mint a second free org,
+// and deleting your only workspace and starting over keeps the free tier.
+test('countOwnedOrganizations ignores an organization pending deletion', async () => {
+  organizationStore.set(
+    'org_a',
+    makeOrganization({
+      id: 'org_a',
+      createdByUserId: 'user_1',
+      deleteAt: new Date(Date.now() + 60_000),
+    })
+  );
+  organizationStore.set(
+    'org_b',
+    makeOrganization({ id: 'org_b', createdByUserId: 'user_2' })
+  );
+
+  expect(await subject.countOwnedOrganizations(deps, 'user_1')).toBe(0);
+});
+
+describe('cancelOrganizationDeletion and the free allowance', () => {
+  const HOUR_MS = 60 * 60 * 1000;
+  // Scheduled an hour ago: deleteAt is the 24h grace out.
+  const scheduledAt = Date.now() - HOUR_MS;
+  const pendingA = () =>
+    makeOrganization({
+      id: 'org_a',
+      createdByUserId: 'user_1',
+      createdAt: new Date(scheduledAt - 90 * 24 * HOUR_MS),
+      deleteAt: new Date(scheduledAt + 24 * HOUR_MS),
+      subscriptionPeriodEventsLimit: 10_000,
+      subscriptionState: 'free',
+    });
+
+  test('a free org restored after a newer free org was created loses its allowance', async () => {
+    organizationStore.set('org_a', pendingA());
+    organizationStore.set(
+      'org_b',
+      makeOrganization({
+        id: 'org_b',
+        createdByUserId: 'user_1',
+        createdAt: new Date(scheduledAt + HOUR_MS / 2),
+        subscriptionPeriodEventsLimit: 10_000,
+        subscriptionState: 'free',
+      })
+    );
+
+    await subject.cancelOrganizationDeletion(deps, 'org_a');
+
+    expect(organizationStore.get('org_a')).toMatchObject({
+      deleteAt: null,
+      subscriptionPeriodEventsLimit: 0,
+    });
+    expect(organizationStore.get('org_b')?.subscriptionPeriodEventsLimit).toBe(
+      10_000
+    );
+  });
+
+  test('a free org keeps its allowance when no newer org got one', async () => {
+    organizationStore.set('org_a', pendingA());
+    // Older than the deletion, or a later org that got no allowance.
+    organizationStore.set(
+      'org_old',
+      makeOrganization({
+        id: 'org_old',
+        createdByUserId: 'user_1',
+        createdAt: new Date(scheduledAt - HOUR_MS),
+        subscriptionPeriodEventsLimit: 0,
+      })
+    );
+    organizationStore.set(
+      'org_zero',
+      makeOrganization({
+        id: 'org_zero',
+        createdByUserId: 'user_1',
+        createdAt: new Date(scheduledAt + HOUR_MS / 2),
+        subscriptionPeriodEventsLimit: 0,
+      })
+    );
+
+    await subject.cancelOrganizationDeletion(deps, 'org_a');
+
+    expect(organizationStore.get('org_a')).toMatchObject({
+      deleteAt: null,
+      subscriptionPeriodEventsLimit: 10_000,
+    });
+  });
+});
+
+test('getOrganizationBillingEventsCount meters free orgs by ingestion time, paid by event time', async () => {
+  const queries: string[] = [];
+  const countDeps = {
+    logger: recordingLogger(),
+    ch: {
+      query: mock(async ({ query }: { query: string }) => {
+        queries.push(query);
+        return { json: async () => ({ data: [{ count: 1 }], meta: [] }) };
+      }),
+    },
+  } as unknown as import('../../services').ServiceDeps;
+  const base = {
+    subscriptionCanceledAt: null,
+    subscriptionEndsAt: null,
+    subscriptionPauseAtPeriodEnd: false,
+    subscriptionCurrentPeriodStart: new Date('2026-11-01T00:00:00Z'),
+    subscriptionCurrentPeriodEnd: new Date('2026-12-01T00:00:00Z'),
+    projects: [{ id: 'proj_1' }],
+  };
+  const preloadSelfHosted = process.env.SELF_HOSTED;
+  process.env.SELF_HOSTED = 'false';
+  try {
+    for (const subscriptionStatus of ['free', 'active']) {
+      await subject.getOrganizationBillingEventsCount(
+        countDeps,
+        {
+          ...base,
+          subscriptionStatus,
+        } as unknown as Parameters<
+          typeof subject.getOrganizationBillingEventsCount
+        >[1],
+        new Date('2026-11-16T12:00:00Z')
+      );
+    }
+  } finally {
+    process.env.SELF_HOSTED = preloadSelfHosted;
+  }
+
+  // A back-dated event is stored this month, so the free cap must see it.
+  expect(queries[0]).toContain('inserted_at BETWEEN');
+  expect(queries[1]).toContain('created_at BETWEEN');
+  expect(queries[1]).not.toContain('inserted_at');
+});
+
+type ChCommandCall = [{ query: string; query_params: Record<string, unknown> }];
+
+function chCommandCalls(): ChCommandCall[] {
+  return chCommand.mock.calls as unknown as ChCommandCall[];
+}
+
+const RETAINED = [
+  'events',
+  'sessions',
+  'session_replay_chunks',
+  'events_bots',
+  'ai_events',
+  'cohort_events_mv',
+  'dau_mv',
+  'event_profile_summary_mv',
+  'event_property_profile_summary_mv',
+];
+
+test('runDataRetentionCron keeps 5 years unless the stored status and the state both say free', async () => {
+  const preloadSelfHosted = process.env.SELF_HOSTED;
+  process.env.SELF_HOSTED = 'false';
+  setSystemTime(new Date('2026-11-16T05:00:00.000Z'));
+  try {
+    const lapsed = new Date('2026-11-16T04:58:00.000Z');
+    const organizations: Record<string, Partial<FakeOrganization>> = {
+      free: { subscriptionStatus: 'free' },
+      never_paid: { subscriptionStatus: null },
+      // A renewal webhook still in flight: the clock alone reads it as free.
+      late_renewal: {
+        subscriptionStatus: 'active',
+        subscriptionEndsAt: lapsed,
+      },
+      canceled_ended: {
+        subscriptionStatus: 'canceled',
+        subscriptionEndsAt: lapsed,
+      },
+      unpaid: { subscriptionStatus: 'unpaid' },
+      privytics: { subscriptionStatus: 'active' },
+    };
+    for (const [id, overrides] of Object.entries(organizations)) {
+      organizationStore.set(id, makeOrganization({ id, ...overrides }));
+      projectStore.set(`proj_${id}`, {
+        id: `proj_${id}`,
+        organizationId: id,
+        deleteAt: null,
+      });
+    }
+    chCommand.mockClear();
+
+    await subject.runDataRetentionCron(deps);
+
+    const cutoffs = new Map<string, Set<string>>();
+    const tablesByProject = new Map<string, string[]>();
+    for (const [{ query, query_params }] of chCommandCalls()) {
+      const values = Object.values(query_params);
+      const projectId = (values.find(Array.isArray) as string[])[0] as string;
+      const cutoff = values.find((v) => typeof v === 'string') as string;
+      cutoffs.set(projectId, (cutoffs.get(projectId) ?? new Set()).add(cutoff));
+      tablesByProject.set(projectId, [
+        ...(tablesByProject.get(projectId) ?? []),
+        /ALTER TABLE (\w+?)(?:_replicated)? /.exec(query)?.[1] as string,
+      ]);
+    }
+
+    const twelveMonths = ['2025-11-16 05:00:00', '2025-11-16'];
+    const fiveYears = ['2021-11-17 05:00:00', '2021-11-17'];
+    expect([...(cutoffs.get('proj_free') ?? [])]).toEqual(twelveMonths);
+    expect([...(cutoffs.get('proj_never_paid') ?? [])]).toEqual(twelveMonths);
+    for (const id of [
+      'late_renewal',
+      'canceled_ended',
+      'unpaid',
+      'privytics',
+    ]) {
+      expect([...(cutoffs.get(`proj_${id}`) ?? [])]).toEqual(fiveYears);
+    }
+    expect(tablesByProject.get('proj_free')).toEqual(RETAINED);
+  } finally {
+    setSystemTime();
+    process.env.SELF_HOSTED = preloadSelfHosted;
+  }
+});
+
+test('deleteFromClickhouse also removes ai_events, groups and profile_aliases', async () => {
+  chCommand.mockClear();
+
+  await subject.deleteFromClickhouse(deps, ['proj_1']);
+
+  const queries = chCommandCalls().map(([call]) => call.query);
+  for (const table of ['ai_events', 'groups', 'profile_aliases']) {
+    expect(queries).toContainEqual(
+      expect.stringMatching(new RegExp(`^DELETE FROM ${table}(_replicated)? `))
+    );
+  }
 });

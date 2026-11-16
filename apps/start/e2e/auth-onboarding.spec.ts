@@ -511,7 +511,7 @@ test('an app and backend project can be added to the existing workspace', async 
   );
   await page.getByRole('button', { name: "I'm not receiving events" }).click();
   const example = page.getByRole('dialog').locator('code').last();
-  await expect(example).toContainText('"name":"openpanel_test_event"');
+  await expect(example).toContainText('"name":"privytics_test_event"');
   await expect(example).toContainText(
     `openpanel-client-secret: ${client.secret}`
   );

@@ -42,7 +42,7 @@ const OK = 200;
 
 const ROOT_BODY = {
   status: 'ok',
-  message: 'Successfully running OpenPanel.dev API',
+  message: 'Successfully running Privytics API',
 } as const;
 
 const rootResponseSchema = z.object({

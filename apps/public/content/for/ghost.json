@@ -1,0 +1,80 @@
+{
+  "slug": "ghost",
+  "kind": "sdk",
+  "name": "Ghost",
+  "category": "Web",
+  "title": "Ghost analytics, cookieless and EU-hosted",
+  "description": "Add cookieless, EU-hosted product analytics to Ghost with one snippet in the Code injection box. No coding, no cookie banner to add, and page views track automatically.",
+  "tagline": "Cookieless analytics for Ghost. Paste one snippet, own your data.",
+  "intro": "Privytics adds full product analytics to Ghost with one snippet and no coding. You paste it once into Ghost's Site Header box, swap in your client id, and page views start arriving. Ghost's own built-in stats are cookieless too, but they stop at simple counts. Privytics is cookieless and EU-hosted, and gives you funnels, retention and events you can own, with no consent banner for anonymous visitors.",
+  "why": [
+    {
+      "title": "No cookie banner to add",
+      "body": "Privytics is cookieless. The snippet sets no cookies and sends no personal identifier, so for anonymous visitors there is nothing to consent to and no banner to bolt on."
+    },
+    {
+      "title": "Nothing is written to the device",
+      "body": "Visitors are counted with an anonymous id that resets every day. Nothing is stored in the browser, so there is no tracking profile following anyone around."
+    },
+    {
+      "title": "Your data, hosted in the EU",
+      "body": "Your event data is stored on servers in Germany and stays yours. No data is sold or shared, and you remain the data controller."
+    },
+    {
+      "title": "More than page counts",
+      "body": "Ghost's built-in stats show simple totals. Privytics adds funnels, retention and events you can own, so you can see what readers actually do, not just how many arrived."
+    }
+  ],
+  "steps": [
+    {
+      "title": "Open Ghost's Code injection box",
+      "body": "In Ghost Admin, go to Settings, then under the Advanced group open the Code injection card. You will see two boxes: Site Header and Site Footer. You want Site Header. This works on every Ghost plan and every self-hosted install, so there is nothing to upgrade.",
+      "lang": "text",
+      "code": "Ghost Admin, Settings, Advanced, Code injection, Site Header"
+    },
+    {
+      "title": "Paste the snippet and Save",
+      "body": "Paste both tags below into the Site Header box. Replace YOUR_CLIENT_ID with the client id from your Privytics project, then click Save. Ghost may take a moment to update its cache, so give it a minute before you check.",
+      "lang": "html",
+      "code": "<script>\n  window.op=window.op||function(){var n=[];return new Proxy(function(){arguments.length&&n.push([].slice.call(arguments))},{get:function(t,r){return\"q\"===r?n:function(){n.push([r].concat([].slice.call(arguments)))}} ,has:function(t,r){return\"q\"===r}}) }();\n  window.op('init', {\n    apiUrl: 'https://api.privytics.com',\n    clientId: 'YOUR_CLIENT_ID',\n    trackScreenViews: true,\n    trackOutgoingLinks: true,\n  });\n</script>\n<script src=\"https://privytics.com/op1.js\" defer async></script>"
+    },
+    {
+      "title": "Check that page views arrive",
+      "body": "Open your site in a new tab and click around a few pages. Then open your Privytics dashboard and watch the Realtime view. Your visits appear within seconds. Page views track automatically, so once you see them this install is complete and you are done.",
+      "lang": "text",
+      "code": "Privytics dashboard, Realtime, watch the live visitor count"
+    }
+  ],
+  "faq": [
+    {
+      "q": "Do I need a paid Privytics plan?",
+      "a": "No. The free plan covers 10,000 events a month with no card required, and it works on every Ghost tier and on self-hosted Ghost. Paid plans add session replay and 5-year event history, but page views work on the free plan."
+    },
+    {
+      "q": "Do I still need a cookie banner?",
+      "a": "The snippet writes nothing to the device and sends no cookie, so for anonymous visitors there is nothing to consent to. You remain the data controller."
+    },
+    {
+      "q": "Where is my data stored?",
+      "a": "On servers in EU data centres in Germany. It stays yours and is never sold. Data is kept for 12 months on the free plan and 5 years on paid."
+    },
+    {
+      "q": "Can I track custom events like button clicks?",
+      "a": "Page views are tracked automatically once the snippet is live, and for most Ghost sites that is all you need. Ghost does not run custom tracking code added through its editor in a reliable way, so counting a specific click would mean a developer adding a small handler to your theme, where window.op is already available. Nothing extra is needed for page views."
+    }
+  ],
+  "sourcesUsed": [
+    "Ghost help: Code injection, path confirmed as Settings > Advanced > Code injection > Site Header (ghost.org/help/code-injection)",
+    "Ghost 6.0 changelog: native, cookie-free analytics built on Tinybird, free on Ghost(Pro) and self-host (ghost.org/changelog/6)",
+    "Ghost Forum threads: HTML cards do not reliably execute JavaScript (script tags or inline onclick) on published posts; the editor preview is sandboxed (forum.ghost.org)",
+    "Privytics script-tag install (op1.js + window.op init, apiUrl https://api.privytics.com)"
+  ],
+  "omitted": [
+    "No plan gate: Code injection is available on every Ghost(Pro) tier and all self-hosted installs, so no upgrade note was needed. Confirmed against Ghost docs.",
+    "Paste path verified against current Ghost UI: Settings > Advanced > Code injection > Site Header. The draft already matched this, so it was left unchanged.",
+    "Ghost 6.0 (Aug 2025) shipped its own native cookieless analytics via Tinybird, confirmed in the Ghost 6 changelog. The page therefore positions Privytics as a complement (funnels, retention, own-your-data) and never claims Ghost has no analytics.",
+    "Removed the optional 'track one button click' step and rewrote the events FAQ. Ghost HTML cards do not reliably execute JavaScript on published posts (inline onclick or script tags), confirmed by multiple Ghost forum threads and the sandboxed editor preview, so promising click tracking to a non-technical reader would be a broken promise. Page views alone are the complete, correct install; real custom events would need a developer. Note: the draft had already avoided the data-track trap and used window.op('track', ...), and the pasted snippet does not enable trackAttributes, so the removal is about Ghost's editor limits rather than the snippet.",
+    "Session replay is named in the pricing FAQ as a paid-plan addition but kept out of the why list. It is opt-in per project, masks all text and inputs by default, and is not part of this snippet-only page-view install, so it would distract from what the Ghost reader is actually setting up.",
+    "The pasted snippet (window.op init + https://privytics.com/op1.js, apiUrl https://api.privytics.com) was not modified in any way. slug/kind/name/category are fixed as required and docsUrl is absent."
+  ]
+}

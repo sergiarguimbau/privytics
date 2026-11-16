@@ -2,7 +2,9 @@ import { tool } from 'ai';
 import { z } from 'zod';
 import type { ChatToolContext } from '../context';
 
-/** The public docs rendered for LLMs, one section per page. */
+/** The public docs rendered for LLMs, one section per page. Privytics: the
+ *  upstream engine docs (privytics.com has no docs llms-full.txt); the system
+ *  prompt tells the model to ignore their pricing and hosts. */
 const DOCS_URL = 'https://openpanel.dev/llms-full.txt';
 const DOCS_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
 const DOCS_FETCH_TIMEOUT_MS = 10_000;
@@ -117,7 +119,7 @@ export function docsTools(ctx: Pick<ChatToolContext, 'config'>) {
   return {
     search_docs: tool({
       description:
-        'Search the OpenPanel documentation: SDK setup, tracking, identify users, groups, session replay, MCP, API, self-hosting, integrations, pricing concepts. Use it for any "how do I" or "is it possible" question about the product before answering from memory, and link the page you used.',
+        'Search the OpenPanel engine documentation (Privytics runs on it; ignore its pricing, plans and OpenPanel Cloud hosts): SDK setup, tracking, identify users, groups, session replay, MCP, API, self-hosting, integrations, pricing concepts. Use it for any "how do I" or "is it possible" question about the product before answering from memory, and link the page you used.',
       inputSchema: z.object({ query: z.string().min(1) }),
       execute: async ({ query }) => {
         try {

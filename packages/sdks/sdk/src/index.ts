@@ -200,7 +200,7 @@ export class OpenPanel {
       options.sdkVersion || process.env.SDK_VERSION!;
 
     this.api = new Api({
-      baseUrl: options.apiUrl || 'https://api.openpanel.dev',
+      baseUrl: options.apiUrl || 'https://api.privytics.com',
       defaultHeaders,
     });
   }
@@ -492,7 +492,7 @@ export class OpenPanel {
 
   log(...args: any[]) {
     if (this.options.debug) {
-      console.log('[OpenPanel.dev]', ...args);
+      console.log('[Privytics]', ...args);
     }
   }
 }

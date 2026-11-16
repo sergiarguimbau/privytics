@@ -1,0 +1,106 @@
+name: Upstream check
+
+# Manual only, and notify-only. Nothing here runs on a schedule, and this
+# workflow NEVER writes to a branch. It is a button you press when you are
+# already thinking about syncing, not a thing that happens to you.
+#
+# It replaces an earlier job that rebased the privytics overlay onto
+# upstream/main and force-pushed on success. That was removed because a rebase
+# reporting "clean" does not mean the result works: nothing type-checked or
+# tested the rebased tree before it was force-pushed over the production branch.
+# It also relied on `apps/public/** merge=ours`, which is inverted during a
+# rebase and silently kept UPSTREAM's files instead of ours (see .gitattributes).
+#
+# Pressing it counts new upstream commits and dry-runs the rebase in a scratch
+# branch to preview conflicts. You do the real rebase by hand, following
+# docs/upstream-sync.md. The same check runs locally in two commands, also
+# documented there, so this workflow is a convenience and not a dependency.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: privytics
+          fetch-depth: 0
+
+      - name: Fetch upstream
+        run: |
+          git config user.name "privytics-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git remote add upstream https://github.com/Openpanel-dev/openpanel.git
+          git fetch --no-tags upstream main
+
+      - name: Count new upstream commits
+        id: count
+        run: |
+          base="$(git merge-base HEAD upstream/main)"
+          count="$(git rev-list --count "${base}..upstream/main")"
+          echo "count=${count}" >> "$GITHUB_OUTPUT"
+          git log --oneline --no-decorate "${base}..upstream/main" \
+            | head -50 > /tmp/commits.txt
+          echo "New upstream commits: ${count}"
+
+      - name: Dry-run the rebase
+        id: dry
+        if: steps.count.outputs.count != '0'
+        run: |
+          # Scratch branch only. Nothing here is ever pushed. The "ours" driver
+          # is deliberately NOT configured, so real conflicts surface instead of
+          # being silently resolved in upstream's favour.
+          git checkout -q -b ci-rebase-dryrun
+          if git rebase upstream/main >/tmp/rebase.log 2>&1; then
+            echo "conflicts=none" >> "$GITHUB_OUTPUT"
+          else
+            git diff --name-only --diff-filter=U > /tmp/conflicts.txt || true
+            git rebase --abort || true
+            echo "conflicts=yes" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Report
+        if: steps.count.outputs.count != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COUNT: ${{ steps.count.outputs.count }}
+          CONFLICTS: ${{ steps.dry.outputs.conflicts }}
+        run: |
+          {
+            echo "\`${COUNT}\` new commit(s) on \`upstream/main\` are not yet in the"
+            echo "\`privytics\` overlay."
+            echo
+            if [ "${CONFLICTS}" = "none" ]; then
+              echo "A dry-run rebase applied without conflicts. That means no TEXTUAL"
+              echo "conflicts. It does **not** mean the result builds: verify with"
+              echo "typecheck and tests before pushing."
+            else
+              echo "A dry-run rebase hit conflicts in:"
+              echo
+              echo '```'
+              cat /tmp/conflicts.txt 2>/dev/null || echo "(see the workflow log)"
+              echo '```'
+            fi
+            echo
+            echo "Nothing has been pushed. Rebase by hand following"
+            echo "\`docs/upstream-sync.md\`."
+            echo
+            echo "<details><summary>Upstream commits</summary>"
+            echo
+            echo '```'
+            cat /tmp/commits.txt
+            echo '```'
+            echo
+            echo "</details>"
+          } > /tmp/body.md
+
+          gh issue create \
+            --repo "${GITHUB_REPOSITORY}" \
+            --title "Upstream sync available: ${COUNT} new commit(s) ($(date +%F))" \
+            --body-file /tmp/body.md

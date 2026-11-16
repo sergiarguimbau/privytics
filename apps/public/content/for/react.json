@@ -1,0 +1,97 @@
+{
+  "slug": "react",
+  "kind": "sdk",
+  "name": "React",
+  "title": "React analytics, cookieless and hosted in Germany",
+  "description": "Add product analytics to your React app with the @openpanel/web SDK. Cookieless by default, event data stored in Germany, and setup takes about ten lines.",
+  "tagline": "Cookieless product analytics for React SPAs, with event data stored in Germany.",
+  "category": "Web",
+  "docsUrl": "https://openpanel.dev/docs/sdks/react",
+  "intro": "Privytics tracks page views, custom events and user profiles in a React single page app using the open source @openpanel/web SDK. You create one OpenPanel instance, point apiUrl at Privytics, and import it wherever you need to send an event. There is no provider to wrap your tree in and no router integration to write: client side navigations are picked up automatically.",
+  "why": [
+    {
+      "title": "Route changes are tracked without a router plugin",
+      "body": "With trackScreenViews enabled the SDK wraps history.pushState and history.replaceState and listens for popstate, so navigations from React Router, TanStack Router or any other client side router register as screen views. If you use a hash based router, set trackHashChanges to true."
+    },
+    {
+      "title": "No cookies, so nothing to gate behind a consent banner",
+      "body": "Privytics is cookieless by default and writes nothing to the device. The anonymous visitor id is computed server side and resets every day. That means no conditional init inside a useEffect waiting for consent state, and no cookie code paths in your app shell."
+    },
+    {
+      "title": "One instance, no context provider, no re-renders",
+      "body": "@openpanel/web exports a plain class, not a React binding. You export a single op instance from a module and import it in components, event handlers, route loaders or plain utility functions. Nothing is held in React state, so tracking never triggers a render."
+    },
+    {
+      "title": "Click tracking straight from JSX attributes",
+      "body": "With trackAttributes enabled you can add data-track to a button or link in your JSX and pass properties as data-* attributes instead of writing an onClick handler for every element you want to measure."
+    }
+  ],
+  "steps": [
+    {
+      "title": "Install the SDK",
+      "body": "React SPAs use the web SDK directly. There is no separate React package.",
+      "lang": "bash",
+      "code": "npm install @openpanel/web"
+    },
+    {
+      "title": "Create a shared instance",
+      "body": "Point apiUrl at Privytics. Without it the SDK sends events to OpenPanel's own hosted API. trackScreenViews, trackOutgoingLinks and trackAttributes all default to false, so set the ones you want explicitly; add trackHashChanges: true if you use a hash based router.",
+      "lang": "ts",
+      "code": "// src/openpanel.ts\nimport { OpenPanel } from '@openpanel/web';\n\nexport const op = new OpenPanel({\n  clientId: 'YOUR_CLIENT_ID',\n  apiUrl: 'https://api.privytics.com',\n  trackScreenViews: true,\n  trackOutgoingLinks: true,\n  trackAttributes: true,\n});"
+    },
+    {
+      "title": "Track an event",
+      "body": "Import the instance anywhere and call op.track with an event name and optional properties.",
+      "lang": "tsx",
+      "code": "import { useEffect } from 'react';\nimport { op } from '@/openpanel';\n\nfunction SignupButton() {\n  useEffect(() => {\n    op.track('my_event', { foo: 'bar' });\n  }, []);\n\n  return (\n    <button\n      type=\"button\"\n      onClick={() => op.track('button_click', { button: 'signup' })}\n    >\n      Sign up\n    </button>\n  );\n}"
+    },
+    {
+      "title": "Identify signed in users",
+      "body": "Optional. Passing your own user id as profileId links sessions into one profile. Call op.clear() on logout to drop the current user and group.",
+      "lang": "tsx",
+      "code": "import { op } from '@/openpanel';\n\nfunction LoginComponent({ user }: { user: User }) {\n  const handleLogin = () => {\n    op.identify({\n      profileId: user.id, // Required\n      firstName: user.firstName,\n      lastName: user.lastName,\n      email: user.email,\n      properties: {\n        tier: 'premium',\n      },\n    });\n  };\n\n  return (\n    <button type=\"button\" onClick={handleLogin}>\n      Login\n    </button>\n  );\n}"
+    }
+  ],
+  "faq": [
+    {
+      "q": "Is there an @openpanel/react package?",
+      "a": "No. The npm registry returns 404 for @openpanel/react, and the upstream docs say React SPAs can use @openpanel/web directly with no separate React SDK. You install @openpanel/web and use the OpenPanel class."
+    },
+    {
+      "q": "Does React analytics with Privytics use cookies?",
+      "a": "No. Privytics is cookieless by default and stores nothing on the device. Visitors are counted with a salted hash of IP, user agent and project id, and the salt rotates on a daily schedule."
+    },
+    {
+      "q": "Will it track React Router page views automatically?",
+      "a": "Yes, when trackScreenViews is enabled. The SDK wraps history.pushState and history.replaceState and listens for popstate, which covers client side navigation in the common React routers. Hash based routers need trackHashChanges: true."
+    },
+    {
+      "q": "Do I need to call trackScreenViews() myself?",
+      "a": "No. Passing trackScreenViews, trackOutgoingLinks or trackAttributes to the constructor wires up the listeners during init, and an initial screen view is sent automatically. There is nothing to call in a useEffect."
+    },
+    {
+      "q": "Where is the event data stored?",
+      "a": "Event data is stored in EU data centres in Germany. You remain the data controller for anything you send, including any user id you pass to identify()."
+    }
+  ],
+  "sourcesUsed": [
+    "https://openpanel.dev/docs/sdks/react",
+    "https://openpanel.dev/docs/sdks/web",
+    "https://openpanel.dev/articles/cookieless-analytics",
+    "https://registry.npmjs.org/@openpanel/web",
+    "https://registry.npmjs.org/@openpanel/react",
+    "packages/sdks/web/src/index.ts (OpenPanel class: options, init auto-wiring, trackScreenViews, trackAttributes)",
+    "apps/api/src/utils/ids.ts and packages/db/src/services/salt.service.ts (visitor id derivation)",
+    "apps/worker/src/boot-cron.ts and apps/worker/src/jobs/cron.salt.ts (salt rotation schedule)"
+  ],
+  "omitted": [
+    "A dedicated React package. https://registry.npmjs.org/@openpanel/react returns HTTP 404, and the docs state React SPAs can use @openpanel/web directly with no separate React SDK. No provider, hook or <OpenPanelComponent /> is documented for plain React, so none is shown.",
+    "scriptUrl. Verified in the SDK source that scriptUrl exists only inside the sessionReplay options object, and its own doc comment says it is used only for script tag (IIFE / op1.js) builds and is ignored when using the npm package with a bundler. It is therefore not relevant to this npm based React setup and is not shown anywhere, required or optional.",
+    "The plain script tag snippet and any op1.js URL. This page installs the SDK as an npm module, so no script tag is part of the setup.",
+    "Session replay configuration. The SDK exposes a sessionReplay option (enabled, sampleRate, masking and block selectors), but the React docs page shows no snippet for it, so no code is given here. It is opt-in via sessionReplay.enabled.",
+    "Groups (op.upsertGroup, op.setGroup), revenue (op.revenue, op.pendingRevenue, op.flushRevenue, op.clearRevenue), op.setGlobalProperties, op.increment and op.decrement. All are real, documented upstream methods, but they are left out to keep the setup to four steps.",
+    "The exact rotation time of the visitor id salt. The rotation is real and runs on a daily cron, but the previously stated 'midnight UTC' asserted a timezone that is not explicitly pinned in the scheduler config, so the copy now says the salt rotates daily without naming a time.",
+    "A default value claim sourced from prose. The upstream web SDK reference gives trackScreenViews as 'default: false', and the SDK source confirms each track* option is opt-in, so the snippet sets them explicitly and the step body now states the false default rather than the earlier claim that upstream was self-contradictory.",
+    "https://www.npmjs.com/package/@openpanel/web as a source. It was not fetched for this pass. Package identity was confirmed through the npm registry API instead: @openpanel/web, latest 1.4.1, MIT."
+  ]
+}

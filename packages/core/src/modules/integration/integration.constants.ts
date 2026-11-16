@@ -154,7 +154,7 @@ export type IEmailConfig = z.infer<typeof zEmailConfig>;
 const zS3ExportConfigBase = z.object({
   type: z.literal('s3_export'),
   bucket: z.string().min(1, 'Bucket name is required'),
-  prefix: z.string().default('openpanel-exports'),
+  prefix: z.string().default('privytics-exports'),
   region: z.string().min(1, 'Region is required'),
   endpoint: z.string().url().optional(), // For R2, MinIO, etc.
   // Only jsonl_gzip is implemented; adding a format here without a
@@ -195,7 +195,7 @@ export type IS3ExportConfig = z.infer<typeof zS3ExportConfig>;
 export const zGCSExportConfig = z.object({
   type: z.literal('gcs_export'),
   bucket: z.string().min(1, 'Bucket name is required'),
-  prefix: z.string().default('openpanel-exports'),
+  prefix: z.string().default('privytics-exports'),
   // Only jsonl_gzip is implemented; adding a format here without a
   // `createBatch` branch persists a config whose exports can never run.
   format: z.enum(['jsonl_gzip']).default('jsonl_gzip'),

@@ -10,9 +10,15 @@ const base = {
 describe('buildSystemPrompt', () => {
   test('Cloud users are never sent to environment variables', () => {
     const prompt = buildSystemPrompt({ ...base, selfHosted: false });
-    expect(prompt).toContain('OpenPanel Cloud');
+    expect(prompt).toContain('This is Privytics');
     expect(prompt).toContain('never suggest');
-    expect(prompt).toContain('mailto:hello@openpanel.dev');
+    expect(prompt).toContain('mailto:support@privytics.com');
+    expect(prompt).toContain('https://api.privytics.com/mcp');
+    expect(prompt).toContain('apiUrl https://api.privytics.com');
+    expect(prompt).toContain('scriptUrl https://privytics.com/op1.js');
+    expect(prompt).toContain('You are the Privytics assistant');
+    expect(prompt).not.toContain('hello@openpanel.dev');
+    expect(prompt).not.toContain('api.openpanel.dev');
     expect(prompt).not.toContain('self-hosted OpenPanel install');
   });
 

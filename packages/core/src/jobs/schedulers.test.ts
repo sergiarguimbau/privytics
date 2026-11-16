@@ -7,11 +7,12 @@ import {
   startSchedulers,
 } from './schedulers';
 
-// Byte-identity snapshot: these 22 scheduler ids must not change without a
+// Byte-identity snapshot: these 23 scheduler ids must not change without a
 // migration, since BullMQ persists them as job-scheduler keys in Redis.
 const GOLDEN_SCHEDULER_IDS = [
   'cohortRefresh',
   'dataHealth',
+  'dataRetention',
   'delete',
   'flushAiEvents',
   'flushBots',
@@ -30,8 +31,8 @@ const GOLDEN_SCHEDULER_IDS = [
   'salt',
   'sessionReaper',
   'sessionVacuum',
+  'usageRefresh',
   'weeklyDigest',
-  'windDown',
 ].sort();
 
 function stubLogger(): Logger {
@@ -101,14 +102,15 @@ function fakeQueue(options?: {
 test('the golden scheduler ids are reproduced byte-for-byte', () => {
   const allIds = [...CRON_SCHEDULES.map((s) => s.id), PING_SCHEDULE.id].sort();
 
-  expect(allIds).toHaveLength(22);
+  expect(allIds).toHaveLength(23);
   expect(allIds).toEqual(GOLDEN_SCHEDULER_IDS);
 });
 
-test('the three ADR-005 fixed omissions are present', () => {
+test('the ADR-005 fixed omissions are present (Privytics: no windDown)', () => {
   const ids = new Set(CRON_SCHEDULES.map((s) => s.id));
   expect(ids.has('dataHealth')).toBe(true);
-  expect(ids.has('windDown')).toBe(true);
+  expect(ids.has('windDown')).toBe(false);
+  expect(ids.has('dataRetention')).toBe(true);
   expect(ids.has('flushExports')).toBe(true);
 });
 
@@ -123,7 +125,7 @@ test('ping is excluded by default — neither self-hosted nor production', async
   });
 
   const upsertedIds = queue.calls.upserted.map((u) => u.id).sort();
-  expect(upsertedIds).toHaveLength(21);
+  expect(upsertedIds).toHaveLength(22);
   expect(upsertedIds).not.toContain('ping');
 });
 
@@ -164,7 +166,7 @@ test('ping is included only when self-hosted AND production', async () => {
   });
 
   const upsertedIds = queue.calls.upserted.map((u) => u.id).sort();
-  expect(upsertedIds).toHaveLength(22);
+  expect(upsertedIds).toHaveLength(23);
   expect(upsertedIds).toEqual(GOLDEN_SCHEDULER_IDS);
 });
 
@@ -181,6 +183,28 @@ test('every upsert carries envelope-shaped data, not a legacy {type} shape', asy
   expect(queue.calls.upserted).toEqual([
     { id: 'salt', data: { payload: null, meta: {} } },
   ]);
+});
+
+test('Privytics: cron patterns are pinned to UTC, intervals untouched', async () => {
+  const queue = fakeQueue();
+  const repeats: unknown[] = [];
+  const originalUpsert = queue.upsertJobScheduler.bind(queue);
+  queue.upsertJobScheduler = async (id, repeatOpts, jobTemplate) => {
+    repeats.push(repeatOpts);
+    return originalUpsert(id, repeatOpts, jobTemplate);
+  };
+
+  await startSchedulers({
+    queue,
+    flags: { selfHosted: false, production: false },
+    logger: stubLogger(),
+    schedulers: [
+      { id: 'salt', schedule: { pattern: '0 0 * * *' } },
+      { id: 'delete', schedule: { every: 1000 } },
+    ],
+  });
+
+  expect(repeats).toEqual([{ tz: 'UTC', pattern: '0 0 * * *' }, { every: 1000 }]);
 });
 
 test('a scheduler no longer declared is pruned', async () => {

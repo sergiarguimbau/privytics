@@ -55,7 +55,7 @@ const buildClients = (mcpEndpoint: string): AiClient[] => {
         JSON.stringify(
           {
             mcpServers: {
-              openpanel: {
+              privytics: {
                 type: 'streamable-http',
                 url,
                 headers,
@@ -78,7 +78,7 @@ const buildClients = (mcpEndpoint: string): AiClient[] => {
       ),
       language: 'bash',
       snippet: () =>
-        `claude mcp add --transport http openpanel ${url} \\\n  --header "Authorization: Bearer ${TOKEN_PLACEHOLDER}"`,
+        `claude mcp add --transport http privytics ${url} \\\n  --header "Authorization: Bearer ${TOKEN_PLACEHOLDER}"`,
     },
     {
       id: 'cursor',
@@ -96,7 +96,7 @@ const buildClients = (mcpEndpoint: string): AiClient[] => {
         JSON.stringify(
           {
             mcpServers: {
-              openpanel: {
+              privytics: {
                 url,
                 transport: 'streamable-http',
                 headers,
@@ -122,7 +122,7 @@ const buildClients = (mcpEndpoint: string): AiClient[] => {
         JSON.stringify(
           {
             mcpServers: {
-              openpanel: {
+              privytics: {
                 serverUrl: url,
                 headers,
               },
@@ -147,7 +147,7 @@ const buildClients = (mcpEndpoint: string): AiClient[] => {
         JSON.stringify(
           {
             servers: {
-              openpanel: {
+              privytics: {
                 type: 'http',
                 url,
                 headers,
@@ -164,7 +164,7 @@ const buildClients = (mcpEndpoint: string): AiClient[] => {
       description: (
         <>
           Copy the JSON below, then run the <strong>Install Server</strong>{' '}
-          command in Raycast — it auto-fills the form from your clipboard. The
+          command in Raycast; it auto-fills the form from your clipboard. The
           install form takes a URL only, so the token goes in the query string.
         </>
       ),
@@ -172,7 +172,7 @@ const buildClients = (mcpEndpoint: string): AiClient[] => {
       snippet: () =>
         JSON.stringify(
           {
-            name: 'openpanel',
+            name: 'privytics',
             transport: 'streamable-http',
             url: urlWithToken,
           },
@@ -194,8 +194,8 @@ function Component() {
         <h2 className="font-semibold text-lg">MCP Server</h2>
         <p className="text-muted-foreground text-sm">
           Connect any MCP-compatible AI client (Claude, Cursor, Windsurf, …) to
-          your OpenPanel data. Most of its tools read — events, sessions,
-          profiles, funnels, retention and more — but it can also create, edit
+          your Privytics data. Most of its tools read (events, sessions,
+          profiles, funnels, retention and more), but it can also create, edit
           and delete dashboards and reports, so treat the token as write access.
         </p>
       </div>
@@ -216,7 +216,7 @@ function Component() {
           <p className="text-muted-foreground text-sm">
             Only <code>read</code> and <code>root</code> clients can
             authenticate with MCP. Create one and copy the MCP token from the
-            success screen — it's only shown once.
+            success screen. It's only shown once.
           </p>
         </div>
         <div>

@@ -66,7 +66,7 @@ export interface WorkerSettings {
  * BullMQ's own job-scheduler repeat options, narrowed to the two forms this
  * codebase uses.
  */
-export type RepeatSchedule = { pattern: string } | { every: number };
+export type RepeatSchedule = { pattern: string; tz?: string } | { every: number };
 
 export interface JobDefinition<TPayload extends z.ZodType> {
   /**

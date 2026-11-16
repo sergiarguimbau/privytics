@@ -4,6 +4,7 @@ import { useId, useState } from 'react';
 import { FrameworkPicker, frameworksFor } from './framework-picker';
 import {
   getInstallSnippets,
+  SCRIPT_URL,
   type SnippetContext,
   usesClientSecret,
 } from './install-snippets';
@@ -25,6 +26,9 @@ export function InstallManual({ projectId, projectTypes, context }: Props) {
   const frameworkLabelId = useId();
   const snippets = getInstallSnippets(framework, context);
   const secretMissing = usesClientSecret(framework) && !context.clientSecret;
+  const loadsScript = snippets.some((snippet) =>
+    snippet.code.includes(SCRIPT_URL)
+  );
 
   const select = (next: Framework | null) => {
     if (!next) {
@@ -88,6 +92,12 @@ export function InstallManual({ projectId, projectTypes, context }: Props) {
             create a new client under Settings → Clients.
           </p>
         )}
+        <p className="text-muted-foreground text-sm">
+          Privytics runs the open-source OpenPanel engine and uses its SDKs.
+          Independent service, not affiliated with OpenPanel. Always set apiUrl
+          to {context.apiUrl}
+          {loadsScript && `, and load the script from ${SCRIPT_URL}`}.
+        </p>
         <a
           className="row items-center gap-1.5 self-start text-sm underline hover:text-foreground"
           href={framework.href}

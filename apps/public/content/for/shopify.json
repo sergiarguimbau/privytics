@@ -1,173 +1,87 @@
 {
   "slug": "shopify",
-  "audience": "shopify",
-  "seo": {
-    "title": "Shopify Analytics, Cookie-Free Tracking Without Consent Banners",
-    "description": "Add product analytics to your Shopify store without GDPR consent banners. OpenPanel is cookieless by default, track events, funnels, and revenue from $2.50/month or free to self-host.",
-    "noindex": false
-  },
-  "hero": {
-    "heading": "Shopify analytics that actually works",
-    "subheading": "Most analytics tools break on Shopify: cookie consent blocks tracking, GA4 loses attribution, and Shopify's built-in reports cannot answer the questions that matter. OpenPanel tracks every event without cookies, so your data is complete and the checkout keeps its conversion rate.",
-    "badges": [
-      "Cookie-free tracking",
-      "No consent banner needed",
-      "Revenue tracking",
-      "From $2.50/month"
-    ]
-  },
-  "problem": {
-    "title": "Why analytics breaks on Shopify",
-    "intro": "Every major analytics tool creates a different problem for Shopify stores. Here's what you're actually dealing with.",
-    "items": [
-      {
-        "title": "GA4 consent mode destroys your data",
-        "description": "Cookie consent requirements mean 30-50% of visitors opt out. GA4's \"consent mode\" fills gaps with modeled data, you're making decisions on estimates, not reality."
-      },
-      {
-        "title": "Shopify's built-in analytics is shallow",
-        "description": "Pageviews and sales are there, but you can't build funnels, analyze drop-off by product page, or see which acquisition channel retains customers best."
-      },
-      {
-        "title": "Event tracking requires a developer",
-        "description": "Installing GA4 on Shopify correctly, with purchase events, add-to-cart, and checkout steps, requires custom code or expensive third-party apps."
-      },
-      {
-        "title": "Cookie banners hurt conversion",
-        "description": "A consent popup before checkout is a conversion killer. Every analytics tool that uses cookies forces you to choose between data and revenue."
-      }
-    ]
-  },
-  "features": {
-    "title": "Everything you need to understand your Shopify store",
-    "intro": "OpenPanel is designed to give you complete visibility into your store's performance, without the privacy headaches.",
-    "items": [
-      {
-        "title": "Script tag install, no developer needed",
-        "description": "Add one script tag in the Shopify theme editor. Page views and outgoing links track immediately. No Shopify app, no coding."
-      },
-      {
-        "title": "Cookieless tracking by default",
-        "description": "No cookies means no consent banner. Your analytics data is complete, not modeled, not estimated, not filtered by opt-outs."
-      },
-      {
-        "title": "Purchase and revenue tracking",
-        "description": "Track add-to-cart, checkout started and purchase events, with the order total as revenue. Revenue shows on the overview next to sources, campaigns and pages, and on every customer profile."
-      },
-      {
-        "title": "Funnel analysis",
-        "description": "Build product page to add to cart to checkout to purchase. See which step loses customers and break it down by product, campaign or country."
-      },
-      {
-        "title": "UTM campaign attribution",
-        "description": "Source, medium, campaign, term and content on every session. See which traffic source converts to buyers, not just visitors."
-      },
-      {
-        "title": "User profiles",
-        "description": "The complete journey of any customer: pages visited, products viewed, purchases and lifetime revenue. Turn on session replay to watch a session next to its events."
-      },
-      {
-        "title": "Realtime dashboard",
-        "description": "Watch your store live. Launch a sale or send an email and see the traffic surge in real time."
-      },
-      {
-        "title": "EU data residency",
-        "description": "Cloud data is stored on Hetzner in Germany, with a GDPR data processing agreement included. GDPR compliance without the legal complexity."
-      }
-    ]
-  },
-  "benefits": {
-    "title": "Why Shopify store owners choose OpenPanel",
-    "intro": "OpenPanel was built to solve the exact problems that plague analytics on Shopify.",
-    "items": [
-      {
-        "title": "Complete data, no consent required",
-        "description": "Cookieless tracking means every visitor is counted. No consent mode models, no sampling, no gaps from opt-outs."
-      },
-      {
-        "title": "Cheaper than Shopify analytics apps",
-        "description": "Most Shopify analytics apps charge $50 to $200 a month. OpenPanel starts at $2.50 a month with every feature included."
-      },
-      {
-        "title": "Replace GA4 and your analytics app",
-        "description": "One tool covers web analytics (traffic, referrers, UTM) and product analytics (funnels, retention, revenue, replay). Cancel two subscriptions."
-      },
-      {
-        "title": "Privacy-first out of the box",
-        "description": "EU hosting, no cookies, no fingerprinting. No compliance team required to use OpenPanel on your store."
-      },
-      {
-        "title": "Self-host for free",
-        "description": "For high-volume stores, self-hosting removes per-event costs entirely. Docker Compose, one install script, unlimited events."
-      }
-    ]
-  },
-  "faqs": {
-    "title": "Frequently asked questions",
-    "intro": "Common questions from Shopify store owners evaluating OpenPanel.",
-    "items": [
-      {
-        "question": "How do I install OpenPanel on Shopify?",
-        "answer": "Add the OpenPanel script tag via Shopify Admin, Online Store, Themes, Edit code, theme.liquid, before </head>. Page views track immediately. For purchases, enable client-side revenue in your project settings and call op.revenue(amount, { orderId }) on the order confirmation page."
-      },
-      {
-        "question": "Does OpenPanel work without a cookie consent banner?",
-        "answer": "Yes. OpenPanel sets no cookies and stores no raw IP, so no consent banner is required under GDPR or CCPA for analytics-only use."
-      },
-      {
-        "question": "Can I track Shopify purchase events?",
-        "answer": "Yes. A few lines on the order confirmation page send the order total, order id and products to OpenPanel as a revenue event. Enable client-side revenue in project settings first, or send it from your backend with the client secret. No Shopify app required."
-      },
-      {
-        "question": "How does OpenPanel compare to Lucky Orange or Hotjar for Shopify?",
-        "answer": "Lucky Orange and Hotjar are built around heatmaps and recordings. OpenPanel has session replay too, next to the events, funnels and retention that explain what users do, but no heatmaps. If heatmaps matter to you, the tools complement each other."
-      },
-      {
-        "question": "Will OpenPanel affect my Shopify store's page speed?",
-        "answer": "The tracker is about 3 KB gzipped and loads async, one of the lightest available; GA4 is many times larger. The performance impact is negligible."
-      },
-      {
-        "question": "Does OpenPanel work with Shopify Plus?",
-        "answer": "Yes. OpenPanel works on any Shopify plan including Plus. The script tag installation method works identically across all plans."
-      }
-    ]
-  },
-  "related_links": {
-    "guides": [
-      {
-        "title": "Ecommerce tracking setup",
-        "url": "/guides/ecommerce-tracking"
-      }
-    ],
-    "articles": [
-      {
-        "title": "Cookieless analytics explained",
-        "url": "/articles/cookieless-analytics"
-      },
-      {
-        "title": "Best open source analytics tools",
-        "url": "/articles/self-hosted-web-analytics"
-      }
-    ],
-    "comparisons": [
-      {
-        "title": "OpenPanel vs Google Analytics",
-        "url": "/compare/google-analytics-alternative"
-      },
-      {
-        "title": "OpenPanel vs Plausible",
-        "url": "/compare/plausible-alternative"
-      }
-    ]
-  },
-  "ctas": {
-    "primary": {
-      "label": "Try OpenPanel Free",
-      "href": "https://dashboard.openpanel.dev/onboarding"
+  "kind": "sdk",
+  "name": "Shopify",
+  "category": "Web",
+  "title": "Shopify analytics, cookieless and EU-hosted",
+  "description": "Add privacy-first analytics to your Shopify store by pasting one snippet into your theme. Cookieless, EU-hosted, and no consent banner for anonymous visitors.",
+  "tagline": "Paste one snippet into your theme and your store is tracked.",
+  "intro": "Privytics adds page-view analytics to any Shopify store with one snippet you paste into your theme. There is no app to install and no coding. Most Shopify stores add Google Analytics, which needs a cookie banner for EU visitors, while Privytics is cookieless and EU-hosted, so there is nothing to consent to. This guide covers your storefront pages, which is where most of your traffic lives.",
+  "why": [
+    {
+      "title": "One snippet, no coding",
+      "body": "You paste a single snippet into your theme and save. No app to install, no developer, and no files to manage."
     },
-    "secondary": {
-      "label": "View Source on GitHub",
-      "href": "https://github.com/Openpanel-dev/openpanel"
+    {
+      "title": "Nothing is written to the device",
+      "body": "The snippet sets no cookies and stores no identifier in the browser. Visitors are counted with an anonymous id that resets every day."
+    },
+    {
+      "title": "Your data is stored in the EU",
+      "body": "Your analytics event data is stored in Germany, and Privytics runs the open-source OpenPanel engine. You remain the data controller."
+    },
+    {
+      "title": "Works on every Shopify plan",
+      "body": "The storefront snippet lives in your theme, so it runs on Basic, Shopify, Advanced and Plus. No paid tier is required to start."
     }
-  }
+  ],
+  "steps": [
+    {
+      "title": "Open your theme's head area",
+      "body": "In your Shopify admin, go to Online Store > Themes. Click the three dots next to your live theme and choose Duplicate first, so you always have a backup. Then on your live theme click the three dots again and choose Edit code. Under Layout, open theme.liquid and scroll down to the line that says </head>. This works on every Shopify plan.",
+      "lang": "text",
+      "code": "Online Store > Themes > (Duplicate) > Edit code > Layout > theme.liquid"
+    },
+    {
+      "title": "Paste the snippet and replace your client id",
+      "body": "Paste the two tags below on the line just before </head>. Replace YOUR_CLIENT_ID with the client id from your Privytics project, then click Save. Shopify can take a moment to refresh, so wait a few seconds before you check.",
+      "lang": "html",
+      "code": "<script>\n  window.op=window.op||function(){var n=[];return new Proxy(function(){arguments.length&&n.push([].slice.call(arguments))},{get:function(t,r){return\"q\"===r?n:function(){n.push([r].concat([].slice.call(arguments)))}} ,has:function(t,r){return\"q\"===r}}) }();\n  window.op('init', {\n    apiUrl: 'https://api.privytics.com',\n    clientId: 'YOUR_CLIENT_ID',\n    trackScreenViews: true,\n    trackOutgoingLinks: true,\n  });\n</script>\n<script src=\"https://privytics.com/op1.js\" defer async></script>"
+    },
+    {
+      "title": "Check that page views are arriving",
+      "body": "That is the whole setup. Open your store in a new tab and click through a couple of pages. Page views are tracked automatically, so within a few seconds you will see them in your Privytics dashboard under Realtime.",
+      "lang": "text",
+      "code": "Open your store, then watch Privytics > Realtime"
+    },
+    {
+      "title": "Optional: track one button click",
+      "body": "Want to count a specific action, like opening a size guide? In the theme editor go to Online Store > Themes > Customize, add a Custom Liquid block where you want it, and paste the button below. Each click sends one event named size_guide_opened. Page views already work without this, so this step is optional.",
+      "lang": "html",
+      "code": "<button onclick=\"window.op('track', 'size_guide_opened')\">Size guide</button>"
+    }
+  ],
+  "faq": [
+    {
+      "q": "Do I need a paid plan for this?",
+      "a": "No. The free plan covers 10,000 events a month with no card, and the storefront snippet works on every Shopify plan. Paid plans add higher event limits, 5 years of event history and session replay when you need them."
+    },
+    {
+      "q": "Do I still need a cookie banner?",
+      "a": "The snippet writes nothing to the device and sends no cookie, so for the anonymous case there is nothing to consent to. You remain the data controller."
+    },
+    {
+      "q": "Where is my data stored?",
+      "a": "In the EU. Your analytics event data is stored in EU data centres in Germany."
+    },
+    {
+      "q": "Can I track button clicks or events?",
+      "a": "Yes. Page views are automatic, and you can count a click by adding a Custom Liquid block that calls window.op('track', 'your_event'). Tracking checkout and purchases works differently and belongs to Shopify's Web Pixels API, so it is not covered here."
+    }
+  ],
+  "sourcesUsed": [
+    "Shopify Help Center: Editing theme code (Online Store > Themes > Edit code, Layout > theme.liquid; head lives in theme.liquid)",
+    "Shopify changelog / dev docs: Jan 13 2026 background Liquid update does not change the theme-code path; checkout.liquid + Additional Scripts retired for non-Plus stores Aug 26 2026, replaced by Web Pixels / Customer Events",
+    "Privytics script-tag install (op1.js + window.op init, apiUrl https://api.privytics.com)"
+  ],
+  "omitted": [
+    "Plan gate: the storefront tags in theme.liquid work on every Shopify plan (Basic, Shopify, Advanced, Plus); the Privytics free tier covers 10,000 events per month with no card.",
+    "Checkout, thank-you and order-status conversion tracking is intentionally not covered: checkout.liquid and Additional Scripts are being retired for all stores in 2026, so purchase tracking must use Shopify's Web Pixels API / Customer Events, which needs a different setup.",
+    "Custom events are shown with a single Custom Liquid button example (first-party embed). The data-track HTML attribute is deliberately not used because the pasted snippet does not enable it and native buttons cannot carry it.",
+    "Recommended duplicating the theme first as a backup, which is optional but safer for non-technical users.",
+    "Verified via web search (July 2026): the theme-code path (Online Store > Themes > Edit code > Layout > theme.liquid, with the head in theme.liquid) is current and unchanged by Shopify's Jan 13 2026 background Liquid update.",
+    "Verified via web search: Shopify removed checkout.liquid, Additional Scripts and checkout script tags for non-Plus stores on Aug 26 2026 (Plus earlier), replaced by Web Pixels / Customer Events; this is why purchase tracking is left out of scope and pointed at the Web Pixels API.",
+    "Session replay is named in the paid-plan FAQ answer alongside higher event limits and 5 years of retention, since those are the paid additions. No replay setup snippet is shown: replay is a paid-plan option turned on with sessionReplay: { enabled: true } in the init call, so it is left out of this free-plan install.",
+    "The theme-code method does not apply to Shopify Starter (no online-store theme editor); the guide targets Basic, Shopify, Advanced and Plus, which is stated as 'every Shopify plan' in the storefront sense."
+  ]
 }

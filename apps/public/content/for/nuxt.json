@@ -1,0 +1,96 @@
+{
+  "slug": "nuxt",
+  "kind": "sdk",
+  "name": "Nuxt",
+  "title": "Nuxt analytics, cookieless and hosted in the EU",
+  "description": "Add product analytics to your Nuxt app with the @openpanel/nuxt module. Cookieless by default, event data stored in Germany, and setup takes about ten lines.",
+  "tagline": "Cookieless product analytics for Nuxt 3 and 4, with event data stored in Germany.",
+  "category": "Web",
+  "intro": "Privytics tracks page views, custom events and user profiles in your Nuxt app using the @openpanel/nuxt module. You register the module in nuxt.config.ts, point apiUrl at the Privytics ingestion endpoint, and route changes start being recorded without further wiring. Tracking is cookieless by default, so nothing is written to the visitor's device.",
+  "why": [
+    {
+      "title": "Route changes are tracked for you",
+      "body": "Nuxt apps navigate client side, so a plain page-view snippet only ever fires once. With trackScreenViews enabled the module follows Vue Router navigation and records each view as the user moves through the app."
+    },
+    {
+      "title": "The composable is auto-imported",
+      "body": "useOpenPanel() is registered by the module, so any component can call op.track() without a provider wrapper, a plugin file, or an import statement. There is no context to thread through your layouts."
+    },
+    {
+      "title": "Client and server events from one app",
+      "body": "Nuxt ships its own Nitro server. You can track UI interactions from components and business events from server routes such as a completed checkout, so events that matter are not dependent on the browser."
+    },
+    {
+      "title": "No cookie plumbing to add",
+      "body": "The SDK sets no cookies and stores nothing on the visitor's device. That means no consent-state plumbing through your Nuxt plugins to decide whether the tracker may load."
+    }
+  ],
+  "steps": [
+    {
+      "title": "Install the module",
+      "lang": "bash",
+      "code": "pnpm install @openpanel/nuxt"
+    },
+    {
+      "title": "Register it in nuxt.config.ts",
+      "body": "Add the module and configure it under the openpanel key. Set apiUrl explicitly, because the SDK otherwise defaults to OpenPanel's own host.",
+      "lang": "ts",
+      "code": "export default defineNuxtConfig({\n  modules: ['@openpanel/nuxt'],\n  openpanel: {\n    clientId: 'YOUR_CLIENT_ID',\n    apiUrl: 'https://api.privytics.com',\n    trackScreenViews: true,\n    trackOutgoingLinks: true,\n    trackAttributes: true,\n  },\n});"
+    },
+    {
+      "title": "Track an event",
+      "body": "The useOpenPanel composable is auto-imported, so you can call it directly in any component.",
+      "lang": "vue",
+      "code": "<script setup>\nconst op = useOpenPanel(); // Auto-imported!\n\nfunction handleClick() {\n  op.track('button_click', { button: 'signup' });\n}\n</script>\n\n<template>\n  <button @click=\"handleClick\">Trigger event</button>\n</template>"
+    },
+    {
+      "title": "Identify a user",
+      "body": "Call identify with your own user id to build a cross-session profile. This is opt-in and needs your own lawful basis, since it is no longer anonymous.",
+      "lang": "vue",
+      "code": "<script setup>\nconst op = useOpenPanel();\n\nop.identify({\n  profileId: '123', // Required\n  firstName: 'Joe',\n  lastName: 'Doe',\n  email: 'joe@doe.com',\n  properties: {\n    tier: 'premium',\n  },\n});\n</script>"
+    },
+    {
+      "title": "Track server events from Nitro",
+      "body": "Server-side tracking uses the @openpanel/sdk package with a client secret. Await the call inside an event handler so it completes before the function terminates.",
+      "lang": "ts",
+      "code": "import { OpenPanel } from '@openpanel/sdk';\n\nconst opServer = new OpenPanel({\n  clientId: 'YOUR_CLIENT_ID',\n  clientSecret: 'YOUR_CLIENT_SECRET',\n  apiUrl: 'https://api.privytics.com',\n});\n\nexport default defineEventHandler(async (event) => {\n  // Await to ensure event is logged before function completes\n  await opServer.track('my_server_event', { foo: 'bar' });\n  return { message: 'Event logged!' };\n});"
+    }
+  ],
+  "faq": [
+    {
+      "q": "Does this work with Nuxt 4?",
+      "a": "Yes. The @openpanel/nuxt module declares nuxt ^3.0.0 || ^4.0.0 as a peer dependency, so the same module and config key work on both."
+    },
+    {
+      "q": "Does it track route changes automatically?",
+      "a": "Yes, when trackScreenViews is enabled in your nuxt.config.ts. The module records a view on each client-side navigation, not just the initial load."
+    },
+    {
+      "q": "Can I reach the tracker outside a composable?",
+      "a": "Yes. As well as useOpenPanel(), the module exposes the instance on the Nuxt app, so you can pull it out with const { $openpanel } = useNuxtApp() and call $openpanel.track() from anywhere with access to the Nuxt context."
+    },
+    {
+      "q": "Do I need a cookie banner for this?",
+      "a": "The SDK sets no cookies and writes nothing to the device, so there is no storage access to consent to for the default cookieless tracking. You remain the data controller and should confirm your own obligations, particularly if you use identify() to build named profiles."
+    },
+    {
+      "q": "Where is the data stored?",
+      "a": "Event data is stored in EU data centres in Germany. Privytics is built on the open-source OpenPanel engine and is not affiliated with or endorsed by OpenPanel."
+    }
+  ],
+  "docsUrl": "https://openpanel.dev/docs/sdks/nuxt",
+  "sourcesUsed": [
+    "https://openpanel.dev/docs/sdks/nuxt",
+    "https://registry.npmjs.org/@openpanel/nuxt"
+  ],
+  "omitted": [
+    "Session replay. An earlier draft claimed a sessionReplay option with default text and input masking. The Nuxt docs page documents no such option and the module's dependency list gives no way to confirm one, so the claim was removed rather than reworded. Do not reinstate it without a source that shows the option name for this module.",
+    "The proxy: true option. It is genuinely documented, and it sets up /api/openpanel routes to route requests through your own server to dodge adblockers. It is left out because the docs do not state whether the generated proxy handler forwards to the configured apiUrl or to OpenPanel's default host. Until that is confirmed against the module source, documenting it risks a setup that silently sends events to the wrong destination.",
+    "scriptUrl. Not applicable here. The Nuxt module depends on @openpanel/web rather than injecting a script tag by URL, and the docs page shows no scriptUrl option, so no such field appears in any snippet on this page.",
+    "A plain script-tag install. The Nuxt docs page documents no script-tag route for this SDK, so no such snippet was invented.",
+    "The install command for @openpanel/sdk, used in the server-side step. The docs page shows the import but never shows how to install that package, so no command was guessed.",
+    "The specific mechanism behind the anonymous visitor id. An earlier draft described it as a daily-rotating salted hash of IP, user agent and project id. That detail is not on the Nuxt docs page, so the copy now claims only what is supported: no cookies, and nothing stored on the device.",
+    "trackHashChanges (default false) and disabled are documented options but were left out of the snippets to keep the initial config minimal.",
+    "setGlobalProperties, increment, decrement and clear are documented composable methods but were left out to keep the page focused on install and first event."
+  ]
+}

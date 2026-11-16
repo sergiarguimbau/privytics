@@ -16,7 +16,6 @@ import { LockIcon } from 'lucide-react';
 import appCss from '../styles.css?url';
 import type { ConfigResonse } from './api/config';
 import { EmptyState } from '@/components/empty-state';
-import { FeedbackWidgetScripts } from '@/components/feedback-widget-scripts';
 import { FullPageErrorState } from '@/components/full-page-error-state';
 import FullPageLoadingState from '@/components/full-page-loading-state';
 import { Providers } from '@/components/providers';
@@ -25,6 +24,7 @@ import { LinkButton } from '@/components/ui/button';
 import { getCookiesFn } from '@/hooks/use-cookie-store';
 import type { RouterOutputs } from '@/trpc/client';
 import { op } from '@/utils/op';
+import { BRAND } from '@/brand';
 
 if (import.meta.env.VITE_OP_CLIENT_ID) {
   op.init();
@@ -56,13 +56,21 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
         name: 'viewport',
         content: 'width=device-width, initial-scale=1',
       },
+      {
+        name: 'theme-color',
+        content: '#0C6B69',
+      },
     ],
-    title: 'OpenPanel.dev',
+    title: BRAND.name,
     links: [
       {
         rel: 'stylesheet',
         href: appCss,
       },
+      { rel: 'icon', href: '/favicon.svg', type: 'image/svg+xml' },
+      { rel: 'icon', href: '/favicon-32.png', sizes: '32x32', type: 'image/png' },
+      { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
+      { rel: 'manifest', href: '/manifest.json' },
     ],
   }),
   shellComponent: RootDocument,
@@ -125,7 +133,17 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <Providers>{children}</Providers>
         <ThemeScriptOnce />
         <Scripts />
-        <FeedbackWidgetScripts />
+        {/*
+          Upstream mounts the Userjot feedback widget here
+          (components/feedback-widget-scripts.tsx), initialised with OpenPanel's
+          own project id. Removed deliberately, and it must NOT return on a
+          rebase:
+            1. Feedback from our users would land on OpenPanel's board, not ours.
+            2. The widget was identified with the user's id, name and email, so
+               every logged-in user's personal data went to a US third party
+               listed in neither our Privacy Policy nor our DPA.
+          Feedback is a mailto instead: no third party, nothing to disclose.
+        */}
         <div className="hidden">
           <div className="bg-chart-0 text-chart-0" />
           <div className="bg-chart-1 text-chart-1" />

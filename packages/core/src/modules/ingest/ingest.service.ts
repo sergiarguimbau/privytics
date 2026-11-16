@@ -1,6 +1,7 @@
 // Nothing here throws for a caller error: each transport owns its own status
 // codes and bodies, so the pipeline returns a `TrackOutcome` instead.
 
+import { getSubscriptionState } from '@openpanel/payments/subscription-state';
 import { generateId } from '@openpanel/shared';
 import { parseUserAgent } from '@openpanel/shared/server';
 import { assocPath, pathOr, pick } from 'ramda';
@@ -682,6 +683,76 @@ export async function isIngestionWoundDown(
       'Wind-down check failed, allowing ingestion'
     );
     return false;
+  }
+}
+
+export type FreeTierBlockReason = 'free_limit' | 'replay_paid_only';
+
+/**
+ * Privytics plan entitlements, enforced at the edge. The free tier (and a
+ * paused subscription, which is held to free-tier limits) is a HARD cap; paid
+ * plans stay soft-capped so a traffic spike never loses data.
+ *
+ * - No allowance at all (every organization after a user's first): refused
+ *   immediately, without waiting for the usage counter.
+ * - Over the allowance: gated on `subscriptionPeriodEventsCountExceededAt`
+ *   falling in the current UTC month, not on the stored counter. The counter is
+ *   only recomputed when a session ends, so once every event is refused it
+ *   would never move again; this month's flag lifts by itself when the month
+ *   rolls over. The counter lags by up to an hour plus the 5 minute org cache,
+ *   so a free organization may overshoot its allowance by that much.
+ * - Session replay is a paid feature.
+ *
+ * The caller answers 202 `{blocked:true}`, like wind-down: the SDKs retry every
+ * non-2xx except 401. Fails open, like the wind-down check.
+ */
+export async function isFreeTierBlocked(
+  deps: ServiceDeps,
+  request: {
+    projectId: string | null | undefined;
+    selfHosted: boolean;
+    type: string | undefined;
+    logger: Logger;
+  },
+  now: Date = new Date()
+): Promise<FreeTierBlockReason | null> {
+  if (request.selfHosted || !request.projectId) {
+    return null;
+  }
+  const { projectId, logger } = request;
+  try {
+    const organization = await getOrganizationByProjectIdCached(
+      deps,
+      projectId
+    );
+    if (!organization) {
+      return null;
+    }
+    // An incomplete checkout keeps the org's earlier limit and has not paid.
+    const state = getSubscriptionState(organization, now);
+    if (state !== 'free' && state !== 'paused' && state !== 'incomplete') {
+      return null;
+    }
+    const monthStart = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)
+    );
+    const exceededAt = organization.subscriptionPeriodEventsCountExceededAt;
+    if (
+      organization.subscriptionPeriodEventsLimit <= 0 ||
+      (exceededAt && exceededAt >= monthStart)
+    ) {
+      return 'free_limit';
+    }
+    if (request.type === 'replay') {
+      return 'replay_paid_only';
+    }
+    return null;
+  } catch (error) {
+    logger.error(
+      { err: error, projectId },
+      'Free tier check failed, allowing ingestion'
+    );
+    return null;
   }
 }
 

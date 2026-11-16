@@ -15,7 +15,19 @@ import { MS_PER_DAY } from '../../../shared/time.constants';
 const NO_DATA_AFTER_MS = 2 * MS_PER_DAY;
 // An active project whose newest event is older than this counts as stalled.
 const STALLED_AFTER_MS = 7 * MS_PER_DAY;
-const DEFAULT_DASHBOARD_URL = 'https://dashboard.openpanel.dev';
+// Ingest refuses a capped free org's events once the flag lands (plus the 5
+// minute org cache), so a last event this close to it means the cap stopped it.
+const CAP_STALL_SLACK_MS = 60 * 60 * 1000;
+const DEFAULT_DASHBOARD_URL = 'https://app.privytics.com';
+// Privytics has no trial: every paid state plus the permanent free tier (the
+// acquisition wedge). Unfinished checkouts and paused plans are skipped.
+const RESCUE_STATES = new Set<string>([
+  'active',
+  'free',
+  'canceling',
+  'pausing',
+  'past_due',
+]);
 
 interface OrgAlert {
   organizationId: string;
@@ -34,6 +46,8 @@ export interface DataHealthProject {
   organization: {
     id: string;
     subscriptionState: string;
+    subscriptionPeriodEventsLimit: number;
+    subscriptionPeriodEventsCountExceededAt: Date | null;
     onboarding: string | null;
   };
 }
@@ -133,6 +147,10 @@ export async function runDataHealthCron(
   }
 
   const now = Date.now();
+  const today = new Date(now);
+  const monthStart = new Date(
+    Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1)
+  );
   const lastEventByProject = await deps.getLastEventPerProject();
 
   // Prefilter on the raw status column (computed fields can't be used in
@@ -140,7 +158,16 @@ export async function runDataHealthCron(
   const projects = await deps.db.project.findMany({
     where: {
       deleteAt: null,
-      organization: { subscriptionStatus: { in: ['active', 'trialing'] } },
+      organization: {
+        OR: [
+          {
+            subscriptionStatus: {
+              in: ['active', 'free', 'past_due', 'canceled'],
+            },
+          },
+          { subscriptionStatus: null },
+        ],
+      },
     },
     select: {
       id: true,
@@ -150,7 +177,13 @@ export async function runDataHealthCron(
       noDataNotifiedAt: true,
       dataStoppedNotifiedAt: true,
       organization: {
-        select: { id: true, subscriptionState: true, onboarding: true },
+        select: {
+          id: true,
+          subscriptionState: true,
+          subscriptionPeriodEventsLimit: true,
+          subscriptionPeriodEventsCountExceededAt: true,
+          onboarding: true,
+        },
       },
     },
   });
@@ -159,7 +192,16 @@ export async function runDataHealthCron(
 
   for (const project of projects) {
     const state = project.organization.subscriptionState;
-    if (state !== 'active' && state !== 'trialing') {
+    const exceededAt =
+      project.organization.subscriptionPeriodEventsCountExceededAt;
+    // A zero allowance, or a free org over this month's allowance, means
+    // ingestion refuses its events on purpose, so a "snippet not installed"
+    // email would mislead.
+    if (
+      !RESCUE_STATES.has(state) ||
+      project.organization.subscriptionPeriodEventsLimit <= 0 ||
+      (state === 'free' && exceededAt && exceededAt >= monthStart)
+    ) {
       continue;
     }
 
@@ -184,7 +226,16 @@ export async function runDataHealthCron(
       continue;
     }
 
-    const stalled = now - lastEventAt.getTime() > STALLED_AFTER_MS;
+    // A stall that began at a free org's cap only counts from when the cap
+    // lifted (the next UTC month), not from the last event it let through.
+    const stalledAtCap =
+      state === 'free' &&
+      exceededAt !== null &&
+      lastEventAt.getTime() <= exceededAt.getTime() + CAP_STALL_SLACK_MS;
+    const silentSince = stalledAtCap
+      ? Date.UTC(exceededAt.getUTCFullYear(), exceededAt.getUTCMonth() + 1, 1)
+      : lastEventAt.getTime();
+    const stalled = now - silentSince > STALLED_AFTER_MS;
     const alreadyNotifiedForThisStall =
       project.dataStoppedNotifiedAt &&
       project.dataStoppedNotifiedAt > lastEventAt;

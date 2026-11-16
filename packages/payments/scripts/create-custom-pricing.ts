@@ -241,7 +241,7 @@ async function main() {
     },
     successUrl: getSuccessUrl(
       input.isProduction
-        ? 'https://dashboard.openpanel.dev'
+        ? 'https://app.privytics.com'
         : 'http://localhost:3000',
       organization.id,
       organization.projects[0]?.id

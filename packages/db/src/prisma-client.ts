@@ -1,4 +1,8 @@
-import { getSubscriptionState } from '@openpanel/payments/subscription-state';
+import {
+  getSubscriptionChartEndDate,
+  getSubscriptionState,
+  isSelfHostedEnv,
+} from '@openpanel/payments/subscription-state';
 import { PrismaClient } from './generated/prisma/client';
 import { logger } from './logger';
 
@@ -45,11 +49,13 @@ const getPrismaClient = () => {
         subscriptionStatus: {
           needs: { subscriptionStatus: true, subscriptionCanceledAt: true },
           compute(org) {
-            if (process.env.SELF_HOSTED === 'true') {
+            if (isSelfHostedEnv()) {
               return 'active';
             }
 
-            return org.subscriptionStatus || 'trialing';
+            // No status means no paid subscription, which on Privytics is the
+            // permanent free tier rather than a trial.
+            return org.subscriptionStatus || 'free';
           },
         },
         hasSubscription: {
@@ -62,7 +68,6 @@ const getPrismaClient = () => {
               state === 'pausing' ||
               state === 'paused' ||
               state === 'past_due' ||
-              state === 'unpaid' ||
               state === 'incomplete'
             );
           },
@@ -75,61 +80,31 @@ const getPrismaClient = () => {
         },
         subscriptionChartEndDate: {
           needs: {
-            subscriptionEndsAt: true,
+            ...subscriptionStateNeeds,
             subscriptionPeriodEventsCountExceededAt: true,
           },
           compute(org) {
-            if (process.env.SELF_HOSTED === 'true') {
-              return null;
-            }
-
-            if (
-              org.subscriptionEndsAt &&
-              org.subscriptionPeriodEventsCountExceededAt
-            ) {
-              return org.subscriptionEndsAt >
-                org.subscriptionPeriodEventsCountExceededAt
-                ? org.subscriptionPeriodEventsCountExceededAt
-                : org.subscriptionEndsAt;
-            }
-
-            if (org.subscriptionEndsAt) {
-              return org.subscriptionEndsAt;
-            }
-
-            return new Date(Date.now() + 1000 * 60 * 60 * 24);
+            return getSubscriptionChartEndDate(org);
           },
         },
         isActive: {
           needs: subscriptionStateNeeds,
           compute(org) {
             const state = getSubscriptionState(org);
-            return state === 'active' || state === 'self_hosted';
+            return (
+              state === 'active' || state === 'self_hosted' || state === 'free'
+            );
           },
         },
-        isTrial: {
-          needs: subscriptionStateNeeds,
-          compute(org) {
-            return getSubscriptionState(org) === 'trialing';
-          },
-        },
-        isCanceled: {
-          needs: subscriptionStateNeeds,
-          compute(org) {
-            return getSubscriptionState(org) === 'canceled';
-          },
-        },
+        // Privytics has no trial, and a paid plan that ends drops the
+        // organization to the permanent free tier rather than to a canceled or
+        // expired dead-end. `isTrial`, `isCanceled` and `isExpired` therefore
+        // no longer exist; use `isActive` (true on free) and
+        // `isWillBeCanceled` (paid, ending at period end) instead.
         isWillBeCanceled: {
           needs: subscriptionStateNeeds,
           compute(org) {
             return getSubscriptionState(org) === 'canceling';
-          },
-        },
-        isExpired: {
-          needs: subscriptionStateNeeds,
-          compute(org) {
-            const state = getSubscriptionState(org);
-            return state === 'expired' || state === 'trial_expired';
           },
         },
         isExceeded: {
@@ -138,7 +113,7 @@ const getPrismaClient = () => {
             subscriptionPeriodEventsLimit: true,
           },
           compute(org) {
-            if (process.env.SELF_HOSTED === 'true') {
+            if (isSelfHostedEnv()) {
               return false;
             }
 
@@ -151,7 +126,7 @@ const getPrismaClient = () => {
         subscriptionCurrentPeriodStart: {
           needs: { subscriptionStartsAt: true, subscriptionInterval: true },
           compute(org) {
-            if (process.env.SELF_HOSTED === 'true') {
+            if (isSelfHostedEnv()) {
               return null;
             }
 
@@ -185,7 +160,7 @@ const getPrismaClient = () => {
             subscriptionInterval: true,
           },
           compute(org) {
-            if (process.env.SELF_HOSTED === 'true') {
+            if (isSelfHostedEnv()) {
               return null;
             }
 

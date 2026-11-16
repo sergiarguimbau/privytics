@@ -240,7 +240,7 @@ function isValidPayload<T>(
 }
 
 /** Where a notification email links when DASHBOARD_URL is not set. */
-const DEFAULT_DASHBOARD_URL = 'https://dashboard.openpanel.dev';
+const DEFAULT_DASHBOARD_URL = 'https://app.privytics.com';
 
 export async function deliverNotification(
   deps: ServiceDeps,

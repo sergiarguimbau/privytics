@@ -472,6 +472,12 @@ const rawSchema = z.object({
   GCS_API_ENDPOINT: optionalString,
   DISABLE_PING: definedIsTrueSchema,
   DISABLE_FAVICON_FETCH: trueOrOneSchema,
+  /**
+   * Privytics: the favicon proxy sends every referrer and breakdown hostname
+   * to DuckDuckGo, an unlisted third party, so it is off unless enabled here
+   * (and DuckDuckGo is listed as a sub-processor).
+   */
+  ENABLE_FAVICON_FETCH: trueOrOneSchema,
 
   KAFKA_CLIENT_ID: stringWithDefault(DEFAULT_KAFKA_CLIENT_ID),
   KAFKA_BROKERS: tokenList,
@@ -850,7 +856,8 @@ function deriveCoreConfig(raw: RawEnv): CoreConfig {
         : undefined,
     encryptionKey: raw.ENCRYPTION_KEY,
     pingDisabled: raw.DISABLE_PING,
-    faviconFetchDisabled: raw.DISABLE_FAVICON_FETCH,
+    faviconFetchDisabled:
+      raw.DISABLE_FAVICON_FETCH || !raw.ENABLE_FAVICON_FETCH,
     logging: {
       level: raw.LOG_LEVEL,
       silent: raw.LOG_SILENT,

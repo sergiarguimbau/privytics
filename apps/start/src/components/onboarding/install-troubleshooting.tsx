@@ -1,10 +1,11 @@
 import type { IServiceProjectWithClients } from '@openpanel/core';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { SparklesIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { curlSnippet, type SnippetContext } from './install-snippets';
 import { setLaunchedQuestion } from '@/components/chat/chat-launch';
+import { canUseAssistant } from '@/components/organization/plan-state';
 import CopyInput from '@/components/forms/copy-input';
 import { WithLabel } from '@/components/forms/input-with-label';
 import TagInput from '@/components/forms/tag-input';
@@ -23,16 +24,16 @@ import { handleError, useTRPC } from '@/integrations/trpc/react';
 import { cn } from '@/utils/cn';
 import { trackFunnel } from '@/utils/funnel-tracking';
 
-const TEST_EVENT_NAME = 'openpanel_test_event';
+const TEST_EVENT_NAME = 'privytics_test_event';
 
 // The assistant can fetch the site, read the snippet and compare it with the
 // project's client and allowed origins, so it finds most causes by itself.
 function diagnoseQuestion(project: IServiceProjectWithClients): string {
   if (project.domain) {
-    return `No events have arrived for ${project.domain} after installing OpenPanel. Diagnose the install.`;
+    return `No events have arrived for ${project.domain} after installing Privytics. Diagnose the install.`;
   }
   const kinds = project.types.length > 0 ? project.types.join(' and ') : 'app';
-  return `No events have arrived from my ${kinds} project after installing OpenPanel. Check what has reached the project and what could block events.`;
+  return `No events have arrived from my ${kinds} project after installing Privytics. Check what has reached the project and what could block events.`;
 }
 
 function normalizeOrigins(values: string[]) {
@@ -104,37 +105,49 @@ export function InstallTroubleshooting({
     })
   );
   const isWebsite = project.types.includes('website');
+  // The assistant is paid-only, so free orgs start with the manual checks.
+  const organizationQuery = useQuery(
+    trpc.organization.get.queryOptions({
+      organizationId: project.organizationId,
+    })
+  );
+  const showAssistant = Boolean(
+    organizationQuery.data &&
+      canUseAssistant(organizationQuery.data.subscriptionState)
+  );
 
   return (
     <ol className="col gap-6">
-      <li className="row flex-wrap items-center justify-between gap-3 rounded-xl bg-def-200 p-4 dark:bg-def-300">
-        <div className="col gap-0.5">
-          <div className="font-medium">Let the assistant find it</div>
-          <p className="text-muted-foreground text-sm">
-            It fetches your site, reads the snippet and checks it against this
-            project's keys and allowed domains.
-          </p>
-        </div>
-        <Link
-          className={cn(buttonVariants({ size: 'default' }))}
-          onClick={() => {
-            setLaunchedQuestion(project.id, diagnoseQuestion(project));
-            trackFunnel('onboarding_assistant_opened', {
+      {showAssistant && (
+        <li className="row flex-wrap items-center justify-between gap-3 rounded-xl bg-def-200 p-4 dark:bg-def-300">
+          <div className="col gap-0.5">
+            <div className="font-medium">Let the assistant find it</div>
+            <p className="text-muted-foreground text-sm">
+              It fetches your site, reads the snippet and checks it against this
+              project's keys and allowed domains.
+            </p>
+          </div>
+          <Link
+            className={cn(buttonVariants({ size: 'default' }))}
+            onClick={() => {
+              setLaunchedQuestion(project.id, diagnoseQuestion(project));
+              trackFunnel('onboarding_assistant_opened', {
+                projectId: project.id,
+                hasDomain: Boolean(project.domain),
+              });
+            }}
+            params={{
+              organizationId: project.organizationId,
               projectId: project.id,
-              hasDomain: Boolean(project.domain),
-            });
-          }}
-          params={{
-            organizationId: project.organizationId,
-            projectId: project.id,
-          }}
-          search={{ hint: { page: 'onboarding' } }}
-          to="/$organizationId/$projectId/chat"
-        >
-          <SparklesIcon className="mr-2 size-4" />
-          Diagnose with the assistant
-        </Link>
-      </li>
+            }}
+            search={{ hint: { page: 'onboarding' } }}
+            to="/$organizationId/$projectId/chat"
+          >
+            <SparklesIcon className="mr-2 size-4" />
+            Diagnose with the assistant
+          </Link>
+        </li>
+      )}
       <li className="col gap-2">
         <div className="font-medium">
           1. Did the page or app actually load with the snippet?
@@ -199,7 +212,7 @@ export function InstallTroubleshooting({
         Still stuck? Write to{' '}
         <a
           className="underline"
-          href="mailto:hello@openpanel.dev"
+          href="mailto:support@privytics.com"
           onClick={() =>
             trackFunnel('onboarding_support_link_clicked', {
               projectId: project.id,
@@ -207,22 +220,7 @@ export function InstallTroubleshooting({
             })
           }
         >
-          hello@openpanel.dev
-        </a>{' '}
-        or join the{' '}
-        <a
-          className="underline"
-          href="https://go.openpanel.dev/discord"
-          onClick={() =>
-            trackFunnel('onboarding_support_link_clicked', {
-              projectId: project.id,
-              target: 'discord',
-            })
-          }
-          rel="noreferrer"
-          target="_blank"
-        >
-          Discord
+          support@privytics.com
         </a>
         . We answer quickly.
       </li>

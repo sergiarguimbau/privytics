@@ -7,7 +7,9 @@ const clientId = import.meta.env.VITE_OP_CLIENT_ID;
 export const op = new OpenPanel({
   clientId,
   disabled: clientId === 'undefined' || !clientId,
-  // apiUrl: 'http://localhost:3333',
+  // Privytics: the SDK's default host is OpenPanel's; dashboard users' data
+  // must never leave our ingestion.
+  apiUrl: 'https://api.privytics.com',
   trackScreenViews: true,
   trackOutgoingLinks: true,
   trackAttributes: true,

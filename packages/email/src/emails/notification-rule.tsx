@@ -24,7 +24,7 @@ export function NotificationRule({
     <Layout unsubscribeUrl={unsubscribeUrl}>
       <Text>
         🔔 <strong>{title}</strong>
-        {projectName ? ` — ${projectName}` : ''}
+        {projectName ? ` · ${projectName}` : ''}
       </Text>
       <Text>{message}</Text>
       {dashboardUrl && (
@@ -46,5 +46,5 @@ NotificationRule.PreviewProps = {
   title: 'Conversion: Sign up completed',
   message: 'A user completed the sign-up funnel.',
   projectName: 'My website',
-  dashboardUrl: 'https://dashboard.openpanel.dev/org-id/project-id',
+  dashboardUrl: 'https://app.privytics.com/org-id/project-id',
 };

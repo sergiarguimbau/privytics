@@ -1,189 +1,85 @@
 {
   "slug": "saas",
-  "audience": "saas",
-  "seo": {
-    "title": "SaaS Analytics, Track Events, Funnels & Retention Without Enterprise Pricing",
-    "description": "OpenPanel gives SaaS teams the product analytics they need to reduce churn and grow, events, funnels, retention, cohorts, and user profiles. Open source, from $2.50/month.",
-    "noindex": false
-  },
-  "hero": {
-    "heading": "Product analytics for SaaS teams",
-    "subheading": "See why users churn, where trials drop off and which features drive retention. Events, funnels, retention, cohorts and user profiles, the core analytics stack for SaaS, without Mixpanel or Amplitude's enterprise pricing.",
-    "badges": [
-      "Funnel analysis",
-      "Retention tracking",
-      "User profiles",
-      "From $2.50/month"
-    ]
-  },
-  "problem": {
-    "title": "Why SaaS teams outgrow their analytics tools",
-    "intro": "The analytics tools most SaaS teams start with either can't answer the right questions or become unaffordable as you grow.",
-    "items": [
-      {
-        "title": "Mixpanel and Amplitude become unaffordable at scale",
-        "description": "Event-based pricing sounds cheap at 10K events, but SaaS products are event-heavy. At 1M events/month you're paying $300–800/month. At 10M, it's thousands. Your analytics bill grows faster than your revenue."
-      },
-      {
-        "title": "GA4 doesn't answer SaaS questions",
-        "description": "Google Analytics tells you pageviews. It can't tell you which users completed your onboarding flow, how feature adoption correlates with retention, or why your trial-to-paid conversion dropped last month."
-      },
-      {
-        "title": "Complex tools slow down your team",
-        "description": "Mixpanel's interface is powerful but has a steep learning curve. When it takes 30 minutes to build a simple funnel, your team stops using analytics to make decisions."
-      },
-      {
-        "title": "Cloud-only means full vendor dependence",
-        "description": "If your vendor raises prices, you move or you pay. No self-hosting option, and a pricing model that punishes growth."
-      }
-    ]
-  },
-  "features": {
-    "title": "The full product analytics stack for SaaS",
-    "intro": "Everything your team needs to understand users, reduce churn, and grow, without the enterprise pricing.",
-    "items": [
-      {
-        "title": "Event tracking",
-        "description": "Track any user action: feature used, button clicked, settings changed, plan upgraded. One call. SDKs for the web, Node, React, Next.js, React Native, iOS, Android, Python and more."
-      },
-      {
-        "title": "Funnel analysis",
-        "description": "Build conversion funnels for trial signup, onboarding, activation, and upgrade flows. See the exact step losing you the most conversions and fix it."
-      },
-      {
-        "title": "Retention analysis",
-        "description": "A cohort grid shows whether users who signed up in week 1 are still active in week 8, with a weighted average that ignores weeks that have not happened yet. Pick any start and return event."
-      },
-      {
-        "title": "User profiles",
-        "description": "Every event, session and replay for a specific user, plus the company they belong to through groups. Walk through a session to diagnose a support ticket or to see what power users do."
-      },
-      {
-        "title": "Cohort analysis",
-        "description": "Group users by what they did or who they are: did an event at least N times in the last 30 days, or has a property. Use a cohort as a filter or a breakdown in any report."
-      },
-      {
-        "title": "Realtime dashboard",
-        "description": "See sign-ups, trial activations and feature usage as they happen. Know within minutes when a deployment changes user behaviour."
-      },
-      {
-        "title": "Revenue tracking",
-        "description": "Send revenue events from your billing webhooks and see revenue per user, per source and per campaign. Correlate feature usage with revenue without a separate BI tool."
-      },
-      {
-        "title": "Multi-platform SDKs",
-        "description": "Web app, marketing site, iOS, Android and backend in one view. Events from every platform share the same user profiles."
-      }
-    ]
-  },
-  "benefits": {
-    "title": "Why SaaS teams choose OpenPanel",
-    "intro": "OpenPanel gives you the analytics depth of Mixpanel at a price that makes sense for growing SaaS products.",
-    "items": [
-      {
-        "title": "Predictable pricing as you scale",
-        "description": "Flat event tiers from $2.50 to $900 a month. No per-seat fees, no MTU limits. Know what you will pay as your user base grows."
-      },
-      {
-        "title": "Answer the questions SaaS teams actually ask",
-        "description": "Which onboarding step has the highest drop-off? Which features are used by retained users vs churned users? OpenPanel is built for these questions."
-      },
-      {
-        "title": "Self-host to eliminate per-event costs",
-        "description": "Large SaaS products generate millions of events. Self-hosting removes the event cost entirely; you pay only for your servers."
-      },
-      {
-        "title": "All features from day one",
-        "description": "Funnels, retention, cohorts, user profiles, session replay and dashboards are in every tier. No feature gating that forces upgrades."
-      },
-      {
-        "title": "Open source and auditable",
-        "description": "Your product data is sensitive. OpenPanel's open source codebase means you can audit exactly what's tracked and how it's stored."
-      }
-    ]
-  },
-  "faqs": {
-    "title": "Frequently asked questions",
-    "intro": "Common questions from SaaS founders and product teams evaluating OpenPanel.",
-    "items": [
-      {
-        "question": "How is OpenPanel different from Mixpanel for SaaS?",
-        "answer": "OpenPanel covers the same core analytics (events, funnels, retention, cohorts, user profiles) at a fraction of the cost, and adds session replay and AI observability. Mixpanel adds Metric Trees, feature flags and an experiment runner, which most SaaS teams do not use."
-      },
-      {
-        "question": "Can OpenPanel replace both GA4 and Mixpanel?",
-        "answer": "Yes. OpenPanel includes web analytics (pageviews, referrers, UTM campaigns) alongside product analytics. Most SaaS teams can replace both tools with one OpenPanel deployment."
-      },
-      {
-        "question": "How do I track trial-to-paid conversions?",
-        "answer": "Track a trial_started event on signup and a plan_upgraded event on conversion. Build a funnel or a conversion report between those two events and break it down by cohort, traffic source or any user property."
-      },
-      {
-        "question": "Does OpenPanel support multi-product or multi-tenant SaaS?",
-        "answer": "Yes. Use profileId for the user and groups for the organisation or workspace (upsertGroup and setGroup in the SDK). Every group has its own page with members and events, and group properties work as filters and breakdowns."
-      },
-      {
-        "question": "What happens to my data if I stop paying for OpenPanel cloud?",
-        "answer": "Export every event through the API, or set up an S3 or GCS export, at any time. Or migrate to self-hosting; there is no lock-in and no proprietary format."
-      },
-      {
-        "question": "Can I track backend events from my SaaS API?",
-        "answer": "Yes. Use the Node, Express, Python, Ruby, Rust or Java SDKs with a client secret, or the REST API. Track subscription webhooks, background jobs and server-side logic alongside client events."
-      },
-      {
-        "question": "Is OpenPanel GDPR compliant for SaaS?",
-        "answer": "Yes. Cookieless tracking by default, Cloud hosted on Hetzner in Germany with a DPA included, and the option to self-host for complete data sovereignty. No consent banner required for product analytics."
-      }
-    ]
-  },
-  "related_links": {
-    "guides": [
-      {
-        "title": "Track custom events",
-        "url": "/guides/track-custom-events"
-      },
-      {
-        "title": "Next.js analytics setup",
-        "url": "/guides/nextjs-analytics"
-      },
-      {
-        "title": "React analytics setup",
-        "url": "/guides/react-analytics"
-      }
-    ],
-    "articles": [
-      {
-        "title": "How to create a funnel",
-        "url": "/articles/how-to-create-a-funnel"
-      },
-      {
-        "title": "Self-hosted web analytics",
-        "url": "/articles/self-hosted-web-analytics"
-      }
-    ],
-    "comparisons": [
-      {
-        "title": "OpenPanel vs Mixpanel",
-        "url": "/compare/mixpanel-alternative"
-      },
-      {
-        "title": "OpenPanel vs PostHog",
-        "url": "/compare/posthog-alternative"
-      },
-      {
-        "title": "OpenPanel vs Amplitude",
-        "url": "/compare/amplitude-alternative"
-      }
-    ]
-  },
-  "ctas": {
-    "primary": {
-      "label": "Try OpenPanel Free",
-      "href": "https://dashboard.openpanel.dev/onboarding"
+  "kind": "usecase",
+  "name": "SaaS products",
+  "category": "Audience",
+  "title": "SaaS analytics: activation, retention and churn signals",
+  "description": "Product analytics for SaaS teams: funnels from signup to activation, retention cohorts by signup week, and a per-user event timeline. Cookieless and EU-hosted.",
+  "tagline": "Signup to activation to paid, with a timeline for every account. Hosted in the EU.",
+  "intro": "Privytics is product analytics for SaaS teams that need to see what happens after the signup form. You track anonymous events with the web SDK, call identify() with your own user id once someone logs in, and from then on funnels, retention cohorts and the per-user timeline all resolve to real accounts. Event data is stored in Germany, and the anonymous layer sets no cookies.",
+  "why": [
+    {
+      "title": "Your user id is the join key, not a device",
+      "body": "A SaaS user signs up on a laptop, gets the invite email on a phone and comes back three weeks later in a different browser. identify() with the id from your own users table stitches those sessions into one profile, so activation and retention are measured per account instead of per device. This is the identified layer: it goes beyond the cookieless default, it is opt-in, and you need your own lawful basis for it."
     },
-    "secondary": {
-      "label": "View Source on GitHub",
-      "href": "https://github.com/Openpanel-dev/openpanel"
+    {
+      "title": "Onboarding funnels over events you named yourself",
+      "body": "Activation is specific to your product: created a workspace, invited a teammate, connected a source, shipped the first thing that matters. You define those steps as tracked events and build the funnel over them, so the drop-off you see is between your real steps rather than between generic pageviews."
+    },
+    {
+      "title": "Retention by signup week, not by calendar month",
+      "body": "Cohorts group users by when they first appeared, so you can compare the week you changed onboarding against the week before it. That is the view that tells you whether an onboarding change actually held, which a monthly active user chart will hide for a quarter."
+    },
+    {
+      "title": "A per-user timeline you can open during a support thread",
+      "body": "When a customer writes in, the profile view shows that account's events in order: what they did, in what sequence, and where it stopped. Support and product read the same timeline instead of reconstructing it from application logs."
     }
-  }
+  ],
+  "steps": [
+    {
+      "title": "Install and initialise the web SDK",
+      "body": "Setting apiUrl is required. Without it the SDK sends events to OpenPanel's own hosted API instead of Privytics. If you would rather not add a dependency, the plain script tag from https://privytics.com/op1.js takes the same options.",
+      "lang": "ts",
+      "code": "// npm install @openpanel/web\nimport { OpenPanel } from '@openpanel/web';\n\nexport const op = new OpenPanel({\n  clientId: 'YOUR_CLIENT_ID',\n  apiUrl: 'https://api.privytics.com',\n  trackScreenViews: true,\n  trackOutgoingLinks: true,\n});"
+    },
+    {
+      "title": "Identify the user after login",
+      "body": "Pass the id from your own users table as profileId. Everything tracked from that point is attributed to the profile, which is what makes cohorts and the per-user timeline work. This is the identified layer, so decide your lawful basis for it before you ship. Call clear() on logout so a shared machine does not attribute the next session to the previous account.",
+      "lang": "ts",
+      "code": "// after your login or session-restore call resolves\nop.identify({\n  profileId: user.id,\n  email: user.email,\n  firstName: user.firstName,\n  lastName: user.lastName,\n  properties: {\n    plan: user.plan,\n    workspace_id: user.workspaceId,\n    signup_week: user.signupWeek,\n  },\n});\n\n// on logout\nop.clear();"
+    },
+    {
+      "title": "Track the activation path as named events",
+      "body": "Keep the list short and stable. Name events after what the user did, in past tense, and put the variable parts in properties rather than in the event name. Five to ten well-chosen events give you a usable funnel; fifty ad hoc ones give you a cleanup project.",
+      "lang": "ts",
+      "code": "// 1. account created\nop.track('signup_completed', { plan: 'free', source: 'pricing_page' });\n\n// 2. first real setup step\nop.track('workspace_created', { workspace_id: workspace.id });\n\n// 3. the collaboration moment\nop.track('teammate_invited', { invited_count: 3 });\n\n// 4. the moment the product does its job\nop.track('integration_connected', { provider: 'github' });\nop.track('first_report_created', { report_type: 'funnel' });\n\n// 5. the commercial steps\nop.track('trial_started', { plan: 'pro' });\nop.track('plan_upgraded', { from_plan: 'free', to_plan: 'pro' });"
+    }
+  ],
+  "faq": [
+    {
+      "q": "How do I measure activation in a SaaS product?",
+      "a": "Pick the two or three actions that predict a user sticking around, track each as its own event, then build a funnel over them in order. Because you call identify() after login, the funnel counts accounts rather than browsers, so a user who signs up on a laptop and finishes setup on a phone still counts once."
+    },
+    {
+      "q": "Can I see every event for one specific customer?",
+      "a": "Yes, once that user has been identified. The profile view lists that account's events in order, which is the view to open when a support thread says the product did nothing. Users who were never identified stay in the anonymous layer and have no per-account timeline."
+    },
+    {
+      "q": "Do I need consent to use identify() with my own user ids?",
+      "a": "We cannot answer that for you, and you remain the data controller. What we can describe is the split: the default tracking layer writes no cookies and counts visitors with a daily-rotating salted hash of IP, user agent and project id. The moment you call identify() with your own user id, you are processing identifiable data about a known person and you need your own lawful basis for it."
+    },
+    {
+      "q": "When is Privytics the wrong tool for a SaaS team?",
+      "a": "If your analytics already lives in your own warehouse and you want models built in dbt and explored in SQL, a warehouse-native stack fits better. If you need in-product messaging, surveys or feature-flag experimentation attached to the same events, those are separate product categories and we do not cover them. If your main question is paid acquisition attribution across ad platforms with server-side conversion APIs, use a marketing attribution tool. Privytics is for the product behaviour question: who activated, who came back, and where the drop-off is."
+    },
+    {
+      "q": "What does it cost to start?",
+      "a": "The free tier is 10,000 events per month, one project and 12 months retention, with no credit card. Paid plans start at EUR 10 for 100k events per month and add session replay and 5 years of event history. Session replay is opt-in per project and masks all text and inputs by default."
+    }
+  ],
+  "sourcesUsed": [],
+  "omitted": [
+    "No customer names, testimonials, event volumes or uptime figures appear anywhere on this page.",
+    "No comparison claiming Privytics is faster or more reliable than any other analytics tool.",
+    "No claim that using Privytics makes the reader GDPR compliant. The copy describes the design and states that the reader remains the data controller.",
+    "Churn prediction, churn scoring and any form of alerting on at-risk accounts were left out of the body copy despite the title mentioning churn signals. The product surfaces retention cohorts and per-user timelines, from which you read churn signals yourself. There is no churn model or alert feature to describe.",
+    "MRR, ARR, LTV and other revenue metrics were not presented as built-in. The SDK does have a revenue() helper and a __revenue property, but the amount must be an integer and no SaaS billing integration was verified, so no revenue snippet was shown.",
+    "Group and workspace analytics were omitted from the snippets. setGroup, setGroups and upsertGroup are real methods on the SDK and are the natural fit for B2B account-level rollups, but no Privytics-facing docs page for them was checked, so workspace_id is shown as a plain property instead.",
+    "increment() and decrement() on profile properties are real and would suit counters like seats_used, but they were cut to keep the taxonomy step to one idea.",
+    "Server-side tracking was omitted. A SaaS team would reasonably want billing webhooks tracked from the backend with a clientSecret, but this page is scoped to the browser SDK. Point readers at the Node or framework SDK pages for that.",
+    "scriptUrl is not shown. It is only relevant for framework components that inject a script tag for you, not for the npm web SDK. The plain script tag URL is mentioned in prose only.",
+    "Session replay setup code was not included. Replay is paid-plan and opt-in per project, and no complete Privytics-specific config example was verified.",
+    "Salt rotation is described as daily in the copy. The salt rotates at midnight UTC, but the audience page keeps the shorter phrasing and leaves the exact rotation time to the SDK and docs pages.",
+    "docsUrl was left off. No Privytics-hosted or upstream OpenPanel docs page covers this audience page as a topic."
+  ]
 }

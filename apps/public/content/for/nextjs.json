@@ -1,177 +1,101 @@
 {
   "slug": "nextjs",
-  "audience": "nextjs",
-  "seo": {
-    "title": "Next.js Analytics, OpenPanel SDK for App Router & Pages Router",
-    "description": "Add analytics to your Next.js app in minutes. OpenPanel's Next.js SDK tracks route changes in the App Router and Pages Router, sends server-side events with the Node SDK, and proxies through your own domain. Open source, cookieless, from $2.50/month.",
-    "noindex": false
-  },
-  "hero": {
-    "heading": "Analytics built for Next.js",
-    "subheading": "OpenPanel ships a Next.js SDK that fits how Next.js works: one component in the root layout, route changes tracked in the App Router and the Pages Router, server-side events from Route Handlers and Server Actions, and a proxy route so ad blockers do not eat your data. Events, funnels and profiles that work with SSR.",
-    "badges": [
-      "App Router and Pages Router",
-      "Server-side events",
-      "Auto route tracking",
-      "3 KB client script"
-    ]
-  },
-  "problem": {
-    "title": "Why standard analytics breaks in Next.js",
-    "intro": "Next.js is not a traditional website. Most analytics tools were built before App Router existed and show it.",
-    "items": [
-      {
-        "title": "GA4 breaks with App Router route changes",
-        "description": "Google Analytics was designed for traditional page loads. In Next.js App Router, client-side navigation doesn't trigger GA4's page view events unless you add custom workarounds. Your analytics misses a significant portion of page views."
-      },
-      {
-        "title": "Cookie consent is painful in Next.js",
-        "description": "Implementing a GDPR-compliant cookie consent flow in a Next.js app requires next/script, consent state management, and conditional script loading. It's a non-trivial engineering task just to run analytics."
-      },
-      {
-        "title": "No server-side tracking",
-        "description": "Most analytics SDKs are client-only. Server-side events, API route completions, background jobs, server actions, are invisible. You're missing half the picture."
-      },
-      {
-        "title": "Analytics libraries bloat your bundle",
-        "description": "Many analytics SDKs add 20 to 50 KB to your JavaScript bundle. In a performance-conscious Next.js app that shows up in Core Web Vitals."
-      }
-    ]
-  },
-  "features": {
-    "title": "Analytics that works the way Next.js works",
-    "intro": "OpenPanel's Next.js SDK is a thin layer over the web SDK and the Node SDK, so it fits modern Next.js patterns without a client-only afterthought.",
-    "items": [
-      {
-        "title": "Next.js SDK with App Router support",
-        "description": "Install @openpanel/nextjs, add <OpenPanelComponent clientId=\"…\" trackScreenViews /> to your root layout, and page views are tracked in the App Router and the Pages Router."
-      },
-      {
-        "title": "Automatic route change tracking",
-        "description": "Every router.push(), <Link> navigation and back or forward action becomes a screen_view. The SDK hooks pushState, replaceState and popstate; no useEffect or router listeners needed."
-      },
-      {
-        "title": "Server-side event tracking",
-        "description": "Create an OpenPanel instance with your client id and secret in a Route Handler, Server Action or background job and call track(), identify() or revenue(). Payments and jobs land in the same project as the client events."
-      },
-      {
-        "title": "Proxy through your own domain",
-        "description": "Export createRouteHandler from @openpanel/nextjs/server in an API route and the script and events go through your domain. Ad blockers that block third-party analytics hosts no longer drop your data."
-      },
-      {
-        "title": "Cookieless by default",
-        "description": "No cookies, no localStorage, so no consent manager, no conditional script loading and no next/script gymnastics. Install and track."
-      },
-      {
-        "title": "Identify users across sessions",
-        "description": "Call identify({ profileId, email, firstName }) after sign-in, or pass profileId to the component when you have it on the server. Works with NextAuth.js, Clerk or your own auth."
-      },
-      {
-        "title": "TypeScript SDK",
-        "description": "The SDK is written in TypeScript with full types for every method, hook and component."
-      },
-      {
-        "title": "3 KB client script",
-        "description": "The tracker is about 3 KB gzipped and loads async after your page. Session replay is a separate module that loads only when enabled."
-      }
-    ]
-  },
-  "benefits": {
-    "title": "Why Next.js developers choose OpenPanel",
-    "intro": "OpenPanel fits naturally into a modern Next.js codebase, not as an afterthought.",
-    "items": [
-      {
-        "title": "Works exactly how Next.js works",
-        "description": "One component for the client, the Node SDK for the server, a route handler for the proxy. Built on the same SDKs, not bolted onto a client-only library."
-      },
-      {
-        "title": "No consent infrastructure needed",
-        "description": "Cookieless tracking means no consent modal, no next/script loading gymnastics, no conditional initialization. Install once, works everywhere."
-      },
-      {
-        "title": "Track server and client events in the same dashboard",
-        "description": "Server Actions, Route Handlers and client interactions show up together, on the same profiles and in the same funnels."
-      },
-      {
-        "title": "Open source and self-hostable",
-        "description": "Run OpenPanel on your own infrastructure. Your Next.js app's analytics data never leaves your servers."
-      },
-      {
-        "title": "From $2.50/month",
-        "description": "No enterprise contract, no per-seat fees. Pay for events, get every feature. 30-day free trial on Cloud, free to self-host."
-      }
-    ]
-  },
-  "faqs": {
-    "title": "Frequently asked questions",
-    "intro": "Common questions from Next.js developers evaluating OpenPanel.",
-    "items": [
-      {
-        "question": "How do I install OpenPanel in a Next.js app?",
-        "answer": "Install @openpanel/nextjs, add <OpenPanelComponent clientId=\"…\" trackScreenViews /> to your root layout, and page views are tracked. For custom events, call useOpenPanel().track('event_name', { properties }) in client components. The step-by-step guide is at /guides/nextjs-analytics."
-      },
-      {
-        "question": "Does OpenPanel support Next.js App Router?",
-        "answer": "Yes. The component works in the App Router and the Pages Router. Client-side navigation is tracked by the web SDK's history hooks, so no custom setup is needed."
-      },
-      {
-        "question": "Can I track events in Server Components and API Routes?",
-        "answer": "Yes. Create an OpenPanel instance from @openpanel/nextjs with your client id and client secret and call track() from Route Handlers, Server Actions or any server code. Server Components cannot use hooks, so use that instance there too, or the IdentifyComponent to identify a user from server data."
-      },
-      {
-        "question": "Does OpenPanel work with NextAuth.js or Clerk?",
-        "answer": "Yes. After authentication, call identify({ profileId: session.user.id, email }) on the client, or render <IdentifyComponent profileId={…} /> from the server. Any auth solution that gives you a stable user id works."
-      },
-      {
-        "question": "Does OpenPanel add significant bundle size to my Next.js app?",
-        "answer": "No. The client script is about 3 KB gzipped and loads async; GA4 is many times larger. The impact on your bundle and Core Web Vitals is negligible."
-      },
-      {
-        "question": "Can I self-host OpenPanel for my Next.js app?",
-        "answer": "Yes. OpenPanel is open source and self-hosts with Docker Compose and one install script. Point the SDK's apiUrl at your own server. Self-hosted has no event limits and is free to run."
-      }
-    ]
-  },
-  "related_links": {
-    "guides": [
-      {
-        "title": "Next.js analytics setup",
-        "url": "/guides/nextjs-analytics"
-      },
-      {
-        "title": "React analytics setup",
-        "url": "/guides/react-analytics"
-      },
-      {
-        "title": "Track custom events",
-        "url": "/guides/track-custom-events"
-      }
-    ],
-    "articles": [
-      {
-        "title": "Self-hosted web analytics",
-        "url": "/articles/self-hosted-web-analytics"
-      }
-    ],
-    "comparisons": [
-      {
-        "title": "OpenPanel vs Google Analytics",
-        "url": "/compare/google-analytics-alternative"
-      },
-      {
-        "title": "OpenPanel vs PostHog",
-        "url": "/compare/posthog-alternative"
-      }
-    ]
-  },
-  "ctas": {
-    "primary": {
-      "label": "Try OpenPanel Free",
-      "href": "https://dashboard.openpanel.dev/onboarding"
+  "kind": "sdk",
+  "name": "Next.js",
+  "category": "Web",
+  "title": "Next.js analytics, cookieless and EU-hosted event tracking",
+  "description": "Add product analytics to your Next.js app with the @openpanel/nextjs SDK. Cookieless by default, event data stored in Germany, and setup takes a few lines.",
+  "tagline": "Cookieless analytics for Next.js, with event data stored in Germany.",
+  "intro": "Privytics tracks page views and custom events in Next.js apps through the @openpanel/nextjs SDK. You add one component to your root layout, point it at the Privytics ingestion API, and client-side route changes start registering as screen views. Setup is a few lines, and nothing is written to the visitor's device.",
+  "why": [
+    {
+      "title": "App Router navigations are counted",
+      "body": "A Next.js app server-renders once and then navigates on the client. With trackScreenViews enabled, the SDK listens for those soft navigations, so every route change registers instead of only the first page load."
     },
-    "secondary": {
-      "label": "View Source on GitHub",
-      "href": "https://github.com/Openpanel-dev/openpanel"
+    {
+      "title": "One package for client and server",
+      "body": "@openpanel/nextjs exports the OpenPanelComponent and useOpenPanel hook for the browser, plus the OpenPanel class for Route Handlers and Server Actions. Client and server events land in the same project."
+    },
+    {
+      "title": "Survives serverless function shutdown",
+      "body": "On Vercel a function can return before an in-flight request resolves, which silently drops events. Wrapping the call in waitUntil keeps the function alive until the event is sent."
+    },
+    {
+      "title": "No consent state to thread through layouts",
+      "body": "The default setup sets no cookies and stores nothing on the device, so there is no consent flag to pass down your layout tree or gate the component on. You remain the data controller and decide what your own lawful basis requires."
     }
-  }
+  ],
+  "steps": [
+    {
+      "title": "Install the SDK",
+      "lang": "bash",
+      "code": "pnpm install @openpanel/nextjs"
+    },
+    {
+      "title": "Add the component to your root layout",
+      "body": "apiUrl points the SDK at Privytics instead of its default host, and is the one prop you must set. scriptUrl is optional: the component injects the tracker script tag for you and falls back to OpenPanel's CDN when you leave it out, so set it if you want the script served from Privytics too. This prop only exists on the Next.js component.",
+      "lang": "tsx",
+      "code": "// app/layout.tsx\nimport { OpenPanelComponent } from '@openpanel/nextjs';\n\nexport default function RootLayout({ children }) {\n  return (\n    <>\n      <OpenPanelComponent\n        clientId=\"YOUR_CLIENT_ID\"\n        apiUrl=\"https://api.privytics.com\"\n        scriptUrl=\"https://privytics.com/op1.js\"\n        trackScreenViews={true}\n      />\n      {children}\n    </>\n  );\n}"
+    },
+    {
+      "title": "Track a custom event in a client component",
+      "body": "useOpenPanel is a hook, so the component needs the 'use client' directive.",
+      "lang": "tsx",
+      "code": "'use client';\n\nimport { useOpenPanel } from '@openpanel/nextjs';\n\nexport function UpgradeButton() {\n  const op = useOpenPanel();\n\n  return (\n    <button\n      type=\"button\"\n      onClick={() => op.track('upgrade_clicked', { plan: 'pro' })}\n    >\n      Upgrade\n    </button>\n  );\n}"
+    },
+    {
+      "title": "Track events from the server",
+      "body": "Server-side calls authenticate with a client secret, so keep this instance out of client components. On Vercel, waitUntil stops the function from closing before the event is sent.",
+      "lang": "ts",
+      "code": "// utils/op.ts\nimport { OpenPanel } from '@openpanel/nextjs';\n\nexport const op = new OpenPanel({\n  clientId: 'YOUR_CLIENT_ID',\n  clientSecret: 'YOUR_CLIENT_SECRET',\n  apiUrl: 'https://api.privytics.com',\n});\n\n// app/api/checkout/route.ts\nimport { waitUntil } from '@vercel/functions';\nimport { op } from '@/utils/op';\n\nexport function GET() {\n  waitUntil(op.track('checkout_started', { plan: 'pro' }));\n  return new Response('ok');\n}"
+    }
+  ],
+  "faq": [
+    {
+      "q": "Why is the package called @openpanel/nextjs and not @privytics/nextjs?",
+      "a": "Privytics runs on the open-source OpenPanel engine, and the SDKs are OpenPanel's packages published under the @openpanel npm scope. You install the real package and point apiUrl at https://api.privytics.com. Privytics is independent and is not affiliated with or endorsed by OpenPanel."
+    },
+    {
+      "q": "Does it work with the Next.js App Router?",
+      "a": "Yes. You add OpenPanelComponent to app/layout.tsx and it tracks client-side route changes when trackScreenViews is set. The package also supports the pages directory."
+    },
+    {
+      "q": "Do I need a cookie banner for this?",
+      "a": "The default setup writes no cookies and stores nothing on the visitor's device. The anonymous visitor id is a salted hash of IP, user agent and project id, and the salt rotates daily. You are still the data controller, so confirm what your own lawful basis and local rules require."
+    },
+    {
+      "q": "How do I track events from Server Actions or Route Handlers?",
+      "a": "Import the OpenPanel class from @openpanel/nextjs and create an instance with your client id, client secret and apiUrl. Call op.track from any server context, and wrap it in waitUntil on serverless platforms so the function does not exit first."
+    },
+    {
+      "q": "Can I link events to my own user ids?",
+      "a": "Yes, via identify with your own profileId, which gives cross-session user profiles. That is opt-in and goes beyond the cookieless default, so you need your own lawful basis for it."
+    }
+  ],
+  "docsUrl": "https://openpanel.dev/docs/sdks/nextjs",
+  "sourcesUsed": [
+    "https://openpanel.dev/docs/sdks/nextjs (refetched)",
+    "https://registry.npmjs.org/@openpanel/nextjs/latest",
+    "local repo (source of the docs page): /Users/sergi/Documents/dev/openpanel-main-2026/apps/public/content/docs/(tracking)/sdks/nextjs.mdx",
+    "local repo: /Users/sergi/Documents/dev/openpanel-main-2026/packages/sdks/nextjs/index.tsx",
+    "local repo: /Users/sergi/Documents/dev/openpanel-main-2026/packages/sdks/nextjs/package.json",
+    "local repo: /Users/sergi/Documents/dev/openpanel-main-2026/packages/sdks/nextjs/server.ts",
+    "local repo: /Users/sergi/Documents/dev/openpanel-main-2026/packages/sdks/web/src/index.ts",
+    "local repo: /Users/sergi/Documents/dev/openpanel-main-2026/packages/sdks/sdk/src/index.ts",
+    "local repo: /Users/sergi/Documents/dev/openpanel-main-2026/apps/api/src/utils/ids.ts",
+    "local repo: /Users/sergi/Documents/dev/openpanel-main-2026/apps/worker/src/boot-cron.ts",
+    "local repo: /Users/sergi/Documents/dev/openpanel-main-2026/apps/worker/src/jobs/cron.salt.ts"
+  ],
+  "omitted": [
+    "The upstream docs' 'Server side' section shows `import { OpenpanelSdk }` and `opServer.event(...)`. Neither exists in the SDK source: the exported class is `OpenPanel` (re-exported from @openpanel/web via `export * from '@openpanel/web'`) and the method is `track()`. I used the verified names, which also match the docs' own 'Server components' snippet. The upstream page contains a stale example.",
+    "CONFIRMED: the `scriptUrl` value https://privytics.com/op1.js is served by the Privytics marketing site itself (the file lives at apps/public/public/op1.js). It is optional: the component defaults to OpenPanel's CDN and works without it. It is set here only so the tracker is served from a domain we control.",
+    "createRouteHandler (the ad-blocker proxy from @openpanel/nextjs/server) was left out. It accepts an apiUrl option, but its script-proxy target is a hardcoded constant pointing at openpanel.dev/op1.js with no override, so a fully Privytics-hosted proxy setup could not be shown accurately.",
+    "The `filter` option (a stringified function) and `globalProperties` are documented upstream and exist in the component's props, but were omitted to keep the setup path short. They were not verified against a Privytics deployment.",
+    "Session replay config was omitted from the snippets. `sessionReplay` is a real option on the web SDK type, but the Next.js doc page shows no Next.js-specific example, and replay is paid-plan and opt-in per project.",
+    "The earlier claim that client and server events 'share the same client id' was cut. Server calls use the same client id plus a client secret; nothing in the source ties client and server events to a shared visitor/device id, so the stronger identity claim was unverifiable.",
+    "The earlier claim that the Pages Router is set up 'using _app instead' was cut. The SDK does support the pages directory (there is an explicit pages-dir ESM fix in index.tsx), but no upstream doc specifies _app placement.",
+    "Salt rotation was described as 'rotates daily' rather than 'midnight UTC'. The cron pattern is `0 0 * * *`, which is midnight in the worker's configured timezone, not necessarily UTC.",
+    "Exact SDK version pinning was not included. npm reports latest as 1.5.1 (MIT), while the local checkout is a fork build labelled 1.5.1-local.",
+    "No Privytics-hosted docs page for this SDK was confirmed to exist, so docsUrl points at the upstream OpenPanel page."
+  ]
 }

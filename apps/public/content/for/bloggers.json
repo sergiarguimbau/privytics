@@ -1,0 +1,91 @@
+{
+  "slug": "bloggers",
+  "kind": "usecase",
+  "name": "Bloggers",
+  "category": "Audience",
+  "title": "Analytics for bloggers and publishers, no cookie banner",
+  "description": "Privytics is cookieless, EU-hosted analytics for bloggers, publishers, and newsletters. See your top posts, referrers, and live readers without adding a cookie banner. Free for 10,000 events a month, no card.",
+  "tagline": "Cookieless traffic analytics for content sites. No consent banner for anonymous readers, free to start, data stored in the EU.",
+  "intro": "You want to know which posts land, where readers come from, and how many people are on the site right now. You do not want a cookie banner in front of your writing, and you do not want your readers' behavior sold to an ad network. That is exactly why a lot of bloggers leave Google Analytics.\n\nPrivytics is managed, cookieless analytics built on the open-source OpenPanel engine and hosted in Germany. Add one script and you get top posts, referrers, and live readers automatically, with no consent popup for anonymous visitors. If you monetize with a membership, a course, or a paid newsletter, the same tool tracks signups and subscribes so you can see which posts actually convert. Start free with 10,000 events a month and no card.",
+  "why": [
+    {
+      "title": "No cookie banner for your analytics",
+      "body": "Privytics is cookieless. Visitors are counted with an anonymous id that resets every day, so nothing is stored on the reader's device. The anonymous case needs no consent banner, which means no popup standing between a reader and your writing."
+    },
+    {
+      "title": "Free to run a content site",
+      "body": "The free tier covers 10,000 events a month with no card and 12 months of history. For most personal blogs and small publications that is every pageview you have, at no cost."
+    },
+    {
+      "title": "Your reader data is stored in the EU and is yours",
+      "body": "Data is stored in Germany, not shipped off to an ad network. You can pull everything back out through the REST API whenever you want, and Privytics runs on the open-source OpenPanel engine, so there is no black box."
+    },
+    {
+      "title": "See which posts and sources actually convert",
+      "body": "If you monetize with memberships, courses, or a paid newsletter, go past pageviews. Track a subscribe or signup event, then use funnels and per-reader Profiles to see which posts and referrers turn readers into paying subscribers."
+    }
+  ],
+  "steps": [
+    {
+      "title": "Add the Privytics script to your site",
+      "body": "Drop this snippet into your site's head. It loads asynchronously and starts tracking pageviews right away. On WordPress or Ghost you do not need to touch code: follow the Privytics WordPress guide or Ghost guide, which paste the same script through your theme or code-injection settings. Replace YOUR_CLIENT_ID with the id from your project.",
+      "lang": "html",
+      "code": "<script>\n  window.op=window.op||function(){var n=[];return new Proxy(function(){arguments.length&&n.push([].slice.call(arguments))},{get:function(t,r){return\"q\"===r?n:function(){n.push([r].concat([].slice.call(arguments)))}} ,has:function(t,r){return\"q\"===r}}) }();\n  window.op('init', {\n    apiUrl: 'https://api.privytics.com',\n    clientId: 'YOUR_CLIENT_ID',\n    trackScreenViews: true,\n    trackOutgoingLinks: true,\n  });\n</script>\n<script src=\"https://privytics.com/op1.js\" defer async></script>"
+    },
+    {
+      "title": "See your top posts and referrers automatically",
+      "body": "That is the only setup for traffic. Pageviews flow into your dashboard and populate the standard reports with no extra tags. Top pages are your top posts, top referrers show where readers come from, and Realtime shows who is reading right now.",
+      "lang": "text",
+      "code": "Dashboard > Overview  ->  Top pages     = your best posts\nDashboard > Overview  ->  Top referrers = where readers come from\nDashboard > Realtime  ->  live readers on the site right now"
+    },
+    {
+      "title": "Optional: track a subscribe or signup",
+      "body": "If you sell memberships, courses, or a paid newsletter, fire a custom event when a reader signs up or subscribes. Once the event is flowing, build a funnel from post view to subscribe, and open a reader's Profile to see the full path they took. Skip this step if you only care about traffic.",
+      "lang": "js",
+      "code": "// Fire when a reader subscribes to your newsletter\nwindow.op('track', 'subscribe', {\n  source: 'newsletter_footer',\n});\n\n// Or when a reader creates a membership account\nwindow.op('track', 'signup', {\n  plan: 'free',\n});"
+    },
+    {
+      "title": "Optional: keep every blog in one account",
+      "body": "Run more than one site? On a paid plan, one Privytics account holds many projects; the free plan covers one. Add each blog or publication as its own project and switch between them from the project picker with a single login. Each project keeps its own script and reports.",
+      "lang": "text",
+      "code": "Account\n  |- Project: personal-blog     (op1.js, own reports)\n  |- Project: company-magazine   (op1.js, own reports)\n  |- Project: side-newsletter    (op1.js, own reports)"
+    }
+  ],
+  "faq": [
+    {
+      "q": "Do I need a cookie banner?",
+      "a": "No, not for standard traffic analytics. Privytics sets no cookies and stores nothing on the reader's device. Visitors are counted with a salted hash that rotates daily, so the anonymous case falls outside consent-banner rules. If you later start identifying readers and attaching personal data through Profiles, treat that like any other personal data you hold and check your own obligations."
+    },
+    {
+      "q": "Is it really free for a blog?",
+      "a": "Yes. The free tier is 10,000 events a month with no card and 12 months of retention. One pageview is one event, so 10,000 events is roughly 10,000 pageviews a month, which covers most personal blogs and small publications. If you grow past that, paid plans add session replay and 5-year event history."
+    },
+    {
+      "q": "Where is my data stored?",
+      "a": "In the EU. Your analytics event data is stored in Germany, and your reader data is never sold or handed to an ad network. You own it and can export everything through the REST API at any time. The engine is the open-source OpenPanel, so nothing about the tracking is hidden."
+    },
+    {
+      "q": "Can I track subscribes and signups?",
+      "a": "Yes. Call window.op('track', 'subscribe') or any event name when a reader converts. From there you can build funnels from post view to subscribe and open per-reader Profiles to see the exact path. This is optional and only matters if you monetize."
+    },
+    {
+      "q": "Is it lighter than Google Analytics?",
+      "a": "For a content site, usually yes: one small cookieless script and no consent-management layer to load or maintain. Being honest, if all you want is a number for pageviews and nothing else, a plain pageview counter is simpler and Privytics gives you product analytics you may not need. Privytics is the better fit when you want top posts, referrers, live readers, and the option to track conversions later, all without adding a cookie banner."
+    }
+  ],
+  "sourcesUsed": [
+    "Privytics product brief: cookieless daily-rotating salted-hash visitor id, no cookies or device storage, no consent banner for anonymous tracking; free tier of 10,000 events/month with no card and 12-month retention; paid tier adds session replay and 5-year retention; event data stored in Germany (EU); product analytics feature set (custom events, funnels, retention, cohorts, dashboards, per-user Profiles, REST API); multi-tenancy where one account holds many projects; independent European service, operated from Spain.",
+    "OpenPanel open-source engine as the feature basis for pageviews, top pages, top referrers, real-time/live readers, and the window.op tracking API, confirmed against existing audience pages /Users/sergi/Documents/dev/openpanel-main-2026/apps/public/content/for/saas.json and /Users/sergi/Documents/dev/openpanel-main-2026/apps/public/content/for/startups.json.",
+    "Platform reference: OpenPanel/Privytics WordPress and Ghost install guides, which inject the same browser script through theme or code-injection settings (named in step 1, steps not inlined)."
+  ],
+  "omitted": [
+    "Ad-blocker loss: some readers run content blockers that block analytics scripts, so counts run slightly below reality. This affects Google Analytics too, often more so, but I did not caveat it in the main copy.",
+    "Session replay and 5-year retention are paid-only. The free tier is web and product analytics with 12-month retention; I kept the free-tier framing simple and did not detail paid pricing.",
+    "The install snippet ships with a placeholder clientId. In practice you create a project first, then paste the real id; I noted this in step 1 but did not walk through project creation.",
+    "Named the WordPress and Ghost guides without inlining their steps. They wrap the exact same browser script, so behavior is identical, but I did not verify those guide pages exist at launch.",
+    "Simplified 'top posts' to mean top pages grouped by URL path. Clean, stable post URLs give the cleanest report; sites with messy or duplicated paths will see them split.",
+    "No white-label: Privytics does not serve the dashboard under your own blog's domain or branding. I left this out of the main copy since it is a niche need, but it rules Privytics out for anyone needing a client-facing rebranded report.",
+    "'Lighter than GA' is framed on the single cookieless script and the absence of a consent-management layer, not a measured byte-for-byte comparison.",
+    "Operating entity: independent European service, operated from Spain, with analytics event data stored in Germany. The copy speaks to shipped features rather than track record; Privytics is a newer service than Google Analytics, which has been operating for years."
+  ]
+}

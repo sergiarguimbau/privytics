@@ -17,7 +17,7 @@ export function TrackingDataStopped({
   firstName,
   projectNames,
   lastEventDate,
-  dashboardUrl = 'https://dashboard.openpanel.dev',
+  dashboardUrl = 'https://app.privytics.com',
   unsubscribeUrl,
 }: Props & { unsubscribeUrl?: string }) {
   const single = projectNames.length === 1;
@@ -31,7 +31,7 @@ export function TrackingDataStopped({
           : `Your projects (${names}) stopped`}{' '}
         sending events
         {lastEventDate
-          ? ` — the last one arrived on ${lastEventDate}`
+          ? ` (the last one arrived on ${lastEventDate})`
           : ' about a week ago'}
         .
       </Text>
@@ -50,17 +50,17 @@ export function TrackingDataStopped({
         The{' '}
         <Link
           href={withUtm(
-            'https://openpanel.dev/docs/get-started/install-openpanel',
+            'https://privytics.com/docs',
             'tracking-data-stopped'
           )}
         >
           install guide
         </Link>{' '}
-        covers a re-install for every framework. If it stopped on purpose — no
+        covers a re-install for every framework. If it stopped on purpose, no
         action needed, and sorry for the noise. Otherwise, reply and I'll help
         you debug it.
       </Text>
-      <Text>Carl</Text>
+      <Text>The Privytics team</Text>
     </Layout>
   );
 }
@@ -69,5 +69,5 @@ TrackingDataStopped.PreviewProps = {
   firstName: 'Alex',
   projectNames: ['My website'],
   lastEventDate: 'August 14',
-  dashboardUrl: 'https://dashboard.openpanel.dev/org-id',
+  dashboardUrl: 'https://app.privytics.com/org-id',
 };

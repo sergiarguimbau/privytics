@@ -15,7 +15,10 @@ import {
 import type { Options as NuqsOptions } from 'nuqs';
 import { ModalHeader } from './Modal/Container';
 import { OriginFilter } from '@/components/overview/filters/origin-filter';
-import { OverviewAICommand } from '@/components/overview/overview-ai-command';
+import {
+  OverviewAICommand,
+  useOverviewAICommandEnabled,
+} from '@/components/overview/overview-ai-command';
 import { PureCohortFilterItem } from '@/components/report/sidebar/filters/CohortFilterItem';
 import { PureFilterItem } from '@/components/report/sidebar/filters/FilterItem';
 import { PropertiesCombobox } from '@/components/report/sidebar/PropertiesCombobox';
@@ -62,6 +65,7 @@ export default function OverviewFilters({
     useEventQueryFilters(nuqsOptions);
   const [event, setEvent] = useEventQueryNamesFilter(nuqsOptions);
   const eventNames = useEventNames({ projectId, anyEvents: false });
+  const aiCommandEnabled = useOverviewAICommandEnabled();
   const selectedFilters = filters.filter((filter) => filter.value[0] !== null);
 
   const isCohortFilter = (filter: IChartEventFilter) =>
@@ -87,9 +91,13 @@ export default function OverviewFilters({
     <SheetContent className="[&>button.absolute]:hidden">
       <ModalHeader title="Filters" />
       <div className="flex flex-col gap-4">
-        <Heading icon={SparklesIcon} title="Ask AI" />
-        <OverviewAICommand className="w-full" />
-        <Seperator />
+        {aiCommandEnabled && (
+          <>
+            <Heading icon={SparklesIcon} title="Ask AI" />
+            <OverviewAICommand className="w-full" />
+            <Seperator />
+          </>
+        )}
         <Heading icon={GlobeIcon} title="Origins" />
         <OriginFilter />
         <Seperator />

@@ -24,7 +24,7 @@ export type Props = z.infer<typeof zWindDownStoppingSoon>;
 export default WindDownStoppingSoon;
 export function WindDownStoppingSoon({
   firstName,
-  billingUrl = 'https://dashboard.openpanel.dev',
+  billingUrl = 'https://app.privytics.com',
   blockDate,
   recommendedPlan,
   hasData = true,
@@ -71,7 +71,7 @@ export function WindDownStoppingSoon({
           Need longer, or want to talk through which plan fits? Reply and I'll
           sort it out.
         </Text>
-        <Text>Carl</Text>
+        <Text>The Privytics team</Text>
       </Layout>
     );
   }
@@ -91,7 +91,7 @@ export function WindDownStoppingSoon({
           exactly as it is.
         </Text>
         {cta}
-        <Text>Carl</Text>
+        <Text>The Privytics team</Text>
       </Layout>
     );
   }
@@ -108,14 +108,14 @@ export function WindDownStoppingSoon({
         can ignore this — I'll send one more note before anything goes.
       </Text>
       {cta}
-      <Text>Carl</Text>
+      <Text>The Privytics team</Text>
     </Layout>
   );
 }
 
 WindDownStoppingSoon.PreviewProps = {
   firstName: 'Alex',
-  billingUrl: 'https://dashboard.openpanel.dev/org-id/billing',
+  billingUrl: 'https://app.privytics.com/org-id/billing',
   blockDate: 'March 14',
   recommendedPlan: '100K events per month for $20.00',
   hasData: true,

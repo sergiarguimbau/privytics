@@ -5,6 +5,10 @@ dist-ssr
 *.local
 count.txt
 .env
+# Cloudflare Workers local env override, wrangler's convention for local
+# secrets. Never commit it.
+.dev.vars
+.dev.vars.*
 .nitro
 .tanstack
 .output

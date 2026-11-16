@@ -1,0 +1,99 @@
+{
+  "slug": "node",
+  "kind": "sdk",
+  "name": "Node.js",
+  "title": "Node.js analytics, cookieless and EU-hosted",
+  "description": "Track server-side events in Node.js with the @openpanel/sdk package. Cookieless by default, event data stored in Germany, and setup takes about ten lines.",
+  "tagline": "Server-side event tracking for Node.js. Cookieless by default, hosted in Germany.",
+  "category": "Backend",
+  "intro": "Privytics gives your Node.js backend product analytics: funnels, retention, cohorts and user profiles built from events you send from your own server. You install the @openpanel/sdk package, create one client with your project credentials, and call op.track wherever something meaningful happens. Setup is a few lines and there is no browser involved, so nothing is written to a visitor's device.",
+  "why": [
+    {
+      "title": "Server-side events are never blocked",
+      "body": "Events sent from your Node.js process go straight from your server to https://api.privytics.com. There is no browser request for a content blocker or a tracking-protection list to intercept, so signup, payment and job-completion events arrive whatever the client is running."
+    },
+    {
+      "title": "Track what the browser cannot see",
+      "body": "Webhook deliveries, background jobs, cron runs, queue consumers and Stripe callbacks all happen with no page open. A backend SDK is the only way to get those into a funnel alongside your frontend events."
+    },
+    {
+      "title": "profileId you already own",
+      "body": "On the server you have the authenticated user id in hand. Passing it to op.identify links sessions into one profile without cookies and without any browser fingerprinting, using an identifier you already hold a lawful basis for."
+    },
+    {
+      "title": "Data is stored in the EU",
+      "body": "Your Node.js service posts to an EU endpoint and the event data is stored in Germany. If your backend already runs in the EU, the event data it sends is stored in the EU too."
+    }
+  ],
+  "steps": [
+    {
+      "title": "Install the SDK",
+      "body": "Privytics runs on the open-source OpenPanel engine, so you use the official @openpanel npm package.",
+      "lang": "bash",
+      "code": "npm install @openpanel/sdk"
+    },
+    {
+      "title": "Create the client",
+      "body": "apiUrl is an optional option in the SDK and defaults to OpenPanel's own host, so you must set it explicitly to send your events to Privytics. clientSecret is what makes server-side tracking work, so keep it in an environment variable and never ship it to a browser.",
+      "lang": "ts",
+      "code": "// op.ts\nimport { OpenPanel } from '@openpanel/sdk';\n\nconst clientSecret = process.env.PRIVYTICS_CLIENT_SECRET;\n\nif (!clientSecret) {\n  throw new Error('PRIVYTICS_CLIENT_SECRET is not set');\n}\n\nexport const op = new OpenPanel({\n  apiUrl: 'https://api.privytics.com',\n  clientId: 'YOUR_CLIENT_ID',\n  clientSecret,\n});"
+    },
+    {
+      "title": "Track an event",
+      "body": "Import the client anywhere in your app and record what happened.",
+      "lang": "ts",
+      "code": "import { op } from './op';\n\nop.track('my_event', { foo: 'bar' });"
+    },
+    {
+      "title": "Identify the user",
+      "body": "On the server you already know who is making the request. Pass the id you already store for that user as profileId.",
+      "lang": "ts",
+      "code": "import { op } from './op';\n\nop.identify({\n  profileId: '123', // Required\n  firstName: 'Joe',\n  lastName: 'Doe',\n  email: 'joe@doe.com',\n  properties: {\n    tier: 'premium',\n  },\n});"
+    },
+    {
+      "title": "Add properties to every event",
+      "body": "Useful for stamping release and environment onto everything a service sends, so you can split staging from production.",
+      "lang": "ts",
+      "code": "import { op } from './op';\n\nop.setGlobalProperties({\n  app_version: '1.0.2',\n  environment: 'production',\n});"
+    }
+  ],
+  "faq": [
+    {
+      "q": "Does the Node.js SDK use cookies?",
+      "a": "No. It runs on your server, so there is no browser and no device to write to. Events are attributed using the profileId you pass yourself, or sent anonymously if you pass none."
+    },
+    {
+      "q": "Why do I need a client secret for Node.js?",
+      "a": "The OpenPanel docs list clientSecret as required for server-side event transmission, since a backend cannot be verified the way a browser origin can. Load it from an environment variable and keep it out of any client bundle."
+    },
+    {
+      "q": "Can I use the same SDK in the browser?",
+      "a": "@openpanel/sdk is the universal JavaScript package, and this is the page OpenPanel documents for Node and generic JavaScript use. Do not reuse the server client in browser code, because that would expose your client secret."
+    },
+    {
+      "q": "Where is my event data stored?",
+      "a": "In EU data centres in Germany. Your Node.js process sends events to https://api.privytics.com and the data is stored in the EU."
+    },
+    {
+      "q": "Does the free tier work for backend tracking?",
+      "a": "Yes. 10,000 events per month, one project and 12 months retention, with no credit card. Server-side events count the same as any other event."
+    }
+  ],
+  "docsUrl": "https://openpanel.dev/docs/sdks/javascript",
+  "sourcesUsed": [
+    "https://openpanel.dev/docs/sdks/javascript",
+    "https://openpanel.dev/docs/sdks",
+    "https://registry.npmjs.org/@openpanel/sdk"
+  ],
+  "omitted": [
+    "The plain script tag step and any op1.js reference were left out. That tracker script is browser-only and the Node / Generic docs page shows no script tag or CDN example, so including one here would be wrong.",
+    "scriptUrl was left out. It does not appear among the constructor options on the Node / Generic docs page (which lists clientId, clientSecret, apiUrl, filter and disabled), and it only applies to framework SDKs that inject a script tag for you.",
+    "An earlier draft described Privytics' cookieless visitor id as a daily-rotating salted hash of IP, user agent and project id. I could not confirm that mechanism from any fetched source, and it does not describe server-side events in any case, since those carry the profileId you supply. Removed rather than guessed.",
+    "An earlier draft called apiUrl a required option. The docs list it as optional with a default pointing at OpenPanel's own host. The step now says you must set it for Privytics, without misstating the upstream contract.",
+    "No CommonJS require() example is shown. The docs page only uses ESM import syntax, so I did not invent a require form.",
+    "Batching, flushing and shutdown behaviour is not documented on that page. I could not confirm whether there is a flush or shutdown call to await before a serverless function exits, so no such step is included.",
+    "The exact place to find clientId and clientSecret in the Privytics dashboard is not covered by the upstream docs, so no navigation instructions are given.",
+    "The docs also list op.increment, op.decrement, op.upsertGroup, op.setGroup, op.setGroups and op.clear, plus the filter and disabled constructor options. These are all real but were left off the setup steps to keep the page to first-run essentials.",
+    "The npmjs.com package page returned HTTP 403. The package name and current version 1.3.1 were confirmed against the npm registry API instead. Note that the registry description for @openpanel/sdk describes it as a Web SDK used via a script tag, which conflicts with the docs page framing it as the Node / generic package. I did not assert either framing beyond what the docs page itself shows."
+  ]
+}

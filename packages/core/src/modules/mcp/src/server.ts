@@ -2,7 +2,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { registerAllTools } from './tools/index';
 import type { McpToolDeps } from './tools/shared';
 
-const SERVER_NAME = 'OpenPanel';
+const SERVER_NAME = 'Privytics';
 const SERVER_VERSION = '1.0.0';
 
 /**

@@ -646,7 +646,8 @@ export const faviconFetchFlag: Check = (install) => {
     title: `DISABLE_FAVICON_FETCH is "${value}"`,
     detail:
       'Only `true` or `1` stops the api asking icon services for favicons.',
-    manual: 'Set it to `true`, or remove it to keep favicons.',
+    manual:
+      'Set it to `true`, or remove it and set ENABLE_FAVICON_FETCH=true to keep favicons.',
   };
 };
 

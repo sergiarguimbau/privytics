@@ -21,7 +21,7 @@ export type Props = z.infer<typeof zWindDownFinalWarning>;
 export default WindDownFinalWarning;
 export function WindDownFinalWarning({
   firstName,
-  billingUrl = 'https://dashboard.openpanel.dev',
+  billingUrl = 'https://app.privytics.com',
   deleteDate,
   hasData = true,
   stillTracking = false,
@@ -37,7 +37,7 @@ export function WindDownFinalWarning({
       </Text>
       <Text>
         <strong>
-          On {deleteDate} your OpenPanel organization and everything in it will
+          On {deleteDate} your Privytics organization and everything in it will
           be permanently deleted.
         </strong>{' '}
         That means your projects, your settings, and
@@ -59,14 +59,14 @@ export function WindDownFinalWarning({
           Keep my data
         </Button>
       </Text>
-      <Text>Carl</Text>
+      <Text>The Privytics team</Text>
     </Layout>
   );
 }
 
 WindDownFinalWarning.PreviewProps = {
   firstName: 'Alex',
-  billingUrl: 'https://dashboard.openpanel.dev/org-id/billing',
+  billingUrl: 'https://app.privytics.com/org-id/billing',
   deleteDate: 'April 10',
   hasData: true,
   stillTracking: true,

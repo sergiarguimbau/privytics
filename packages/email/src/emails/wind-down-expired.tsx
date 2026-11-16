@@ -31,7 +31,7 @@ export type Props = z.infer<typeof zWindDownExpired>;
 export default WindDownExpired;
 export function WindDownExpired({
   firstName,
-  billingUrl = 'https://dashboard.openpanel.dev',
+  billingUrl = 'https://app.privytics.com',
   blockDate,
   trialEndedDate,
   recommendedPlan,
@@ -54,7 +54,7 @@ export function WindDownExpired({
     <Text>
       A lot has shipped since your trial — including our{' '}
       <Link
-        href={withUtm('https://openpanel.dev/docs/mcp', 'wind-down-expired')}
+        href={withUtm('https://privytics.com/docs', 'wind-down-expired')}
       >
         MCP server
       </Link>
@@ -76,7 +76,7 @@ export function WindDownExpired({
       <Layout unsubscribeUrl={unsubscribeUrl}>
         {greeting}
         <Text>
-          Your OpenPanel tracking is still running
+          Your Privytics tracking is still running
           {trialEndedDate
             ? `, even though your trial ended ${trialEndedDate}`
             : ''}
@@ -105,7 +105,7 @@ export function WindDownExpired({
           If the price is the blocker, or you only need part of what you're
           sending, reply and we'll work something out.
         </Text>
-        <Text>Carl</Text>
+        <Text>The Privytics team</Text>
       </Layout>
     );
   }
@@ -137,7 +137,7 @@ export function WindDownExpired({
         </Text>
         {cta}
         {mcpPitch}
-        <Text>Carl</Text>
+        <Text>The Privytics team</Text>
       </Layout>
     );
   }
@@ -147,7 +147,7 @@ export function WindDownExpired({
     <Layout unsubscribeUrl={unsubscribeUrl}>
       {greeting}
       <Text>
-        Your OpenPanel trial has ended. No events ever reached us, so there's
+        Your Privytics trial has ended. No events ever reached us, so there's
         nothing stored and nothing for you to lose.
       </Text>
       <Text>
@@ -159,14 +159,14 @@ export function WindDownExpired({
         If something got in the way during setup, I'd genuinely like to know.
         One line is plenty.
       </Text>
-      <Text>Carl</Text>
+      <Text>The Privytics team</Text>
     </Layout>
   );
 }
 
 WindDownExpired.PreviewProps = {
   firstName: 'Alex',
-  billingUrl: 'https://dashboard.openpanel.dev/org-id/billing',
+  billingUrl: 'https://app.privytics.com/org-id/billing',
   blockDate: 'March 14',
   trialEndedDate: 'November 3, 2025',
   recommendedPlan: '100K events per month for $20.00',

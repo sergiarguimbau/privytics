@@ -10,9 +10,6 @@ import OnboardingDashboards, {
 import OnboardingFeatureRequest, {
   zOnboardingFeatureRequest,
 } from './onboarding-feature-request';
-import OnboardingTrialEnding, {
-  zOnboardingTrialEnding,
-} from './onboarding-trial-ending';
 import OnboardingWelcome, { zOnboardingWelcome } from './onboarding-welcome';
 import OnboardingWhatToTrack, {
   zOnboardingWhatToTrack,
@@ -49,7 +46,7 @@ export const templates = {
     schema: zEmailResetPassword,
   },
   'onboarding-welcome': {
-    subject: () => 'Welcome to OpenPanel',
+    subject: () => 'Welcome to Privytics',
     Component: OnboardingWelcome,
     schema: zOnboardingWelcome,
     category: 'onboarding' as const,
@@ -72,17 +69,6 @@ export const templates = {
     subject: () => 'Anything missing?',
     Component: OnboardingFeatureRequest,
     schema: zOnboardingFeatureRequest,
-    category: 'onboarding' as const,
-  },
-  'onboarding-trial-ending': {
-    subject: (data: z.infer<typeof zOnboardingTrialEnding>) =>
-      data.trialEndDate
-        ? `Your OpenPanel trial ends ${data.trialEndDate}`
-        : 'Your OpenPanel trial ends soon',
-    Component: OnboardingTrialEnding,
-    schema: zOnboardingTrialEnding,
-    // Without a category these bypassed unsubscribe entirely (no suppression
-    // check, no List-Unsubscribe header).
     category: 'onboarding' as const,
   },
   'wind-down-expired': {
@@ -135,7 +121,7 @@ export const templates = {
     category: 'product_alerts' as const,
   },
   'usage-limit-exceeded': {
-    subject: () => 'Event limit reached — charts paused, data still collected',
+    subject: () => 'Monthly event limit reached',
     Component: UsageLimitExceeded,
     schema: zUsageLimitExceeded,
     category: 'product_alerts' as const,

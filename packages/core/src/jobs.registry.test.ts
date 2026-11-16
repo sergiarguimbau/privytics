@@ -6,6 +6,7 @@ import { queues } from './jobs.registry';
 const GOLDEN_SCHEDULER_IDS = [
   'cohortRefresh',
   'dataHealth',
+  'dataRetention',
   'delete',
   'flushAiEvents',
   'flushBots',
@@ -24,8 +25,8 @@ const GOLDEN_SCHEDULER_IDS = [
   'salt',
   'sessionReaper',
   'sessionVacuum',
+  'usageRefresh',
   'weeklyDigest',
-  'windDown',
 ].sort();
 
 // Retry and retention values pinned as they are: five queues never retry and
@@ -118,6 +119,7 @@ test('the cron queue carries the insight module cron fragment', () => {
     [
       'cohortRefresh',
       'dataHealth',
+      'dataRetention',
       'delete',
       'flushAiEvents',
       'flushBots',
@@ -136,8 +138,8 @@ test('the cron queue carries the insight module cron fragment', () => {
       'salt',
       'sessionReaper',
       'sessionVacuum',
+      'usageRefresh',
       'weeklyDigest',
-      'windDown',
     ].sort()
   );
   for (const name of ['insightsDaily', 'insightCleanup', 'weeklyDigest']) {
@@ -234,7 +236,7 @@ test('the notification queue carries the notification module job', () => {
   });
 });
 
-test('the cron queue derives the golden 22 scheduler ids', () => {
+test('the cron queue derives the golden 23 scheduler ids', () => {
   const derivedIds = [
     ...schedulersFromRegistry(queues.cron).map((s) => s.id),
     PING_SCHEDULE.id,

@@ -1,0 +1,86 @@
+{
+  "slug": "side-projects",
+  "kind": "usecase",
+  "name": "Side projects",
+  "title": "Free analytics for side projects, no cookie banner",
+  "description": "Free product analytics for side projects: 10,000 events a month, one project, no credit card, no cookie banner to add. Funnels, retention and dashboards included.",
+  "tagline": "10,000 events a month on the free tier. No card, no trial clock, no cookies.",
+  "category": "Audience",
+  "intro": "Privytics has a free tier built for projects that may never make money: 10,000 events a month, one project, 12 months of retention, no credit card and no trial that runs out. It is cookieless by default, so the analytics adds no consent banner to a weekend site. Two script tags in your `<head>` and page views start arriving.",
+  "docsUrl": "https://openpanel.dev/docs/sdks/script",
+  "why": [
+    {
+      "title": "The free tier is a tier, not a trial",
+      "body": "10,000 events a month, one project, 12 months of retention, no credit card at signup and no expiry date. A small site that gets a few hundred visitors a month will sit inside that allowance indefinitely. The limits are published here rather than discovered later: one project only, no session replay on free, community support with no SLA."
+    },
+    {
+      "title": "Nothing to bolt a consent banner onto",
+      "body": "The default tracker sets no cookies and writes no identifier to the device. Visitors are counted with an anonymous id that resets every day. On a side project that is the difference between shipping on Sunday evening and spending it wiring up a consent management platform. You are still the data controller and the call is yours, but there is no stored identifier to ask about."
+    },
+    {
+      "title": "Product analytics, not just a hit counter",
+      "body": "Funnels, retention, cohorts, dashboards, user profiles, custom events and the REST API are all in the free tier. When the side project starts looking like a real product you can ask which step of your signup people drop at, without migrating off the tool you started on. Session replay and the 5 year retention window are the parts that need a paid plan."
+    },
+    {
+      "title": "Your data stays in one place you can point at",
+      "body": "Event data is stored in Germany, and Privytics is a managed build of the open-source OpenPanel engine (AGPL-3.0). If you later want to run it yourself, the engine is public. Privytics is an independent product and is not affiliated with, endorsed by or sponsored by OpenPanel."
+    }
+  ],
+  "steps": [
+    {
+      "title": "Paste two script tags into your <head>",
+      "body": "Works on anything you can edit a template for: a static site, an Astro or Hugo build, a CMS theme, a single index.html. Replace YOUR_CLIENT_ID with the client id from your Privytics project. Setting apiUrl is required. Leave it out and the SDK sends events to OpenPanel's hosted API instead of yours.",
+      "lang": "html",
+      "code": "<script>\n  window.op=window.op||function(){var n=[];return new Proxy(function(){arguments.length&&n.push([].slice.call(arguments))},{get:function(t,r){return\"q\"===r?n:function(){n.push([r].concat([].slice.call(arguments)))}} ,has:function(t,r){return\"q\"===r}}) }();\n  window.op('init', {\n    apiUrl: 'https://api.privytics.com',\n    clientId: 'YOUR_CLIENT_ID',\n    trackScreenViews: true,\n    trackOutgoingLinks: true,\n    trackAttributes: true,\n  });\n</script>\n<script src=\"https://privytics.com/op1.js\" defer async></script>"
+    },
+    {
+      "title": "Pick five events and name them properly",
+      "body": "With 10,000 events a month you have room for roughly 10,000 page views, or fewer once custom events are added, so spend them on the handful of moments that tell you whether the project works. Use lowercase snake_case verbs in the past tense, keep the name stable, and push the variable part into properties instead of into the event name. Two events called checkout_started_pro and checkout_started_free cannot be counted together later. One checkout_started with a plan property can.",
+      "lang": "js",
+      "code": "// The moment someone gets past the landing page\nwindow.op('track', 'signup_started', {\n  source: 'hero_cta',\n});\n\nwindow.op('track', 'signup_completed', {\n  plan: 'free',\n});\n\n// The moment they actually use the thing\nwindow.op('track', 'project_created', {\n  template: 'blank',\n});\n\nwindow.op('track', 'export_downloaded', {\n  format: 'csv',\n});\n\n// The moment money is involved\nwindow.op('track', 'checkout_started', {\n  plan: 'pro',\n  interval: 'monthly',\n});"
+    },
+    {
+      "title": "Track clicks from markup, without writing JavaScript",
+      "body": "You enabled trackAttributes in step one, so any button or anchor carrying data-track fires that event on click. Every other data-* attribute on the element is sent as an event property. Useful when the side project is a landing page and a form, and you do not want a JS file just for analytics.",
+      "lang": "html",
+      "code": "<button\n  data-track=\"checkout_started\"\n  data-plan=\"pro\"\n  data-interval=\"monthly\"\n>\n  Upgrade\n</button>"
+    }
+  ],
+  "faq": [
+    {
+      "q": "What is the best free analytics for a side project?",
+      "a": "Depends what you need to see. If you only want to know how many people visited, a page view counter is enough and several are free. Privytics is worth it when you want to follow a person through a flow: 10,000 events a month, one project, 12 months retention, funnels and retention included, no credit card. Be honest about which of those two you actually need."
+    },
+    {
+      "q": "How far does 10,000 events a month go?",
+      "a": "Every page view is one event, and every track() call is one event. A site tracking page views only fits about 10,000 views a month. Add five custom events per active user and the budget goes faster. The allowance also covers one project, not two: a second site means a paid plan, because pointing both at the same client id would mix their events into one dataset. If your project is busier than the free tier, the first paid step is EUR 10 for 100,000 events a month."
+    },
+    {
+      "q": "Do I need a cookie banner on a small personal site?",
+      "a": "We cannot answer that for you, and anyone who says they can is selling something. You remain the data controller. What we can describe is the design: the default tracker sets no cookie and stores no identifier on the device, and the visitor id is a salted hash of IP, user agent and project id that rotates daily. If you turn on identify() with your own user ids, you are processing identifiable data and need your own lawful basis for it."
+    },
+    {
+      "q": "When is Privytics the wrong choice for my side project?",
+      "a": "A few cases. If you want session replay to watch how people fumble your UI, that is paid plans only and opt-in per project, so the free tier will not give it to you. If you need a support contract or an SLA, free is community support only. If you want analytics stitched to server-side revenue data across several products, one project will not hold it. And if you genuinely only ever want a visitor count in your repo's README, this is more tool than the job needs."
+    }
+  ],
+  "sourcesUsed": [
+    "Internal Privytics positioning and pricing facts (free tier: 10,000 events/month, 1 project, 12 months retention, no card, no SLA, community support; paid from EUR 10 / 100k events)",
+    "Existing Privytics page: /Users/sergi/Documents/dev/privytics/apps/public/content/for/script-tag.json (snippet reused verbatim, already verified against the SDK source)",
+    "Local repo: /Users/sergi/Documents/dev/openpanel-main-2026/packages/sdks/web/src/index.ts (trackScreenViews, trackOutgoingLinks, trackAttributes, data-track handling)",
+    "Local repo: /Users/sergi/Documents/dev/openpanel-main-2026/packages/sdks/sdk/src/index.ts (track, identify, clear signatures)"
+  ],
+  "omitted": [
+    "The tracker host in step one is https://privytics.com/op1.js, which is correct. The file is served as a static asset by the marketing site itself, so the URL resolves as soon as privytics.com is deployed. https://api.privytics.com/op1.js returns 404 and is not the alternative.",
+    "Overage behaviour on the free tier. It is not established whether exceeding 10,000 events in a month drops events, pauses ingestion or prompts an upgrade, so the FAQ states the paid step up instead of guessing what happens at the limit.",
+    "Any claim that Privytics is faster, lighter or more reliable than Plausible, Umami, Fathom, PostHog or Google Analytics. Those are performance comparisons this page does not make, so no comparison table was written. The 'wrong choice' FAQ names real limits instead.",
+    "Named competitor recommendations in the honesty FAQ. The cases where another tool fits better are described by capability rather than by brand, since no competitive evaluation has been run.",
+    "Anything implying existing users, testimonials or an install count. No social proof is claimed anywhere on this page.",
+    "Any statement that using Privytics makes the reader GDPR compliant. The copy describes the design and leaves the controller obligation with the reader.",
+    "The @openpanel/web npm install path. It is real and documented on the JavaScript page, but a side project audience is better served by the zero-build script tag, and adding both paths doubles the page for no gain.",
+    "identify() as a setup step. It is opt-in, needs the reader's own lawful basis, and is not part of a minimal side project install. It is referenced only in the cookie banner FAQ as the case that changes the analysis.",
+    "Session replay configuration. Paid plans only and opt-in per project, so no snippet was written for a page about the free tier.",
+    "A 'no code changes to upgrade later' claim. Plan mechanics are not documented well enough to assert it.",
+    "Salt rotation timing. Described as daily in the copy for brevity. The salt rotates at midnight UTC."
+  ]
+}

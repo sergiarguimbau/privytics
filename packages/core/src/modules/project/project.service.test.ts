@@ -34,6 +34,8 @@ const clientsByProject = new Map<string, FakeClient[]>();
 const reportCountByProject = new Map<string, number>();
 const memberCountByOrg = new Map<string, number>();
 const organizationDeleteAtById = new Map<string, Date | null>();
+// Privytics free plan: one project. Organizations default to a paid state.
+const subscriptionStateByOrg = new Map<string, string>();
 
 function makeProject(
   overrides: Partial<FakeProject> & { id: string; organizationId: string }
@@ -92,6 +94,23 @@ const project = {
       };
     }
   ),
+  count: mock(
+    async ({
+      where,
+    }: {
+      where: {
+        organizationId: string;
+        deleteAt?: null;
+        createdAt?: { gt: Date };
+      };
+    }) =>
+      [...projectStore.values()].filter(
+        (p) =>
+          p.organizationId === where.organizationId &&
+          !('deleteAt' in where && p.deleteAt) &&
+          (!where.createdAt || p.createdAt > where.createdAt.gt)
+      ).length
+  ),
   create: mock(
     async ({
       data,
@@ -122,6 +141,28 @@ const project = {
       return next;
     }
   ),
+  updateMany: mock(
+    async ({
+      where: { id, deleteAt },
+      data,
+    }: {
+      where: { id: string; deleteAt?: null };
+      data: Partial<FakeProject>;
+    }) => {
+      const existing = projectStore.get(id);
+      if (!existing || (deleteAt === null && existing.deleteAt)) {
+        return { count: 0 };
+      }
+      projectStore.set(id, { ...existing, ...data });
+      return { count: 1 };
+    }
+  ),
+};
+
+const organization = {
+  findUniqueOrThrow: mock(async ({ where: { id } }: { where: { id: string } }) => ({
+    subscriptionState: subscriptionStateByOrg.get(id) ?? 'active',
+  })),
 };
 
 const report = {
@@ -185,11 +226,18 @@ afterAll(() => {
 let subject: ReturnType<
   typeof import('./project.service').createProjectService
 >;
+let isFreeProjectLimitReached: typeof import('./project.service').isFreeProjectLimitReached;
+let FREE_PLAN_PROJECT_LIMIT_MESSAGE: string;
+const deps = () =>
+  ({ db: { project, organization } }) as unknown as Parameters<
+    typeof isFreeProjectLimitReached
+  >[0];
 beforeAll(async () => {
-  const { createProjectService } = await import('./project.service');
+  const { createProjectService, ...rest } = await import('./project.service');
+  ({ isFreeProjectLimitReached, FREE_PLAN_PROJECT_LIMIT_MESSAGE } = rest);
   subject = createProjectService(
     {
-      db: { project, report, member },
+      db: { project, report, member, organization },
     } as unknown as import('../../services').ServiceDeps,
     testServices()
   );
@@ -201,6 +249,7 @@ beforeEach(() => {
   reportCountByProject.clear();
   memberCountByOrg.clear();
   organizationDeleteAtById.clear();
+  subscriptionStateByOrg.clear();
 });
 
 test('listProjectsForOrganization excludes soft-deleted projects and other orgs', async () => {
@@ -352,3 +401,159 @@ test('getProjectActivationStatus is false when there is no report and no extra t
   expect(status.hasReport).toBe(false);
   expect(status.hasTeammate).toBe(false);
 });
+
+test('free plan: the first project is allowed', async () => {
+  subscriptionStateByOrg.set('org_1', 'free');
+
+  const result = await subject.createProjectForOrganization('org_1', {
+    name: 'First',
+    cors: [],
+    crossDomain: false,
+    types: [],
+  });
+  expect(result.project.organizationId).toBe('org_1');
+});
+
+test('free plan: a second project is refused, ignoring ones pending deletion', async () => {
+  subscriptionStateByOrg.set('org_1', 'free');
+  projectStore.set(
+    'gone',
+    makeProject({ id: 'gone', organizationId: 'org_1', deleteAt: new Date() })
+  );
+  expect(await isFreeProjectLimitReached(deps(), 'org_1')).toBe(false);
+
+  projectStore.set('p1', makeProject({ id: 'p1', organizationId: 'org_1' }));
+  await expect(
+    subject.createProjectForOrganization('org_1', {
+      name: 'Second',
+      cors: [],
+      crossDomain: false,
+      types: [],
+    })
+  ).rejects.toThrow(FREE_PLAN_PROJECT_LIMIT_MESSAGE);
+});
+
+const HOUR_MS = 60 * 60 * 1000;
+
+test('free plan: delete, create a new project, restore the old one is refused', async () => {
+  subscriptionStateByOrg.set('org_1', 'free');
+  // p2 was scheduled an hour ago (deleteAt is the 24h grace out); p1 came after.
+  const scheduledAt = Date.now() - HOUR_MS;
+  projectStore.set(
+    'p2',
+    makeProject({
+      id: 'p2',
+      organizationId: 'org_1',
+      createdAt: new Date(scheduledAt - 30 * 24 * HOUR_MS),
+      deleteAt: new Date(scheduledAt + 24 * HOUR_MS),
+    })
+  );
+  projectStore.set(
+    'p1',
+    makeProject({
+      id: 'p1',
+      organizationId: 'org_1',
+      createdAt: new Date(scheduledAt + HOUR_MS / 2),
+    })
+  );
+
+  await expect(subject.cancelProjectDeletion('p2')).rejects.toThrow(
+    FREE_PLAN_PROJECT_LIMIT_MESSAGE
+  );
+  expect(projectStore.get('p2')?.deleteAt).not.toBeNull();
+});
+
+test('free plan: restoring the old project while the new one is pending deletion is refused', async () => {
+  // Delete p1, create p2, delete p2, then restore p1 and p2 in turn.
+  subscriptionStateByOrg.set('org_1', 'free');
+  const scheduledAt = Date.now() - 2 * HOUR_MS;
+  projectStore.set(
+    'p1',
+    makeProject({
+      id: 'p1',
+      organizationId: 'org_1',
+      createdAt: new Date(scheduledAt - 30 * 24 * HOUR_MS),
+      deleteAt: new Date(scheduledAt + 24 * HOUR_MS),
+    })
+  );
+  projectStore.set(
+    'p2',
+    makeProject({
+      id: 'p2',
+      organizationId: 'org_1',
+      createdAt: new Date(scheduledAt + HOUR_MS / 2),
+      deleteAt: new Date(Date.now() + 24 * HOUR_MS),
+    })
+  );
+
+  await expect(subject.cancelProjectDeletion('p1')).rejects.toThrow(
+    FREE_PLAN_PROJECT_LIMIT_MESSAGE
+  );
+  await subject.cancelProjectDeletion('p2');
+  const live = [...projectStore.values()].filter((p) => !p.deleteAt);
+  expect(live.map((p) => p.id)).toEqual(['p2']);
+});
+
+test('free plan: deleting a pending project again keeps its deadline, so the restore stays refused', async () => {
+  subscriptionStateByOrg.set('org_1', 'free');
+  const scheduledAt = Date.now() - 2 * HOUR_MS;
+  const deadline = new Date(scheduledAt + 24 * HOUR_MS);
+  projectStore.set(
+    'p1',
+    makeProject({
+      id: 'p1',
+      organizationId: 'org_1',
+      createdAt: new Date(scheduledAt - 30 * 24 * HOUR_MS),
+      deleteAt: deadline,
+    })
+  );
+  projectStore.set(
+    'p2',
+    makeProject({
+      id: 'p2',
+      organizationId: 'org_1',
+      createdAt: new Date(scheduledAt + HOUR_MS / 2),
+    })
+  );
+
+  await subject.scheduleProjectDeletion('p1');
+  expect(await subject.deleteProjectForOrganization('p1', 'org_1')).toBe(true);
+  expect(projectStore.get('p1')?.deleteAt).toEqual(deadline);
+  await expect(subject.cancelProjectDeletion('p1')).rejects.toThrow(
+    FREE_PLAN_PROJECT_LIMIT_MESSAGE
+  );
+});
+
+test('free plan: a downgraded org restores a project it already had', async () => {
+  subscriptionStateByOrg.set('org_1', 'free');
+  const scheduledAt = Date.now() - HOUR_MS;
+  const longAgo = new Date(scheduledAt - 90 * 24 * HOUR_MS);
+  for (const id of ['a', 'b']) {
+    projectStore.set(
+      id,
+      makeProject({ id, organizationId: 'org_1', createdAt: longAgo })
+    );
+  }
+  projectStore.set(
+    'c',
+    makeProject({
+      id: 'c',
+      organizationId: 'org_1',
+      createdAt: longAgo,
+      deleteAt: new Date(scheduledAt + 24 * HOUR_MS),
+    })
+  );
+
+  await subject.cancelProjectDeletion('c');
+  expect(projectStore.get('c')?.deleteAt).toBeNull();
+});
+
+for (const state of ['active', 'canceling', 'past_due', 'self_hosted']) {
+  test(`free plan limit never applies to a ${state} organization`, async () => {
+    subscriptionStateByOrg.set('org_1', state);
+    projectStore.set('p1', makeProject({ id: 'p1', organizationId: 'org_1' }));
+    projectStore.set('p2', makeProject({ id: 'p2', organizationId: 'org_1' }));
+
+    expect(await isFreeProjectLimitReached(deps(), 'org_1')).toBe(false);
+  });
+}

@@ -1,7 +1,7 @@
 import type { IServiceOrganization } from '@openpanel/core';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useLocation, useParams } from '@tanstack/react-router';
-import { BookOpenIcon, HeartIcon, MenuIcon, XIcon } from 'lucide-react';
+import { BookOpenIcon, MenuIcon, XIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { FeedbackButton } from './feedback-button';
 import { LogoSquare } from './logo';
@@ -13,7 +13,6 @@ import SidebarOrganizationMenu, {
 } from './sidebar-organization-menu';
 import SidebarProjectMenu from './sidebar-project-menu';
 import { Button } from './ui/button';
-import { useAppContext } from '@/hooks/use-app-context';
 import { useTRPC } from '@/integrations/trpc/react';
 import { cn } from '@/utils/cn';
 
@@ -80,7 +79,6 @@ export function SidebarContainer({
 }: SidebarContainerProps) {
   const [active, setActive] = useState(false);
   const location = useLocation();
-  const { isSelfHosted } = useAppContext();
 
   useEffect(() => {
     setActive(false);
@@ -129,29 +127,11 @@ export function SidebarContainer({
         </div>
         <div className="relative shrink-0">
           <div className="pointer-events-none absolute right-0 bottom-full left-0 h-8 bg-gradient-to-t from-card to-card/0" />
-          {isSelfHosted && (
-            <a
-              className={cn(
-                'mx-3 mb-2 flex h-9 items-center gap-2.5 rounded-lg bg-def-200 px-2.5 font-medium text-sm',
-                'text-foreground/75 transition-colors hover:bg-def-300 hover:text-foreground'
-              )}
-              href="https://openpanel.dev/supporter"
-            >
-              <HeartIcon
-                className="size-4 shrink-0 text-rose-500"
-                strokeWidth={1.75}
-              />
-              <span className="flex-1 truncate">Support us</span>
-              <span className="text-muted-foreground text-xs">
-                Pay what you want
-              </span>
-            </a>
-          )}
           <div className="flex items-center gap-0.5 border-border border-t px-3 py-2">
             <FeedbackButton className={cn(SIDEBAR_FOOTER_BUTTON, 'px-2')} />
             <a
               className={cn(SIDEBAR_FOOTER_BUTTON, 'px-2')}
-              href="https://openpanel.dev/docs"
+              href="https://privytics.com/docs"
               rel="noopener noreferrer"
               target="_blank"
             >

@@ -1,58 +1,38 @@
 name: Docker Build and Push
 
-on:
-  workflow_dispatch:
-  push:
-    # Branches only: the self-hosting tag has its own workflow, and the v* tags
-    # this workflow pushes must not start another build.
-    branches:
-      - "**"
-    paths-ignore:
-      # README and docs
-      - "**/README*"
-      - "**/readme*"
-      - "**/*.md"
-      - "**/docs/**"
-      - "**/CHANGELOG*"
-      - "**/LICENSE*"
-      # SDKs published to npm and not in the images. @openpanel/ai and
-      # @openpanel/sdk are left out of this list: core imports them, so the
-      # api image ships them and a change there needs the build and smoke.
-      - "packages/sdks/_info/**"
-      - "packages/sdks/astro/**"
-      - "packages/sdks/express/**"
-      - "packages/sdks/nextjs/**"
-      - "packages/sdks/nuxt/**"
-      - "packages/sdks/react-native/**"
-      - "packages/sdks/web/**"
-      # Public app (docs/marketing, not part of Docker deploy)
-      - "apps/public/**"
-      # Dev / tooling
-      - "**/.vscode/**"
-      - "**/.cursor/**"
-      - "**/.env.example"
-      - "**/.env.*.example"
-      - "**/.gitignore"
-      - "**/.eslintignore"
-      - "**/.prettierignore"
+# Builds one image: api. The worker is the same image run with ROLE=worker
+# (apps/api/Dockerfile), so ops deploys it twice, once per role.
+#
+# Upstream also builds a `dashboard` image, because self-hosted OpenPanel serves
+# the dashboard from a container. We serve it from Cloudflare Workers, so that
+# image would never be pulled by anything. Its build is deliberately left out,
+# and so is upstream's main-only release machinery (debounce, version tags,
+# GitHub releases, self-hosting CLI binaries), which is OpenPanel's own release
+# process, not ours. If a future upstream sync reintroduces any of it, drop it
+# again. Should self-hosting the dashboard ever become a goal,
+# apps/start/Dockerfile is still there.
 
-# Read-only by default; the jobs that push images or tags widen it themselves.
+on:
+  # Images are built on demand (at deploy time, or after an upstream sync),
+  # not on every commit, so day-to-day development does not trigger noisy,
+  # slow CI runs. Trigger from the Actions tab or the gh CLI when you deploy.
+  workflow_dispatch:
+
+# Read-only by default; the jobs that push images widen it themselves.
 permissions:
   contents: read
 
-# A newer push to a branch supersedes the run still in flight. Main is left
-# out: its runs must overlap so `settle` below can debounce them.
+# A newer run on the same branch supersedes the one still in flight.
 concurrency:
-  group: ${{ github.ref == 'refs/heads/main' && github.run_id || format('build-{0}', github.ref) }}
+  group: build-${{ github.ref }}
   cancel-in-progress: true
 
 env:
-  repo_owner: "openpanel-dev"
+  # Build and push branded images into this fork's own GHCR namespace.
+  repo_owner: ${{ github.repository_owner }}
 
 # Shape of a run: `check`, `test` and `build` start together; `smoke` boots
-# what `build` produced. On a branch that is the whole run. On main, `merge`
-# tags the images once everything is green and `version` turns the run into a
-# release build.
+# what `build` produced, and `merge` tags the image once everything is green.
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -65,8 +45,10 @@ jobs:
       - uses: ./.github/actions/setup
 
       # Formatting and import order only. `bun run lint` (the full rule set) still reports errors that need a human
-      # decision, so it is not a gate yet; this half is green and catches drift today.
+      # decision, so it is not a gate yet. Privytics: not a gate either until the repo-wide format pass, which is
+      # deferred until the big merges land; make it blocking again after that pass.
       - name: Check formatting
+        continue-on-error: true
         run: bun run lint:format
 
       - name: Run TypeScript checks
@@ -180,43 +162,22 @@ jobs:
         working-directory: ${{ matrix.directory }}
         run: ${{ matrix.command }}
 
-  # Debounce for main: a push within a minute of the previous one cancels its
-  # wait, so a burst of merges is built and versioned once, as its newest
-  # commit. `[release now]` in the pushed commit, or a manual run, skips the wait.
-  settle:
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    concurrency:
-      group: main-settle
-      cancel-in-progress: true
-    steps:
-      - name: Wait for a quiet minute
-        if: github.event_name == 'push' && !contains(github.event.head_commit.message, '[release now]')
-        run: sleep 60
 
   # Pushes by digest only; nothing gets a pullable tag until `merge`. That is
   # why it can start alongside `check` and `test` instead of after them.
-  # Branches build amd64 alone, which is all `smoke` boots; main builds both
-  # platforms because its images are the ones that ship.
   build:
     permissions:
       packages: write
       contents: read
-    needs: [settle]
-    # settle is skipped on other branches; a cancelled settle (debounced) stops the run.
-    if: ${{ !cancelled() && contains(fromJSON('["success","skipped"]'), needs.settle.result) }}
     strategy:
       fail-fast: false
       matrix:
-        app: [api, dashboard]
-        platform: ${{ github.ref == 'refs/heads/main' && fromJSON('["linux/amd64", "linux/arm64"]') || fromJSON('["linux/amd64"]') }}
+        app: [api]
+        platform: [linux/amd64, linux/arm64]
         include:
           - app: api
             dockerfile: apps/api/Dockerfile
             build_args: DATABASE_URL=postgresql://dummy:dummy@localhost:5432/dummy
-          - app: dashboard
-            dockerfile: apps/start/Dockerfile
     runs-on: ${{ matrix.platform == 'linux/arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
     timeout-minutes: 30
     steps:
@@ -273,15 +234,14 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-  # Boots the images this run produced and asserts they actually serve traffic.
-  # Gates `merge`, so a broken image never gets a pullable tag.
+  # Boots the api image this run produced, in both roles, and asserts it
+  # actually serves traffic. Gates `merge`, so a broken image never gets a
+  # pullable tag.
   smoke:
     permissions:
       packages: read
       contents: read
     needs: [build]
-    # Explicit, because a skipped settle earlier in the chain would otherwise skip this.
-    if: ${{ !cancelled() && needs.build.result == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -298,46 +258,61 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       # build pushed by digest but has not tagged anything yet, so pull the
-      # exact amd64 digests this run produced.
-      - name: Download amd64 digests
+      # exact amd64 digest this run produced.
+      - name: Download amd64 digest
         uses: actions/download-artifact@v8
         with:
-          path: /tmp/smoke-digests
-          pattern: digests-*-linux-amd64
+          name: digests-api-linux-amd64
+          path: /tmp/smoke-digest
 
-      - name: Resolve images
+      - name: Resolve image
         run: |
           set -euo pipefail
-          for app in api dashboard; do
-            dir="/tmp/smoke-digests/digests-${app}-linux-amd64"
-            digest="$(ls "$dir" | head -1)"
-            if [ -z "$digest" ]; then
-              echo "::error::no digest artifact for $app"
-              exit 1
-            fi
-            image="ghcr.io/${{ env.repo_owner }}/${app}@sha256:${digest}"
-            echo "$app -> $image"
-            echo "OP_$(echo "$app" | tr '[:lower:]' '[:upper:]')_IMAGE=$image" >> "$GITHUB_ENV"
-          done
+          digest="$(ls /tmp/smoke-digest | head -1)"
+          if [ -z "$digest" ]; then
+            echo "::error::no digest artifact for api"
+            exit 1
+          fi
+          image="ghcr.io/${{ env.repo_owner }}/api@sha256:${digest}"
+          echo "api -> $image"
+          echo "OP_API_IMAGE=$image" >> "$GITHUB_ENV"
 
-      - name: Smoke test the stack
-        run: .github/smoke/smoke.sh
+      # .github/smoke/smoke.sh also boots and asserts a dashboard image, which
+      # we do not build, so start only the api and worker services. --wait
+      # gates on their compose healthchecks (/healthcheck and /healthz/ready).
+      - name: Smoke test the api and worker
+        working-directory: .github/smoke
+        run: |
+          set -euo pipefail
+          if ! docker compose up -d --wait --wait-timeout 420 op-api op-worker; then
+            docker compose ps || true
+            docker compose logs --no-color --tail=200 op-api op-worker op-rp || true
+            echo "::error::api/worker never became healthy"
+            exit 1
+          fi
+          if ! docker compose logs --no-color op-api | grep -q 'migrations have been successfully applied\|No pending migrations to apply'; then
+            docker compose logs --no-color --tail=80 op-api || true
+            echo "::error::op-api never reported a successful 'prisma migrate deploy'"
+            exit 1
+          fi
+          echo "smoke passed"
 
       - name: Tear down
         if: always()
         run: docker compose -f .github/smoke/docker-compose.yml down -v || true
 
-  # Main only: a branch's images are smoke-tested and then left untagged.
+  # Tags `<branch>-<sha>` on every green run. Production pins the digest, so a
+  # tag never reaches production by itself.
   merge:
     permissions:
       packages: write
       contents: read
     needs: [check, test, build, smoke]
-    if: ${{ github.ref == 'refs/heads/main' && !cancelled() && needs.check.result == 'success' && needs.test.result == 'success' && needs.smoke.result == 'success' }}
+    if: ${{ !cancelled() && needs.check.result == 'success' && needs.test.result == 'success' && needs.smoke.result == 'success' }}
     strategy:
       fail-fast: false
       matrix:
-        app: [api, dashboard]
+        app: [api]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -372,124 +347,3 @@ jobs:
           docker buildx imagetools create \
             -t ghcr.io/${{ env.repo_owner }}/${{ matrix.app }}:${{ steps.tags.outputs.branch_name }}-${{ steps.tags.outputs.short_sha }} \
             $(printf 'ghcr.io/${{ env.repo_owner }}/${{ matrix.app }}@sha256:%s ' *)
-
-  # Every build on main gets the next version: the git tag vX.Y.Z and the image
-  # tags X.Y.Z, X.Y and X, taken from this run's own digests. One run at a time,
-  # so two versions are never computed from the same last tag.
-  version:
-    if: ${{ github.ref == 'refs/heads/main' && !cancelled() && needs.merge.result == 'success' }}
-    needs: [merge]
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    concurrency:
-      group: main-version
-      cancel-in-progress: false
-    permissions:
-      contents: write
-      packages: write
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-          fetch-tags: true
-
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version-file: ".bun-version"
-
-      - run: bun install --frozen-lockfile --filter @openpanel/release
-
-      - name: Decide the version
-        id: next
-        run: bun tooling/release/src/next-version.ts "$GITHUB_SHA"
-
-      - name: Download digests
-        if: steps.next.outputs.skip != 'true'
-        uses: actions/download-artifact@v8
-        with:
-          path: /tmp/digests
-          pattern: digests-*
-
-      - uses: docker/setup-buildx-action@v4
-        if: steps.next.outputs.skip != 'true'
-
-      - uses: docker/login-action@v4
-        if: steps.next.outputs.skip != 'true'
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Tag the images
-        if: steps.next.outputs.skip != 'true'
-        env:
-          VERSION: ${{ steps.next.outputs.version }}
-          MINOR: ${{ steps.next.outputs.minor }}
-          MAJOR: ${{ steps.next.outputs.major }}
-        run: |
-          set -euo pipefail
-          for app in api dashboard; do
-            image="ghcr.io/$repo_owner/$app"
-            # One file per platform, named after that platform's digest.
-            sources=()
-            for file in /tmp/digests/digests-"$app"-*/*; do
-              sources+=("$image@sha256:$(basename "$file")")
-            done
-            docker buildx imagetools create -t "$image:$VERSION" -t "$image:$MINOR" -t "$image:$MAJOR" "${sources[@]}"
-            echo "$image: $VERSION, $MINOR, $MAJOR"
-          done
-
-      # Pushed with GITHUB_TOKEN, which starts no workflow of its own.
-      - name: Tag the commit
-        if: steps.next.outputs.skip != 'true' && steps.next.outputs.is_new == 'true'
-        env:
-          VERSION: ${{ steps.next.outputs.version }}
-        run: |
-          git tag "v$VERSION" "$GITHUB_SHA"
-          git push origin "v$VERSION"
-
-      # Linux only: self-hosting runs on Linux servers, and bun cross-compiles
-      # both architectures here in seconds.
-      - name: Build the CLI
-        if: steps.next.outputs.skip != 'true'
-        working-directory: self-hosting/cli
-        env:
-          VERSION: ${{ steps.next.outputs.version }}
-        run: |
-          set -euo pipefail
-          bun install --frozen-lockfile
-          for target in linux-x64 linux-arm64; do
-            bun build --compile --target="bun-$target" --define "OPENPANEL_RELEASE_VERSION=\"$VERSION\"" src/main.ts --outfile "dist/openpanel-$target"
-          done
-          test "$(./dist/openpanel-linux-x64 --version)" = "$VERSION"
-          (cd dist && sha256sum openpanel-* > checksums.txt)
-
-      # Supporters install and self-update from these; public installs ignore
-      # pre-releases until the self-hosting tag promotes one.
-      - name: Publish the build as a pre-release
-        if: steps.next.outputs.skip != 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          VERSION: ${{ steps.next.outputs.version }}
-        run: |
-          set -euo pipefail
-          files=(self-hosting/cli/dist/openpanel-* self-hosting/cli/dist/checksums.txt)
-          if gh release view "v$VERSION" >/dev/null 2>&1; then
-            gh release upload "v$VERSION" "${files[@]}" --clobber
-          else
-            gh release create "v$VERSION" "${files[@]}" --verify-tag --prerelease \
-              --title "OpenPanel $VERSION (build)" \
-              --notes "Build of main at $GITHUB_SHA. Supporters get it with \`openpanel upgrade --supporter\`; public releases are published from the self-hosting tag."
-          fi
-
-      # One pre-release per build adds up; keep the newest ten. Tags stay, and a
-      # public release is never a pre-release, so it is never touched.
-      - name: Remove old pre-releases
-        if: steps.next.outputs.skip != 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          KEEP: "10"
-        run: |
-          gh release list --limit 200 --json tagName,isPrerelease,createdAt \
-            --jq "[.[] | select(.isPrerelease)] | sort_by(.createdAt) | reverse | .[$KEEP:] | .[].tagName" \
-            | while read -r tag; do gh release delete "$tag" --yes; done

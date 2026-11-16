@@ -62,7 +62,7 @@ function LandingPage() {
           <LogoSquare className="w-full max-w-14 md:max-w-24" />
           <PageHeader
             description="The best web and product analytics tool out there (our honest opinion)."
-            title="Welcome to OpenPanel.dev"
+            title="Welcome to Privytics"
           />
         </div>
 

@@ -37,7 +37,7 @@ export function GCSExportIntegrationForm({
         config: {
           type: 'gcs_export' as const,
           bucket: '',
-          prefix: 'openpanel-exports',
+          prefix: 'privytics-exports',
           format: 'jsonl_gzip' as const,
           serviceAccountKey: '',
         },
@@ -108,7 +108,7 @@ export function GCSExportIntegrationForm({
         />
         <InputWithLabel
           label="Prefix"
-          placeholder="openpanel-exports"
+          placeholder="privytics-exports"
           {...form.register('config.prefix')}
           error={path(['config', 'prefix', 'message'], form.formState.errors)}
         />

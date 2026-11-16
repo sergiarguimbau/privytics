@@ -1,7 +1,11 @@
-import { useRouteContext } from '@tanstack/react-router';
 import { op } from '@/utils/op';
 
-const PUBLIC_FEEDBACK_URL = 'https://feedback.openpanel.dev';
+// Upstream opened the Userjot widget here and passed it the user's id, name and
+// email. Removed (see __root.tsx): it sent personal data to an undisclosed
+// third party and the feedback landed on OpenPanel's board. A mailto keeps
+// feedback with us and adds no sub-processor.
+export const FEEDBACK_MAILTO =
+  'mailto:hello@privytics.com?subject=Privytics%20feedback';
 
 export function FeedbackButton({
   className,
@@ -10,41 +14,13 @@ export function FeedbackButton({
   className?: string;
   children?: React.ReactNode;
 }) {
-  const context = useRouteContext({ strict: false });
-
-  // The widget is not loaded on a self-hosted install.
-  if (context.isSelfHosted !== false) {
-    return (
-      <a
-        className={className}
-        href={PUBLIC_FEEDBACK_URL}
-        rel="noopener noreferrer"
-        target="_blank"
-      >
-        {children}
-      </a>
-    );
-  }
-
   return (
-    <button
+    <a
       className={className}
-      onClick={() => {
-        op.track('feedback_button_clicked');
-        if ('uj' in window && window.uj !== undefined) {
-          (window as any).uj.identify({
-            id: context.session?.userId,
-            firstName: context.session?.user?.firstName,
-            email: context.session?.user?.email,
-          });
-          setTimeout(() => {
-            (window as any).uj.showWidget();
-          }, 10);
-        }
-      }}
-      type="button"
+      href={FEEDBACK_MAILTO}
+      onClick={() => op.track('feedback_button_clicked')}
     >
       {children}
-    </button>
+    </a>
   );
 }

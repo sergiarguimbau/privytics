@@ -13,26 +13,78 @@ import datacenterAsns from './datacenter-asns';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Resolve a bundled `.mmdb` file, bundled-dist layout first, local package
-// second. apps/api bundles every `@openpanel/*` package into one file, so there
-// `import.meta.url` is `apps/api/dist/index.js` and three levels up is the repo root.
-async function loadDatabase(filename: string): Promise<ReaderModel | null> {
+/**
+ * Where a `.mmdb` may live, in priority order:
+ *
+ *   1. GEO_DB_DIR, if set. A writable directory (a mounted volume in
+ *      production) that the weekly refresh job (`scripts/refresh.ts`) writes
+ *      into. This is what makes the data updatable without rebuilding the
+ *      image, which the GeoLite2 licence expects: stale copies must not outlive
+ *      their replacements, because right-to-erasure removals only reach you via
+ *      a fresh download.
+ *   2. The copy baked into the image by `bun run codegen` at build time. This
+ *      is the floor: if the refresh job has never run, or the volume is empty,
+ *      geolocation still works with build-time data. The api dist bundle layout
+ *      comes first (`import.meta.url` is `apps/api/dist/index.js`, three levels
+ *      up is the repo root), then the local package (core's own tests and
+ *      `bun run src/main.ts`, unbundled).
+ */
+function candidatePaths(filename: string): string[] {
+  const paths: string[] = [];
+  // ponytail: Privytics exception to core's R7 (no process.env in core). Plumb
+  // GEO_DB_DIR through apps/api/src/config/env.ts and CoreConfig if the geo
+  // readers ever become config-constructed clients.
+  const overrideDir = process.env.GEO_DB_DIR;
+  if (overrideDir) {
+    paths.push(path.join(overrideDir, filename));
+  }
   // The api dist bundle
-  const dbPath = path.join(__dirname, `../../../packages/core/${filename}`);
-  // The local package (core's own tests, unbundled)
-  const dbPathLocal = path.join(__dirname, `../../${filename}`);
-  try {
-    const dbBuffer = await readFile(dbPath);
-    return Reader.openBuffer(dbBuffer);
-  } catch {
+  paths.push(path.join(__dirname, `../../../packages/core/${filename}`));
+  // The local package
+  paths.push(path.join(__dirname, `../../${filename}`));
+  return paths;
+}
+
+/** Databases that failed to load, for the boot-time health check. */
+const missing = new Set<string>();
+
+async function loadDatabase(filename: string): Promise<ReaderModel | null> {
+  for (const candidate of candidatePaths(filename)) {
     try {
-      const dbBuffer = await readFile(dbPathLocal);
+      const dbBuffer = await readFile(candidate);
+      console.log(`${filename} loaded from ${candidate}`);
+      missing.delete(filename);
       return Reader.openBuffer(dbBuffer);
     } catch {
-      console.error(`${filename} not found`, { dbPath, dbPathLocal });
-      return null;
+      // Try the next candidate.
     }
   }
+  missing.add(filename);
+  console.error(`${filename} not found`, { tried: candidatePaths(filename) });
+  return null;
+}
+
+/**
+ * Boot-time status of the geo databases.
+ *
+ * A missing database is otherwise invisible: lookups return undefined, events
+ * still ingest, and every visitor silently records with no country. Callers use
+ * this to fail loudly at startup instead of discovering it in the dashboard
+ * weeks later.
+ */
+export async function getGeoStatus(): Promise<{
+  ok: boolean;
+  loaded: string[];
+  missing: string[];
+}> {
+  await Promise.all([getReader(), getAsnReader()]);
+  const all = ['GeoLite2-City.mmdb', 'GeoLite2-ASN.mmdb'];
+  const missingList = all.filter((name) => missing.has(name));
+  return {
+    ok: missingList.length === 0,
+    loaded: all.filter((name) => !missing.has(name)),
+    missing: missingList,
+  };
 }
 
 let readerPromise: Promise<ReaderModel | null> | null = null;

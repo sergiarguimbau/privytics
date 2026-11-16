@@ -56,7 +56,7 @@ export function S3ExportIntegrationForm({
         config: {
           type: 's3_export' as const,
           bucket: '',
-          prefix: 'openpanel-exports',
+          prefix: 'privytics-exports',
           region: 'us-east-1',
           format: 'jsonl_gzip' as const,
           authMode: 'iam_role' as const,
@@ -147,7 +147,7 @@ export function S3ExportIntegrationForm({
         />
         <InputWithLabel
           label="Prefix"
-          placeholder="openpanel-exports"
+          placeholder="privytics-exports"
           {...form.register('config.prefix')}
           error={path(['config', 'prefix', 'message'], form.formState.errors)}
         />
@@ -219,7 +219,7 @@ export function S3ExportIntegrationForm({
         />
         <p className="text-muted-foreground text-xs">
           {authMode === 'iam_role'
-            ? 'Recommended for AWS S3. Create an IAM role that grants OpenPanel access.'
+            ? 'Recommended for AWS S3. Create an IAM role that grants Privytics access.'
             : 'Use access keys for Cloudflare R2, MinIO, DigitalOcean Spaces, or other S3-compatible storage.'}
         </p>
       </div>
@@ -228,7 +228,7 @@ export function S3ExportIntegrationForm({
         <>
           <InputWithLabel
             label="IAM Role ARN"
-            placeholder="arn:aws:iam::123456789012:role/OpenPanelExportRole"
+            placeholder="arn:aws:iam::123456789012:role/PrivyticsExportRole"
             {...form.register('config.roleArn')}
             error={path(
               ['config', 'roleArn', 'message'],

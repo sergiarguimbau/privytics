@@ -1,11 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import { useMemo, useState } from 'react';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '../ui/tooltip';
+import { memo, useMemo, useState } from 'react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 import { Widget, WidgetBody } from '../widget';
 import { WidgetHeadSearchable } from './overview-widget';
 import { useOverviewOptions } from './useOverviewOptions';
@@ -90,6 +85,75 @@ function getColorClass(ratio: number) {
   }
   return 'bg-chart-0';
 }
+
+/**
+ * One cell of the heatmap.
+ *
+ * Extracted and memoised on purpose. `LiveCounter` calls
+ * `refetchQueries({ type: 'active' })` whenever the live visitor count moves
+ * (debounced 1s, at most every 5s), which refetches this widget's query too. On
+ * a busy project that fires constantly, and re-rendering all 168 cells tore down
+ * the open Radix tooltip mid-hover: the value appeared, then vanished with the
+ * pointer still on the cell.
+ *
+ * Every prop here is a primitive, so the default shallow compare means a
+ * refetch that returns the same numbers re-renders nothing and the tooltip
+ * survives.
+ */
+const HeatmapCell = memo(function HeatmapCell({
+  day,
+  hour,
+  colorClass,
+  metricLabel,
+  formattedValue,
+}: {
+  day: number;
+  hour: number;
+  colorClass: string;
+  metricLabel: string;
+  formattedValue: string;
+}) {
+  return (
+    // delayDuration/disableHoverableContent are set per-tooltip rather than via
+    // a local TooltipProvider: the app already mounts one in providers.tsx, and
+    // nesting a second provider inside it gave Radix two competing open-state
+    // scopes.
+    <Tooltip delayDuration={0} disableHoverableContent>
+      <TooltipTrigger asChild>
+        <div className="group flex-1 p-0.5">
+          <div
+            className={cn(
+              'size-full rounded-sm transition-all group-hover:ring-1 group-hover:ring-emerald-400',
+              colorClass
+            )}
+          />
+        </div>
+      </TooltipTrigger>
+      <TooltipContent
+        // Rows are 16px tall, so without an offset the content opens on top of
+        // the cell being read. pointer-events-none also stops it ever taking
+        // the pointer away from the trigger.
+        className="pointer-events-none border-0 bg-transparent p-0 shadow-none"
+        side="top"
+        sideOffset={8}
+      >
+        <ChartTooltipContainer>
+          <ChartTooltipHeader>
+            <div className="font-medium text-sm">
+              {LONG_DAY_NAMES[day]}, {formatHourRange(hour)}
+            </div>
+          </ChartTooltipHeader>
+          <ChartTooltipItem color="#10b981">
+            <div className="flex items-center justify-between gap-6 font-medium text-sm tabular-nums">
+              <div className="text-muted-foreground">{metricLabel}</div>
+              <div>{formattedValue}</div>
+            </div>
+          </ChartTooltipItem>
+        </ChartTooltipContainer>
+      </TooltipContent>
+    </Tooltip>
+  );
+});
 
 export default function OverviewWeeklyTrends({
   projectId,
@@ -201,60 +265,33 @@ export default function OverviewWeeklyTrends({
                 ))}
               </div>
 
-              <TooltipProvider delayDuration={0} disableHoverableContent>
-                {Array.from({ length: 24 }, (_, hour) => (
-                  <div className="flex h-4" key={hour}>
-                    {Array.from({ length: 7 }, (_, day) => {
-                      const value = heatmap.averages[day]![hour]!;
-                      const ratio =
-                        heatmap.max > 0 && value > 0 ? value / heatmap.max : 0;
-                      const colorClass = getColorClass(ratio);
+              {Array.from({ length: 24 }, (_, hour) => (
+                <div className="flex h-4" key={hour}>
+                  {Array.from({ length: 7 }, (_, day) => {
+                    const value = heatmap.averages[day]![hour]!;
+                    const ratio =
+                      heatmap.max > 0 && value > 0 ? value / heatmap.max : 0;
 
-                      return (
-                        <Tooltip key={day}>
-                          <TooltipTrigger asChild>
-                            <div className={cn('group flex-1 p-0.5')}>
-                              <div
-                                className={cn(
-                                  'size-full rounded-sm transition-all group-hover:ring-1 group-hover:ring-emerald-400',
-                                  colorClass
-                                )}
-                              />
-                            </div>
-                          </TooltipTrigger>
-                          <TooltipContent
-                            className="border-0 bg-transparent p-0 shadow-none"
-                            side="top"
-                          >
-                            <ChartTooltipContainer>
-                              <ChartTooltipHeader>
-                                <div className="font-medium text-sm">
-                                  {LONG_DAY_NAMES[day]}, {formatHourRange(hour)}
-                                </div>
-                              </ChartTooltipHeader>
-                              <ChartTooltipItem color="#10b981">
-                                <div className="flex items-center justify-between gap-6 font-medium text-sm tabular-nums">
-                                  <div className="text-muted-foreground">
-                                    {activeMetric.label}
-                                  </div>
-                                  <div>
-                                    {activeMetric.unit === 'pct'
-                                      ? `${number.format(value)} %`
-                                      : number.formatWithUnit(
-                                          value,
-                                          activeMetric.unit || null
-                                        )}
-                                  </div>
-                                </div>
-                              </ChartTooltipItem>
-                            </ChartTooltipContainer>
-                          </TooltipContent>
-                        </Tooltip>
-                      );
-                    })}
-                  </div>
-                ))}
-              </TooltipProvider>
+                    return (
+                      <HeatmapCell
+                        colorClass={getColorClass(ratio)}
+                        day={day}
+                        formattedValue={
+                          activeMetric.unit === 'pct'
+                            ? `${number.format(value)} %`
+                            : number.formatWithUnit(
+                                value,
+                                activeMetric.unit || null
+                              )
+                        }
+                        hour={hour}
+                        key={day}
+                        metricLabel={activeMetric.label}
+                      />
+                    );
+                  })}
+                </div>
+              ))}
             </div>
           </div>
         ) : (

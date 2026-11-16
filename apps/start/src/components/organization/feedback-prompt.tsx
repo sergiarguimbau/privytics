@@ -1,5 +1,6 @@
 import { useLocation } from '@tanstack/react-router';
 import { useEffect, useMemo } from 'react';
+import { FEEDBACK_MAILTO } from '@/components/feedback-button';
 import { PromptCard } from '@/components/organization/prompt-card';
 import { Button } from '@/components/ui/button';
 import { useAppContext } from '@/hooks/use-app-context';
@@ -45,11 +46,8 @@ export default function FeedbackPrompt() {
   }, [isDemo, isSelfHosted, onChatPage, feedbackPromptSeen]);
 
   const handleGiveFeedback = () => {
-    // Open userjot widget
-    if (typeof window !== 'undefined' && 'uj' in window) {
-      (window.uj as any).showWidget();
-    }
-    // Set cookie with current timestamp
+    // Upstream opened the Userjot widget here; see __root.tsx for why it is
+    // gone. Feedback reaches us by email instead, via the link below.
     setFeedbackPromptSeen(new Date().toISOString());
     op.track('feedback_prompt_button_clicked');
   };
@@ -67,10 +65,10 @@ export default function FeedbackPrompt() {
 
   return (
     <PromptCard
-      gradientColor="rgb(59 130 246)"
+      gradientColor="rgb(12 107 105)"
       onClose={handleClose}
       show={shouldShow}
-      subtitle="Help us improve OpenPanel with your insights"
+      subtitle="Help us improve Privytics with your insights"
       title="Share Your Feedback"
     >
       <div className="col gap-4 px-6">
@@ -79,8 +77,8 @@ export default function FeedbackPrompt() {
           thoughts, report bugs, or suggest improvements
         </p>
 
-        <Button className="self-start" onClick={handleGiveFeedback}>
-          Give Feedback
+        <Button asChild className="self-start" onClick={handleGiveFeedback}>
+          <a href={FEEDBACK_MAILTO}>Give Feedback</a>
         </Button>
       </div>
     </PromptCard>

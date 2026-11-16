@@ -27,7 +27,7 @@ const MOUSE_TAIL = {
   duration: 600,
   lineCap: 'round',
   lineWidth: 3,
-  strokeStyle: 'rgba(34, 102, 236, 0.45)',
+  strokeStyle: 'rgba(12, 107, 105, 0.45)',
 };
 
 type FrameKind = 'browser' | 'phone';

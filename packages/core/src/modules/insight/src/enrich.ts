@@ -56,7 +56,7 @@ const enrichmentOutputSchema = z.object({
   ),
 });
 
-const INSTRUCTION = `You are an analytics insight editor for OpenPanel, a web/product analytics platform.
+const INSTRUCTION = `You are an analytics insight editor for Privytics, a web/product analytics platform.
 
 You receive a JSON array of automatically-detected insights about ONE project's traffic. Each has a moduleKey (referrers, entry-pages, page-trends, geo, devices), a dimension, a time window, a statistically-derived title/summary, a direction, an impactScore, and a payload of metrics.
 

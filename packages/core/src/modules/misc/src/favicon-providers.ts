@@ -13,12 +13,14 @@ const REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308]);
 const MAX_ICON_BYTES = 256 * 1024;
 const FETCH_TIMEOUT_MS = 10_000;
 const FAVICON_USER_AGENT =
-  'OpenPanel-FaviconProxy/1.0 (+https://openpanel.dev)';
+  'Privytics-FaviconProxy/1.0 (+https://privytics.com)';
 
+// Privytics: Google is not asked, so customers' referrer hostnames never reach
+// it. The proxy is off unless ENABLE_FAVICON_FETCH is set, and DuckDuckGo
+// must then be listed as a sub-processor. Google stays in PROVIDER_HOSTS only so the
+// redirect-walk tests keep their fixture; nothing here requests it.
 export const FAVICON_PROVIDERS: readonly ((hostname: string) => URL)[] = [
   (hostname) => new URL(`https://icons.duckduckgo.com/ip3/${hostname}.ico`),
-  (hostname) =>
-    new URL(`https://www.google.com/s2/favicons?domain=${hostname}&sz=64`),
 ];
 
 export interface ProviderIcon {

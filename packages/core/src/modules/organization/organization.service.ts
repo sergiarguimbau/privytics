@@ -8,6 +8,7 @@ import type {
   Prisma,
   User,
 } from '@openpanel/db/src/prisma-client';
+import { getSubscriptionState } from '@openpanel/payments/subscription-state';
 import { DateTime, generateSecureId } from '@openpanel/shared';
 import {
   cacheablePerDb,
@@ -365,23 +366,56 @@ export async function acceptInvite(
   return { organizationId: invite.organizationId };
 }
 
+/**
+ * Organizations this user created and has not deleted. Only the first one a
+ * user creates carries the free allowance (see onboarding.service.ts). One
+ * pending deletion does not count, so deleting your only workspace and
+ * starting over keeps the free tier; cancelOrganizationDeletion takes the
+ * allowance back from the restored one if a newer org got it meanwhile.
+ */
+export function countOwnedOrganizations(
+  deps: ServiceDeps,
+  userId: string
+): Promise<number> {
+  return deps.db.organization.count({
+    where: { createdByUserId: userId, deleteAt: null },
+  });
+}
+
 export async function getOrganizationBillingEventsCount(
   deps: ServiceDeps,
-  organization: IServiceOrganization & { projects: { id: string }[] }
+  organization: IServiceOrganization & { projects: { id: string }[] },
+  now: Date = new Date()
 ): Promise<number | undefined> {
-  // Trials have no Polar billing period; fall back to the trial window
-  // (creation → trial end). Status stays 'trialing' even once expired.
-  const isTrialStatus = organization.subscriptionStatus === 'trialing';
-  const periodStart =
-    organization.subscriptionCurrentPeriodStart ??
-    (isTrialStatus ? organization.createdAt : null);
-  const periodEnd =
-    organization.subscriptionCurrentPeriodEnd ??
-    (isTrialStatus ? organization.subscriptionEndsAt : null);
+  // Paid plans use the Polar billing period. Free-tier organizations (and
+  // paused ones, held to free limits) run on the calendar month in UTC: the
+  // free event limit per month, resetting on the 1st. An org that dropped from
+  // paid to free keeps its old Polar period columns, so the state decides, not
+  // whether the period columns are null; otherwise it would be metered against
+  // a window that grows every month.
+  const monthStart = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)
+  );
+  const monthEnd = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0, 23, 59, 59, 999)
+  );
+  const onCalendarMonth = ['free', 'paused'].includes(
+    getSubscriptionState(organization)
+  );
+  const periodStart = onCalendarMonth
+    ? monthStart
+    : (organization.subscriptionCurrentPeriodStart ?? monthStart);
+  const periodEnd = onCalendarMonth
+    ? monthEnd
+    : (organization.subscriptionCurrentPeriodEnd ?? monthEnd);
 
   if (!(periodStart && periodEnd) || organization.projects.length === 0) {
     return 0;
   }
+  // The free hard cap meters by ingestion time: an event back-dated into an
+  // earlier month (server SDKs, offline queues, `__timestamp`) is still
+  // stored this month, and counting it by created_at would never cap it.
+  const meteredAt = onCalendarMonth ? 'inserted_at' : 'created_at';
 
   const statement = sql`
     SELECT COUNT(*) AS count
@@ -390,7 +424,7 @@ export async function getOrganizationBillingEventsCount(
       'String',
       organization.projects.map((project) => project.id)
     )}
-      AND created_at BETWEEN ${sql.string(formatClickhouseDate(periodStart))} AND ${sql.string(formatClickhouseDate(periodEnd))}
+      AND ${sql.id(meteredAt)} BETWEEN ${sql.string(formatClickhouseDate(periodStart))} AND ${sql.string(formatClickhouseDate(periodEnd))}
       AND name NOT IN ${sql.array('String', NON_BILLABLE_EVENT_NAMES)}
   `;
 
@@ -705,6 +739,9 @@ export async function deleteFromClickhouse(
     TABLE_NAMES.cohort_metadata,
     TABLE_NAMES.event_profile_summary_mv,
     TABLE_NAMES.event_property_profile_summary_mv,
+    TABLE_NAMES.ai_events,
+    TABLE_NAMES.groups,
+    TABLE_NAMES.alias,
   ];
 
   for (const table of tables) {
@@ -786,6 +823,121 @@ export async function runDeleteCron(
   };
 }
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Privytics retention by plan. These back the promises in the Terms, the
+ * Privacy Policy and the marketing pages, so changing them means changing
+ * those documents too: free 12 months, any paid state 5 years.
+ */
+export const FREE_RETENTION_DAYS = 365;
+export const PAID_RETENTION_DAYS = 365 * 5;
+
+/**
+ * Per-project time-series tables with the timestamp column each one uses
+ * (`session_replay_chunks` has no `created_at`), including the per-event and
+ * per-profile aggregates that materialized views keep after `events` rows go.
+ * `day` columns are a Date or a start-of-day DateTime: they are compared with
+ * the cutoff's date (a Date refuses a time), which keeps the boundary day.
+ * Profiles, aliases and groups are identity records, not time series, and are
+ * deliberately kept.
+ */
+const RETAINED_TABLES: { table: string; column: string; day?: true }[] = [
+  { table: TABLE_NAMES.events, column: 'created_at' },
+  { table: TABLE_NAMES.sessions, column: 'created_at' },
+  { table: TABLE_NAMES.session_replay_chunks, column: 'started_at' },
+  { table: TABLE_NAMES.events_bots, column: 'created_at' },
+  { table: TABLE_NAMES.ai_events, column: 'created_at' },
+  { table: TABLE_NAMES.cohort_events_mv, column: 'created_at', day: true },
+  { table: TABLE_NAMES.dau_mv, column: 'date', day: true },
+  {
+    table: TABLE_NAMES.event_profile_summary_mv,
+    column: 'event_date',
+    day: true,
+  },
+  {
+    table: TABLE_NAMES.event_property_profile_summary_mv,
+    column: 'event_date',
+    day: true,
+  },
+];
+
+/**
+ * Deletion cannot be undone, so the 12-month cutoff needs both a stored status
+ * that says free (a webhook-confirmed downgrade, or never paid) and the state
+ * machine agreeing. Anything else, including a paid row the clock alone reads
+ * as lapsed (a late renewal webhook), keeps the paid 5 years.
+ */
+function onFreeRetention(
+  organization: Parameters<typeof getSubscriptionState>[0]
+): boolean {
+  const status = organization.subscriptionStatus;
+  return (
+    (status === 'free' || status === null) &&
+    getSubscriptionState(organization) === 'free'
+  );
+}
+
+export interface DataRetentionCronResult {
+  organizationsSwept: number;
+  mutationsIssued: number;
+}
+
+/**
+ * Enforces per-organization retention. ClickHouse TTLs cannot express it (it
+ * depends on the plan, not the table), so this issues one asynchronous
+ * mutation per table per organization; ClickHouse applies them in the
+ * background. Self-hosters own their data, so it never runs there.
+ */
+export async function runDataRetentionCron(
+  deps: ServiceDeps
+): Promise<DataRetentionCronResult | null> {
+  if (deps.config.selfHosted) {
+    return null;
+  }
+
+  const organizations = await deps.db.organization.findMany({
+    select: {
+      id: true,
+      subscriptionStatus: true,
+      subscriptionCanceledAt: true,
+      subscriptionEndsAt: true,
+      subscriptionPauseAtPeriodEnd: true,
+      projects: { where: { deleteAt: null }, select: { id: true } },
+    },
+  });
+
+  let organizationsSwept = 0;
+  let mutationsIssued = 0;
+  for (const organization of organizations) {
+    const projectIds = organization.projects.map((project) => project.id);
+    if (projectIds.length === 0) {
+      continue;
+    }
+    const retentionDays = onFreeRetention(organization)
+      ? FREE_RETENTION_DAYS
+      : PAID_RETENTION_DAYS;
+    const cutoff = new Date(Date.now() - retentionDays * DAY_MS);
+
+    for (const { table, column, day } of RETAINED_TABLES) {
+      const statement = sql`ALTER TABLE ${replicatedTarget(deps.config.clickhouseClustered, table)} DELETE WHERE project_id IN ${sql.array('String', projectIds)} AND ${sql.id(column)} < ${sql.string(formatClickhouseDate(cutoff, day))}`;
+      try {
+        await deps.ch.command(statement.toStatement());
+        mutationsIssued++;
+      } catch (error) {
+        // One bad table must not stop the sweep for every other organization.
+        deps.logger.error(
+          { err: error, organizationId: organization.id, table },
+          'Retention mutation failed'
+        );
+      }
+    }
+    organizationsSwept++;
+  }
+
+  return { organizationsSwept, mutationsIssued };
+}
+
 export async function updateOrganization(
   deps: ServiceDeps,
   input: {
@@ -830,9 +982,13 @@ export async function scheduleOrganizationDeletion(
 
   const deleteAt = new Date(Date.now() + DELETE_GRACE_PERIOD_MS);
   await db.$transaction([
+    // Projects already being deleted keep their own deleteAt, so cancelling
+    // the organization's deletion does not bring them back (that would let a
+    // free organization end up with more than one project).
     db.project.updateMany({
       where: {
         organizationId,
+        deleteAt: null,
       },
       data: {
         deleteAt,
@@ -854,10 +1010,39 @@ export async function cancelOrganizationDeletion(
   organizationId: string
 ): Promise<void> {
   const db = deps.db;
+  // Restore only the projects scheduled together with the organization.
+  const organization = await db.organization.findUniqueOrThrow({
+    where: { id: organizationId },
+    select: {
+      deleteAt: true,
+      createdByUserId: true,
+      subscriptionState: true,
+    },
+  });
+  // Privytics: while this org was pending deletion it did not count as owned,
+  // so a workspace created since may hold the free allowance. Then this one
+  // comes back without it, or one account would keep two free orgs.
+  const { deleteAt, createdByUserId } = organization;
+  const hasNewerFreeOrganization =
+    deleteAt !== null &&
+    createdByUserId !== null &&
+    organization.subscriptionState === 'free' &&
+    (await db.organization.count({
+      where: {
+        createdByUserId,
+        deleteAt: null,
+        id: { not: organizationId },
+        subscriptionPeriodEventsLimit: { gt: 0 },
+        createdAt: {
+          gt: new Date(deleteAt.getTime() - DELETE_GRACE_PERIOD_MS),
+        },
+      },
+    })) > 0;
   await db.$transaction([
     db.project.updateMany({
       where: {
         organizationId,
+        deleteAt: organization.deleteAt,
       },
       data: {
         deleteAt: null,
@@ -869,6 +1054,9 @@ export async function cancelOrganizationDeletion(
       },
       data: {
         deleteAt: null,
+        ...(hasNewerFreeOrganization
+          ? { subscriptionPeriodEventsLimit: 0 }
+          : {}),
       },
     }),
   ]);
@@ -1112,6 +1300,8 @@ export function createOrganizationService(
       getOrganizationById(deps, organizationId),
     list: (userId: string | null): ReturnType<typeof getOrganizations> =>
       getOrganizations(deps, userId),
+    countOwned: (userId: string): Promise<number> =>
+      countOwnedOrganizations(deps, userId),
     update: (input: {
       id: string;
       name: string;
@@ -1146,5 +1336,7 @@ export function createOrganizationService(
       inviteId: string;
     }): Promise<{ organizationId: string }> => acceptInvite(deps, input),
     runDeleteCron: (): Promise<DeleteCronResult> => runDeleteCron(deps),
+    runDataRetentionCron: (): Promise<DataRetentionCronResult | null> =>
+      runDataRetentionCron(deps),
   };
 }

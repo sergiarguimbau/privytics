@@ -1,122 +1,94 @@
-![hero](apps/public/public/ogimage.png)
+# Privytics
 
-<p align="center">
-	<h1 align="center"><b>Openpanel</b></h1>
-<p align="center">
-    An open-source alternative to Mixpanel
-    <br />
-    <br />
-    <a href="https://openpanel.dev">Website</a>
-    ·
-    <a href="https://openpanel.dev/docs">Docs</a>
-    ·
-    <a href="https://dashboard.openpanel.dev">Sign in</a>
-    ·
-    <a href="https://go.openpanel.dev/discord">Discord</a>
-    ·
-    <a href="https://twitter.com/OpenPanelDev">X/Twitter</a>
-    ·
-    <a href="https://twitter.com/CarlLindesvard">Creator</a>
-    ·
-  </p>
-  <br />
-  <br />
-</p>
-  
-Openpanel is an open-source web and product analytics platform that combines the power of Mixpanel with the ease of Plausible and one of the best Google Analytics replacements.
+The source for [Privytics](https://privytics.com), a managed, EU-hosted,
+privacy-first product-analytics service.
 
-## ✨ Features
+Privytics is built on the open-source
+[OpenPanel](https://openpanel.dev) analytics engine and is distributed under the
+same licence, the **GNU AGPL-3.0**. In line with the AGPL, this repository is the
+corresponding source of the version we operate.
 
-- **🔍 Advanced Analytics**: Funnels, cohorts, user profiles, and session history
-- **🎬 Session Replay**: Record and replay user sessions with privacy controls built in
-- **📊 Real-time Dashboards**: Live data updates and interactive charts
-- **🎯 A/B Testing**: Built-in variant testing with detailed breakdowns
-- **🔔 Smart Notifications**: Event and funnel-based alerts
-- **🌍 Privacy-First**: Cookieless tracking and GDPR compliance
-- **🚀 Developer-Friendly**: Comprehensive SDKs and API access
-- **📦 Self-Hosted**: Full control over your data and infrastructure
-- **💸 Transparent Pricing**: No hidden costs or usage limits
-- **🛠️ Custom Dashboards**: Flexible chart creation and data visualization
-- **📱 Multi-Platform**: Web, mobile (iOS/Android), and server-side tracking
-- **🤖 MCP Server**: Ask Claude, Cursor, or any MCP client about your users — 38 tools, hosted, no install
-- **💰 Revenue Tracking**: Monitor purchases, subscriptions, and LTV alongside product events
-- **🔌 Integrations**: Connect Google Search Console, and more to enrich your data
+Privytics is an independent service and is **not affiliated with, endorsed by, or
+sponsored by OpenPanel**. "OpenPanel" is a trademark of its respective owner and
+is used here only to describe the origin of this software.
 
-## 📊 Analytics Platform Comparison
+- Website: <https://privytics.com>
+- Docs: <https://privytics.com/docs>
+- Upstream engine: <https://github.com/Openpanel-dev/openpanel>
+- Upstream docs: <https://openpanel.dev/docs>
 
-| Feature                                | OpenPanel | Mixpanel | GA4       | Plausible |
-|----------------------------------------|-----------|----------|-----------|-----------|
-| ✅ Open-source                         | ✅         | ❌        | ❌        | ✅         |
-| 🧩 Self-hosting supported              | ✅         | ❌        | ❌        | ✅         |
-| 🔒 Cookieless by default               | ✅         | ❌        | ❌        | ✅         |
-| 🔁 Real-time dashboards                | ✅         | ✅        | ❌        | ✅         |
-| 🔍 Funnels & cohort analysis           | ✅         | ✅        | ✅*       | ✅***         |
-| 👤 User profiles & session history     | ✅         | ✅        | ❌        | ❌         |
-| 🎬 Session replay                      | ✅         | ✅****    | ❌        | ❌         |
-| 📈 Custom dashboards & charts          | ✅         | ✅        | ✅        | ❌         |
-| 💬 Event & funnel notifications        | ✅         | ✅        | ❌        | ❌         |
-| 🌍 GDPR-compliant tracking             | ✅         | ✅        | ❌**      | ✅         |
-| 📦 SDKs (Web, Swift, Kotlin, ReactNative) | ✅      | ✅        | ✅        | ❌         |
-| 💸 Transparent pricing                 | ✅         | ❌        | ✅*       | ✅         |
-| 🚀 Built for developers                | ✅         | ✅        | ❌        | ✅         |
-| 🔧 A/B testing & variant breakdowns    | ✅         | ✅        | ❌        | ❌         |
+## How this fork differs from upstream
 
-> ✅* GA4 has a free tier but often requires BigQuery (paid) for raw data access.
-> ❌** GA4 has faced GDPR bans in several EU countries due to data transfers to US-based servers.
-> ✅*** Plausible has simple goals
-> ✅**** Mixpanel session replay is limited to 5k sessions/month on free and 20k on paid. OpenPanel has no limit.
+This is OpenPanel (currently v3.30.0) with our changes on top:
 
-## Stack
+- Privytics branding (name, logo, teal colours) across the dashboard, emails,
+  the AI assistant and the MCP server.
+- A permanent **free tier** (10,000 events per month), Privytics pricing,
+  paid-only session replay and AI chat, and plan-based data retention.
+- Our own marketing, legal, and docs site under `apps/public`.
+- The upstream telemetry ping, feedback widget and trial wind-down are removed.
 
-- **Nextjs** - the dashboard
-- **Fastify** - event api
-- **Postgres** - storing basic information
-- **Clickhouse** - storing events
-- **Redis** - cache layer, pub/sub and queue
-- **BullMQ** - queue
-- **GroupMQ** - for grouped queue
-- **Resend** - email
-- **Arctic** - oauth
-- **Oslo** - auth
-- **tRPC** - api
-- **Tailwind** - styling
-- **Shadcn** - ui
+`MODIFICATIONS.md` has the full list. Internal `@openpanel/*` package names are
+kept unchanged so our diff on top of upstream stays small.
 
-## Self-hosting
+## Licence and attribution
 
-OpenPanel can be self-hosted and we have tried to make it as simple as possible.
+- `LICENSE.md`, the full GNU AGPL-3.0 licence (unchanged from upstream).
+- `MODIFICATIONS.md`, the AGPL modification notice and summary of changes.
+- `TRADEMARK.md`, our trademark notice: nominative use of the OpenPanel name, linking to OpenPanel's own guidelines upstream.
 
-You can find the how to [here](https://openpanel.dev/docs/self-hosting/self-hosting)
+## Branch and upstream model
 
-**Give us a star if you like it!**
+Two branches with distinct jobs:
 
-[![Star History Chart](https://api.star-history.com/svg?repos=Openpanel-dev/openpanel&type=Date)](https://star-history.com/#Openpanel-dev/openpanel&Date)
+- **`main`** mirrors OpenPanel's `main` (remote `upstream`). It is a clean,
+  read-only copy of upstream. It is never deployed and never receives our commits.
+- **`privytics`** is the production branch: an upstream release plus our
+  changes (branding, free tier, billing, marketing site, AI cost control).
+  Production is built and deployed from here.
+
+Upstream releases are **merged by hand** into `privytics`, following
+`docs/upstream-sync.md`. History is never rewritten, so nothing is
+force-pushed. Nothing runs on a schedule. There is a manual-trigger workflow
+(`.github/workflows/upstream-check.yml`) that counts new `upstream/main`
+commits and previews conflicts, but it only runs when you press it, and it
+never merges or pushes for real.
+
+That is deliberate. An earlier version synced and force-pushed automatically,
+which is unsafe: a "clean" sync only means no textual conflicts, not that the
+code still builds, and nothing type-checked the result before it landed on the
+production branch. Do **not** merge `privytics` into `main`; keep the mirror
+clean.
+
+Production servers pin specific image **digests**, so a new build only reaches
+production when you bump the digest. Review or test a build before shipping it,
+and never sync and bump a digest on the same day.
 
 ## Development
 
-### Prerequisites
+This is a Bun monorepo (apps + packages). It needs Bun 1.4.4 (`.bun-version`)
+and Node 24.22.1 (`.nvmrc`). The engine, SDKs, and tracking APIs are documented
+upstream at <https://openpanel.dev/docs>. The Privytics billing model is
+described in `packages/payments/PRIVYTICS_BILLING.md`.
 
-- Docker
-- Docker Compose
-- Bun
-
-### Start
+Run locally (needs Docker):
 
 ```bash
 bun install
 cp .env.example .env
-echo "API_URL=http://localhost:3333" > apps/start/.env
-
-bun run dock:up
-bun run codegen
-bun run migrate:deploy # once to setup the db
-bun run dev
+bun run dock:up          # Postgres, ClickHouse, Redis, Redpanda
+bun run codegen          # Prisma client + geo data
+bun run migrate:deploy   # once, against the local Docker databases
+bun run dev              # API + worker (:3333) and dashboard (:3000)
 ```
 
-You can now access the following:
+The dashboard reads local env from `apps/start/.dev.vars` (Cloudflare dev
+override, it takes precedence over the production values in
+`apps/start/wrangler.jsonc`) rather than the root `.env`; put
+`API_URL=http://localhost:3333` there for local work. `bun run test` runs the
+test suites.
 
-- Dashboard: https://localhost:3000
-- API: https://api.localhost:3333
-- Bullboard (queue): http://localhost:9999
-- `bun run dock:ch` to access clickhouse terminal
-- `bun run dock:redis` to access redis terminal
+Event ingestion runs through Kafka (Redpanda): the API produces every tracked
+event to it and the worker consumes it. It is the only events transport, so
+`KAFKA_BROKERS` must be set (`.env.example` points it at the local `op-rp`
+service from `docker-compose.yml`), and production needs a Redpanda service too.

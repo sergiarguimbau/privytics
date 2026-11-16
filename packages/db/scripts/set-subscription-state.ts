@@ -33,19 +33,14 @@ const base = {
 } as const;
 
 const recipes: Record<string, () => Recipe> = {
-  trialing: () => ({
+  // Privytics has no trial: an organization without a paid subscription sits
+  // on the permanent free tier.
+  free: () => ({
     ...base,
-    subscriptionStatus: null,
+    subscriptionStatus: 'free',
     subscriptionCanceledAt: null,
     subscriptionStartsAt: null,
-    subscriptionEndsAt: future(),
-  }),
-  trial_expired: () => ({
-    ...base,
-    subscriptionStatus: null,
-    subscriptionCanceledAt: null,
-    subscriptionStartsAt: null,
-    subscriptionEndsAt: past(),
+    subscriptionEndsAt: null,
   }),
   active: () => ({
     ...base,
@@ -94,7 +89,8 @@ const recipes: Record<string, () => Recipe> = {
     subscriptionStatus: 'active',
     subscriptionCanceledAt: null,
     subscriptionStartsAt: monthAgo(),
-    subscriptionEndsAt: past(),
+    // Older than the 3-day renewal grace, which would still read as active.
+    subscriptionEndsAt: new Date(Date.now() - 4 * DAY),
   }),
   pausing: () => ({
     ...base,

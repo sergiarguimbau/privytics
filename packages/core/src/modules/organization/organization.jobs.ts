@@ -1,21 +1,16 @@
 import { z } from 'zod';
-import type { Ctx } from '../../context';
 import { defineJob } from '../../jobs/define';
-import type { Logger } from '../../logger';
-import {
-  buildWinBackHighlight,
-  type WinBackHighlightDeps,
-} from './src/win-back-highlight';
-import {
-  runWindDownCron,
-  type WindDownDb,
-  type WindDownDeps,
-} from './src/wind-down';
+import { refreshFreeUsage } from '../session/src/usage';
 
-/** Hourly. */
-const WIND_DOWN_CRON = '0 * * * *';
-
-/** This module's fragment of the `cron` queue's jobs. */
+/**
+ * This module's fragment of the `cron` queue's jobs.
+ *
+ * Privytics: upstream's hourly `windDown` cron is not registered. There is no
+ * trial to wind down, and its prefilter matches legacy production rows, so a
+ * regression in the state function could block ingestion and schedule real
+ * customer data for deletion. `startSchedulers` prunes the old Redis scheduler
+ * at boot. `src/wind-down.ts` stays as upstream code, unscheduled.
+ */
 export const organizationCronJobs = {
   delete: defineJob({
     payload: z.null(),
@@ -25,52 +20,23 @@ export const organizationCronJobs = {
       ctx.logger.info({ ...result }, 'Delete cron complete');
     },
   }),
-  windDown: defineJob({
+  // Privytics: free 12 months, paid 5 years (see runDataRetentionCron).
+  dataRetention: defineJob({
     payload: z.null(),
-    cron: { pattern: WIND_DOWN_CRON },
+    cron: { pattern: '0 5 * * *' },
     handler: async ({ ctx }) => {
-      await runWindDownCron(
-        await windDownDeps(ctx, ctx.logger.child({ job: 'wind-down' }))
-      );
+      const result = await ctx.services.organization.runDataRetentionCron();
+      ctx.logger.info({ ...result }, 'Data retention sweep issued');
+    },
+  }),
+  // Privytics: keeps the free hard cap's flag fresh for traffic that never
+  // ends a session (see refreshFreeUsage).
+  usageRefresh: defineJob({
+    payload: z.null(),
+    cron: { pattern: '5 * * * *' },
+    handler: async ({ ctx }) => {
+      const result = await refreshFreeUsage(ctx);
+      ctx.logger.info({ ...result }, 'Free usage refresh complete');
     },
   }),
 };
-
-/**
- * The wind-down cron's dependencies, bound to the job's own ctx.
- *
- * Two reaches stay dynamic. The sibling service's two ClickHouse counts are not
- * on `OrganizationService`, and `src/win-back-pitch.ts` pulls the agent runtime
- * — a static edge from here would drag either into jobs.registry.ts's eager
- * import graph, which every core test file walks.
- */
-async function windDownDeps(ctx: Ctx, logger: Logger): Promise<WindDownDeps> {
-  const [
-    { getOrganizationEventsCount, getOrganizationEventsCountSince },
-    { generateWinBackPitch },
-  ] = await Promise.all([
-    import('./organization.service'),
-    import('./src/win-back-pitch'),
-  ]);
-
-  const highlight: WinBackHighlightDeps = {
-    logger,
-    getAnalyticsOverview: (input) =>
-      ctx.services.overview.getAnalyticsOverviewCore(input),
-    getTopPages: (input) => ctx.services.pages.getTopPagesCore(input),
-    generatePitch: (facts) => generateWinBackPitch(ctx.config, facts),
-  };
-
-  return {
-    db: ctx.db as unknown as WindDownDb,
-    logger,
-    config: ctx.config,
-    sendEmail: ctx.clients.email.sendEmail,
-    getLastEventPerProject: () => ctx.services.project.getLastEventPerProject(),
-    getOrganizationEventsCount: (projectIds) =>
-      getOrganizationEventsCount(ctx, projectIds),
-    getOrganizationEventsCountSince: (projectIds, since) =>
-      getOrganizationEventsCountSince(ctx, projectIds, since),
-    buildHighlight: (input) => buildWinBackHighlight(input, highlight),
-  };
-}

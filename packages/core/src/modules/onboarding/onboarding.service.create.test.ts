@@ -2,6 +2,7 @@
 // whose token is the only thing the caller ever sees of it.
 
 import { afterAll, beforeAll, expect, mock, test } from 'bun:test';
+import { FREE_TIER_EVENTS_LIMIT } from '@openpanel/payments/prices';
 import { testCoreConfig } from '../../../test/config-fixture';
 
 interface CreateArgs {
@@ -12,12 +13,20 @@ const clientCreate = mock(async ({ data }: CreateArgs) => ({
   id: `client_${String(data.type)}`,
   ...data,
 }));
+// Organizations the user already created (Privytics: only the first one gets
+// the free allowance).
+let ownedOrganizations = 0;
 const dbMock = {
   organization: {
     create: mock(async ({ data }: CreateArgs) => ({ ...data })),
+    count: mock(async () => ownedOrganizations),
+    findUniqueOrThrow: mock(async () => ({ subscriptionState: 'free' })),
   },
   member: { create: mock(async () => ({})) },
-  project: { create: mock(async ({ data }: CreateArgs) => ({ ...data })) },
+  project: {
+    create: mock(async ({ data }: CreateArgs) => ({ ...data })),
+    count: mock(async () => 0),
+  },
   client: { create: clientCreate },
   // Both Prisma forms: the array of operations the organization uses, and
   // the callback the project and its clients run in.
@@ -133,4 +142,58 @@ test('resolves the referrer from utm_source and drops an empty first touch', asy
   );
   expect(toStoredAttribution({})).toBeUndefined();
   expect(toStoredAttribution(undefined)).toBeUndefined();
+});
+
+test("a user's first organization starts on the free tier with the allowance", async () => {
+  ownedOrganizations = 0;
+  dbMock.organization.create.mockClear();
+  const result = await createOnboardingProject(
+    deps,
+    {
+      organization: 'First',
+      project: 'First site',
+      domain: 'https://first.com',
+      cors: [],
+      website: true,
+      app: false,
+      backend: false,
+    },
+    'user_1'
+  );
+
+  const [call] = dbMock.organization.create.mock.calls;
+  expect(call?.[0].data.subscriptionStatus).toBe('free');
+  expect(call?.[0].data.subscriptionPeriodEventsLimit).toBe(
+    FREE_TIER_EVENTS_LIMIT
+  );
+  expect(call?.[0].data.subscriptionEndsAt).toBeUndefined();
+  expect(result.requiresPlan).toBe(false);
+});
+
+test('a second organization gets no allowance and is sent to billing', async () => {
+  // The test preload pins SELF_HOSTED=true; billing only exists on Cloud.
+  const selfHostedEnv = process.env.SELF_HOSTED;
+  process.env.SELF_HOSTED = 'false';
+  ownedOrganizations = 1;
+  dbMock.organization.create.mockClear();
+  const result = await createOnboardingProject(
+    deps,
+    {
+      organization: 'Second',
+      project: 'Second site',
+      domain: 'https://second.com',
+      cors: [],
+      website: true,
+      app: false,
+      backend: false,
+    },
+    'user_1'
+  );
+
+  const [call] = dbMock.organization.create.mock.calls;
+  expect(call?.[0].data.subscriptionStatus).toBe('free');
+  expect(call?.[0].data.subscriptionPeriodEventsLimit).toBe(0);
+  expect(result.requiresPlan).toBe(true);
+  ownedOrganizations = 0;
+  process.env.SELF_HOSTED = selfHostedEnv;
 });

@@ -12,7 +12,7 @@ import { clipboard } from '@/utils/clipboard';
 import { cn } from '@/utils/cn';
 import { trackFunnel } from '@/utils/funnel-tracking';
 
-const SERVER_NAME = 'openpanel';
+const SERVER_NAME = 'privytics';
 const PANEL = 'mcp';
 
 interface Connection {

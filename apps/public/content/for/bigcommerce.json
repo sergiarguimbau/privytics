@@ -1,0 +1,87 @@
+{
+  "slug": "bigcommerce",
+  "kind": "sdk",
+  "name": "BigCommerce",
+  "category": "Web",
+  "title": "BigCommerce analytics, cookieless and EU-hosted",
+  "description": "Add privacy-first, cookieless analytics to your BigCommerce store by pasting one snippet into Script Manager. No coding, no cookie banner for anonymous visitors, and your data is stored in the EU.",
+  "tagline": "Paste one snippet into Script Manager and your store starts counting visitors.",
+  "intro": "Privytics adds page-view and event analytics to any BigCommerce store through one snippet you paste into Script Manager. There is no coding and no plugin to install. Most stores track visitors with GA4, which needs a cookie consent banner for EU shoppers. Privytics is cookieless and EU-hosted, so you paste two tags and anonymous visitors need no consent banner.",
+  "why": [
+    {
+      "title": "Nothing is saved on your shopper's device",
+      "body": "The snippet sets no cookies and stores no identifier in the browser. Visitors are counted with an anonymous id that resets every day, so for the anonymous case there is nothing to consent to."
+    },
+    {
+      "title": "Works on every BigCommerce plan",
+      "body": "Script Manager injects into your storefront head on all plans, with no checkout-script gating. You are not blocked by a paywall or a higher tier, so nobody gets stuck."
+    },
+    {
+      "title": "Your data is stored in the EU",
+      "body": "Every event is stored in EU data centres in Germany. You remain the data controller, which keeps EU privacy rules simple."
+    },
+    {
+      "title": "No coding, ever",
+      "body": "You paste one snippet into a box and click Save. No plugin, no theme edits, no developer. Page views start arriving on their own."
+    }
+  ],
+  "steps": [
+    {
+      "title": "Open Script Manager in BigCommerce",
+      "body": "In your BigCommerce control panel, go to Storefront, then Script Manager, then click Create a Script. Give it a name like Privytics, set Location to Head, set Pages to All pages, set Select pages where to All pages, set Script category to Analytics, and set Script type to Script. This is available on every plan, so there is nothing to upgrade.",
+      "lang": "text",
+      "code": "Storefront > Script Manager > Create a Script\n\nName: Privytics\nLocation: Head\nPages: All pages\nSelect pages where: All pages\nScript category: Analytics\nScript type: Script"
+    },
+    {
+      "title": "Paste your Privytics snippet and save",
+      "body": "Paste the two tags below into the Script contents box, then replace YOUR_CLIENT_ID with your own Privytics client id. Click Save. If your store shows a cached page, a moment or a hard refresh may be needed before you see the change.",
+      "lang": "html",
+      "code": "<script>\n  window.op=window.op||function(){var n=[];return new Proxy(function(){arguments.length&&n.push([].slice.call(arguments))},{get:function(t,r){return\"q\"===r?n:function(){n.push([r].concat([].slice.call(arguments)))}} ,has:function(t,r){return\"q\"===r}}) }();\n  window.op('init', {\n    apiUrl: 'https://api.privytics.com',\n    clientId: 'YOUR_CLIENT_ID',\n    trackScreenViews: true,\n    trackOutgoingLinks: true,\n  });\n</script>\n<script src=\"https://privytics.com/op1.js\" defer async></script>"
+    },
+    {
+      "title": "Check that it is working",
+      "body": "Open your live store and click through a few pages. Page views are tracked automatically, so you do not have to set anything else up. Open Privytics and watch the Realtime view: your visits should appear within a few seconds. This automatic page-view tracking is the main value and it is now on for your whole store.",
+      "lang": "text",
+      "code": "1. Open your storefront and click a few pages.\n2. Open Privytics and go to Realtime.\n3. Watch your visits appear."
+    },
+    {
+      "title": "Track a button click (optional)",
+      "body": "Page views are already working, so this step is only if you also want to count a specific action, like an Add to Cart click. Create a second script the same way (Storefront > Script Manager > Create a Script, Location Head), and paste the snippet below. Change 'add_to_cart' to any name you like, and change the button text in quotes to match your button. Save. If you skip this step, your page-view install is still complete.",
+      "lang": "html",
+      "code": "<script>\n  document.addEventListener('click', function (e) {\n    var el = e.target.closest('button, a');\n    if (el && el.textContent.trim() === 'Add to Cart') {\n      window.op('track', 'add_to_cart');\n    }\n  });\n</script>"
+    }
+  ],
+  "faq": [
+    {
+      "q": "Do I need a paid plan for this?",
+      "a": "No. Privytics is free for 10,000 events per month with no card required. It also works on every BigCommerce plan, because Script Manager injects into the storefront head on all tiers. Paid Privytics plans add session replay and longer data retention."
+    },
+    {
+      "q": "Do I still need a cookie banner?",
+      "a": "Not for Privytics. The snippet writes nothing to the device and sends no cookie, so for the anonymous case there is nothing to consent to. Your BigCommerce default is usually GA4, which does need a consent banner in the EU, while Privytics is cookieless. You remain the data controller."
+    },
+    {
+      "q": "Where is my data stored?",
+      "a": "In the EU. Every event is stored in EU data centres in Germany, on infrastructure running the open-source OpenPanel engine. Nothing is stored on your shopper's device."
+    },
+    {
+      "q": "Can I track button clicks or events?",
+      "a": "Page views are tracked automatically once the snippet is in, and that alone is a complete install. To also count a specific action, add a second small Script Manager script that calls window.op('track', 'your_event_name') when the button is clicked, as shown in the optional step above. Deeper ecommerce tracking, like purchase values, would need a developer."
+    }
+  ],
+  "sourcesUsed": [
+    "BigCommerce Help Center: Script Manager (support.bigcommerce.com)",
+    "Privytics script-tag install (op1.js + window.op init)",
+    "OpenPanel web SDK source (packages/sdks/web: init-snippet.ts, index.ts) and base SDK (packages/sdks/sdk: index.ts)"
+  ],
+  "omitted": [
+    "No plan gate exists: Script Manager head injection and page-view tracking work on all BigCommerce plans, so no tier warning was needed.",
+    "Custom events are shown only as an optional second Script Manager script; richer ecommerce tracking (purchase value, product ids, order data) would need a developer and was left out to keep the page paste-and-save.",
+    "The data-track HTML attribute was deliberately not used: it needs an init option the pasted snippet does not set, so the only correct custom-event path shown is window.op('track', ...).",
+    "BigCommerce also has its own native Web Analytics and GA4 settings; those are separate and not covered here.",
+    "Script Manager output can be cached, so a change may take a moment or a hard refresh to appear.",
+    "Verified against the OpenPanel web SDK source: the init stub matches getInitSnippet() exactly (init-snippet.ts), apiUrl is a valid base-SDK option overridden to https://api.privytics.com, and trackScreenViews/trackOutgoingLinks are valid options. Confirmed in index.ts that the data-track attribute only fires when trackAttributes:true is set; since the pasted snippet omits trackAttributes, data-track would do nothing, so the page correctly avoids it and uses window.op('track', ...) for the optional custom event.",
+    "Verified BigCommerce supports first-party embeds: Script Manager injects scripts directly into the storefront head (not a sandboxed iframe), so window.op('track', ...) runs in the page. Custom events are genuinely supported here, unlike sandboxed-embed platforms, which is why the optional button-click step is kept rather than removed. Page views alone remain a complete, correct install.",
+    "Paste location verified: Storefront > Script Manager > Create a Script, with Location Head, Pages All pages, Select pages where All pages, Script category Analytics, Script type Script, matches the current BigCommerce Script Manager UI per the BigCommerce Help Center and the provided ground-truth path."
+  ]
+}

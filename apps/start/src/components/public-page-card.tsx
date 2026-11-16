@@ -33,11 +33,11 @@ export function PublicPageCard({
           <div className="col max-w-sm gap-1 p-6 text-muted-foreground text-sm">
             <p>
               Powered by{' '}
-              <a className="font-medium" href="https://openpanel.dev">
-                OpenPanel.dev
+              <a className="font-medium" href="https://privytics.com">
+                Privytics
               </a>
               {' · '}
-              <a href="https://dashboard.openpanel.dev/onboarding">
+              <a href="https://app.privytics.com/onboarding">
                 Try it for free today!
               </a>
             </p>

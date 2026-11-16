@@ -17,34 +17,31 @@ export type IPrice = {
   popular?: boolean;
 };
 
+// Privytics paid tiers (EUR). Stepped by event volume; no per-event/usage
+// billing. The free 10k tier is FREE_TIER_EVENTS_LIMIT below, not a product.
+// Above 10M events is custom pricing and is not a self-serve product.
 export const PRICING: IPrice[] = [
-  { price: 2.5, events: 5000 },
-  { price: 5, events: 10_000 },
-  { price: 20, events: 100_000 },
-  { price: 30, events: 250_000, popular: true },
-  { price: 50, events: 500_000 },
-  {
-    price: 90,
-    events: 1_000_000,
-    discount: {
-      code: '1MIL',
-      amount: 0.3,
-      id: '5113de97-76aa-4b16-a2ec-fb94edc47371',
-    },
-  },
-  { price: 180, events: 2_500_000 },
-  { price: 250, events: 5_000_000 },
-  { price: 350, events: 10_000_000 },
-  { price: 530, events: 20_000_000 },
-  { price: 680, events: 30_000_000 },
-  { price: 800, events: 40_000_000 },
-  { price: 900, events: 50_000_000 },
+  { price: 10, events: 100_000 },
+  { price: 20, events: 500_000 },
+  { price: 40, events: 1_000_000, popular: true },
+  { price: 100, events: 5_000_000 },
+  { price: 200, events: 10_000_000 },
 ];
 
-export const FREE_PRODUCT_IDS = [
-  'a18b4bee-d3db-4404-be6f-fba2f042d9ed', // Prod
-  '036efa2a-b3b4-4c75-b24a-9cac6bb8893b', // Sandbox
-];
+// The permanent free tier allowance. New organizations start here (see
+// packages/core/src/modules/onboarding/onboarding.service.ts), are metered
+// against it on a calendar-month window, and are hard-capped at ingestion once
+// they exceed it (see packages/core/src/modules/ingest/ingest.routes.ts).
+//
+// Upstream's FREE_PRODUCT_IDS list was removed with the dashboard block it fed:
+// on Privytics the free tier is the `free` subscription state, not a Polar
+// product, and it never locks an organization out.
+export const FREE_TIER_EVENTS_LIMIT = 10_000;
+
+// Currency for our own plan prices. Kept separate from the currency used to
+// display a customer's tracked revenue, which is their data and not ours to
+// relabel: the number formatter still defaults to USD for that.
+export const BILLING_CURRENCY = 'EUR';
 
 export function getRecommendedPlan<T>(
   monthlyEvents: number | undefined | null,
@@ -65,9 +62,9 @@ export function getRecommendedPlan<T>(
   return cb({
     ...price,
     formattedEvents: formatEventsCount(price.events),
-    formattedPrice: Intl.NumberFormat('en-US', {
+    formattedPrice: Intl.NumberFormat('en-IE', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'EUR',
     }).format(price.price),
   });
 }

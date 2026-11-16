@@ -21,7 +21,7 @@ export type Props = z.infer<typeof zWindDownBlocked>;
 export default WindDownBlocked;
 export function WindDownBlocked({
   firstName,
-  billingUrl = 'https://dashboard.openpanel.dev',
+  billingUrl = 'https://app.privytics.com',
   deleteDate,
   hasData = true,
   stillTracking = false,
@@ -67,7 +67,7 @@ export function WindDownBlocked({
           If pricing is the problem, reply — I'd rather find something that
           works than lose the data.
         </Text>
-        <Text>Carl</Text>
+        <Text>The Privytics team</Text>
       </Layout>
     );
   }
@@ -89,7 +89,7 @@ export function WindDownBlocked({
           If the workspace is still inactive on {deleteDate}, it and its data
           get removed. I'll send one more email before that happens.
         </Text>
-        <Text>Carl</Text>
+        <Text>The Privytics team</Text>
       </Layout>
     );
   }
@@ -106,14 +106,14 @@ export function WindDownBlocked({
         comes straight back.
       </Text>
       {cta}
-      <Text>Carl</Text>
+      <Text>The Privytics team</Text>
     </Layout>
   );
 }
 
 WindDownBlocked.PreviewProps = {
   firstName: 'Alex',
-  billingUrl: 'https://dashboard.openpanel.dev/org-id/billing',
+  billingUrl: 'https://app.privytics.com/org-id/billing',
   deleteDate: 'April 10',
   hasData: true,
   stillTracking: true,

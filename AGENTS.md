@@ -1,5 +1,14 @@
 # OpenPanel — agent guide
 
+> **Privytics fork rules (these override anything below):**
+> - **Never run a formatter or auto-fixer**: no `bun run fix`, `npx ultracite
+>   fix`, `biome format`/`check --write` or `prettier --write`, including the
+>   "before you finish" step further down. We format later, in one dedicated
+>   change.
+> - Never run `bun run migrate:deploy` against production, and never change
+>   model ids, billing or free-tier behaviour without reading
+>   `packages/payments/PRIVYTICS_BILLING.md` and `docs/upstream-sync.md`.
+
 **If `WORKTREE.md` exists in the repo root, read it before anything else.** The tooling
 that created this worktree generates it: URLs, ports, database names, the seeded login
 and client secrets, where the process logs are and how to restart a process. Never guess

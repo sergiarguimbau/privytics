@@ -215,7 +215,7 @@ function instructions(input: FilterCommandInput): string {
     timeZone: 'UTC',
   });
   return [
-    "You are the OpenPanel filter command bar. Convert the user's short request into a structured filter update and one short confirmation sentence.",
+    "You are the Privytics filter command bar. Convert the user's short request into a structured filter update and one short confirmation sentence.",
     '',
     `Today is ${weekday}, ${today} (UTC).`,
     '',

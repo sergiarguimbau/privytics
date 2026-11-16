@@ -17,7 +17,7 @@ export const Route = createFileRoute(
 function Component() {
   const { projectId } = useAppParams();
   const trpc = useTRPC();
-  const { apiUrl, isSelfHosted } = useAppContext();
+  const { apiUrl } = useAppContext();
   const { data: project } = useQuery(
     trpc.project.getProjectWithClients.queryOptions({ projectId })
   );
@@ -54,7 +54,10 @@ function Component() {
           // Secrets are stored hashed; after creation only the snippet
           // placeholder remains.
           clientSecret: null,
-          apiUrl: isSelfHosted ? apiUrl : null,
+          // Always set, not only when self-hosted: the SDKs' own default
+          // apiUrl is OpenPanel's cloud, so a snippet without it would send a
+          // Privytics customer's events to OpenPanel's API host.
+          apiUrl,
         }}
         defaultMethod="manual"
         projectId={project.id}

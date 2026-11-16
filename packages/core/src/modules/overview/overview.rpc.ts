@@ -3,6 +3,7 @@
 // parser.
 
 import { getChartPrevStartEndDate } from '@openpanel/shared';
+import { TRPCError } from '@trpc/server';
 import { format } from 'date-fns';
 import { z } from 'zod';
 import {
@@ -11,11 +12,13 @@ import {
   publicProcedure,
   type TrpcContext,
 } from '../../rpc/base';
-import { TRPCForbiddenError } from '../../rpc/errors';
+import { TRPCForbiddenError, TRPCNotFoundError } from '../../rpc/errors';
 import type { ServiceDeps } from '../../services';
+import { checkChatLimits, resolveChatTier } from '../assistant/src/limits';
 import { getConversionEventNames } from '../event/event.service';
 import { getReferrerSpikes } from '../insight/insight.service';
 import {
+  getOrganizationByProjectIdCached,
   getOrganizationSubscriptionChartEndDate,
   getSettingsForProject,
 } from '../organization/organization.service';
@@ -420,18 +423,38 @@ export const overviewRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.userId;
       await ctx.services.auth.requireProjectAccess({
-        userId: ctx.session.userId,
+        userId,
         projectId: input.projectId,
         level: 'read',
       });
-      const { timezone } = await getSettingsForProject(ctx, input.projectId);
+      // Privytics: a model turn on the operator's key, so it gets the chat's
+      // paid-only gate and spend limits, as draftReport does.
+      const [organization, { timezone }] = await Promise.all([
+        getOrganizationByProjectIdCached(ctx, input.projectId),
+        getSettingsForProject(ctx, input.projectId),
+      ]);
+      if (!organization) {
+        throw new TRPCNotFoundError('Project not found');
+      }
+      const limited = await checkChatLimits(ctx, {
+        organizationId: organization.id,
+        userId,
+        tier: resolveChatTier(organization, ctx.config.selfHosted),
+      });
+      if (limited) {
+        throw new TRPCError({
+          code: 'TOO_MANY_REQUESTS',
+          message: limited.message,
+        });
+      }
       return ctx.services.assistant.runFilterCommand({
         query: input.query,
         projectId: input.projectId,
         pageContext: input.pageContext,
         timezone: timezone || 'UTC',
-        userId: ctx.session.userId,
+        userId,
       });
     }),
 

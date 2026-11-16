@@ -1,181 +1,88 @@
 {
   "slug": "wordpress",
-  "audience": "wordpress",
-  "seo": {
-    "title": "WordPress Analytics Without Cookies, A Google Analytics Alternative",
-    "description": "Add privacy-first analytics to your WordPress site without cookie consent banners. OpenPanel is cookieless, open source, has a WordPress plugin, and starts at $2.50/month: a better alternative to GA4 for WordPress.",
-    "noindex": false
-  },
-  "hero": {
-    "heading": "WordPress analytics without the cookie banner",
-    "subheading": "Google Analytics on WordPress means cookie consent popups, GDPR complexity and visitor data on US servers. OpenPanel is a cookieless analytics platform with a WordPress plugin: pageviews, events and user behaviour, hosted in the EU, with no privacy headaches.",
-    "badges": [
-      "No cookie banner needed",
-      "GDPR compliant",
-      "Open source",
-      "Lightweight, 3 KB"
-    ]
-  },
-  "problem": {
-    "title": "Why Google Analytics on WordPress creates problems",
-    "intro": "WordPress powers 40% of the web, but GA4 was not designed with WordPress privacy requirements in mind.",
-    "items": [
-      {
-        "title": "Google Analytics requires cookie consent on WordPress",
-        "description": "Installing GA4 on a WordPress site means a consent popup for every visitor. Under GDPR, you can't set GA4 cookies without explicit opt-in. That banner costs you conversions and corrupts your data."
-      },
-      {
-        "title": "GA4 sends data to US servers",
-        "description": "Google Analytics transfers visitor data to US servers. For European sites, this creates legal exposure under Schrems II, a risk WordPress site owners increasingly can't ignore."
-      },
-      {
-        "title": "WordPress analytics plugins are bloated",
-        "description": "Most GA4 WordPress plugins add significant weight to your site. Page speed suffers, Core Web Vitals drop, and you are still dealing with cookies."
-      },
-      {
-        "title": "You can't see user behavior, only pageviews",
-        "description": "GA4 tells you how many people visited. OpenPanel tells you what they did: which CTAs they clicked, where they dropped off, which blog posts convert to signups."
-      }
-    ]
-  },
-  "features": {
-    "title": "Privacy-first analytics for WordPress",
-    "intro": "OpenPanel gives WordPress site owners complete visibility without the cookie compliance headaches.",
-    "items": [
-      {
-        "title": "Official WordPress plugin",
-        "description": "Install the OpenPanel WordPress plugin, paste your client id, and page view tracking starts. The plugin also proxies the script and the events through your own domain, so ad blockers do not drop them."
-      },
-      {
-        "title": "Automatic page view tracking",
-        "description": "Every page, post and custom post type is tracked automatically, along with outgoing links. No configuration for standard pageview analytics."
-      },
-      {
-        "title": "Cookie-free by default",
-        "description": "No cookies, no localStorage, no raw IP on events. GDPR, CCPA and ePrivacy without a banner or any configuration."
-      },
-      {
-        "title": "Custom event tracking",
-        "description": "Track clicks, form submissions and conversions with one JavaScript call, or add data-track attributes to buttons and links with no code. Know which CTAs and forms bring leads."
-      },
-      {
-        "title": "UTM campaign tracking",
-        "description": "See which emails, ads and social posts bring traffic to your site, and which ones convert, with source, medium, campaign, term and content on every session."
-      },
-      {
-        "title": "Lightweight script, about 3 KB",
-        "description": "The tracker is a fraction of the size of GA4 and loads async. No impact on Core Web Vitals or PageSpeed scores."
-      },
-      {
-        "title": "Self-hostable on your own server",
-        "description": "Run OpenPanel on your own server with Docker Compose and one install script. Your visitor data never leaves your infrastructure."
-      }
-    ]
-  },
-  "benefits": {
-    "title": "Why WordPress site owners switch to OpenPanel",
-    "intro": "OpenPanel replaces Google Analytics without sacrificing features, and fixes the privacy problems GA4 created.",
-    "items": [
-      {
-        "title": "No consent banner required",
-        "description": "Cookieless tracking means you're GDPR-compliant without a popup. No lost conversions, no fragmented data from opt-outs."
-      },
-      {
-        "title": "Replace Google Analytics without losing features",
-        "description": "Pageviews, referrers, countries, devices and UTM campaigns are all there, plus events, funnels and retention that GA4 needs complex configuration to approach."
-      },
-      {
-        "title": "Your data stays out of Google's hands",
-        "description": "OpenPanel Cloud is hosted on Hetzner in Germany with no data sharing. Ideal for European sites, publishers and anyone avoiding Google."
-      },
-      {
-        "title": "Open source and auditable",
-        "description": "Unlike GA4, OpenPanel's code is public. You can see exactly what data is collected and how it's processed."
-      },
-      {
-        "title": "Affordable pricing",
-        "description": "From $2.50 a month for small sites. Self-host for free if you prefer: the full product, no event limits, releases a month or two behind Cloud."
-      }
-    ]
-  },
-  "faqs": {
-    "title": "Frequently asked questions",
-    "intro": "Common questions from WordPress site owners evaluating OpenPanel.",
-    "items": [
-      {
-        "question": "How do I install OpenPanel on WordPress?",
-        "answer": "Install the OpenPanel plugin from the WordPress plugin directory, activate it and paste your client id. Page views track immediately. If you prefer, add the script tag to your theme's header.php or any header scripts plugin instead."
-      },
-      {
-        "question": "Do I need a cookie consent banner with OpenPanel?",
-        "answer": "No. OpenPanel sets no cookies and stores no raw IP, so cookie consent does not apply. Under GDPR, consent is required when you use cookies or similar storage; OpenPanel does not."
-      },
-      {
-        "question": "Is there an OpenPanel WordPress plugin?",
-        "answer": "Yes. Search for \"OpenPanel\" in Plugins, Add New, install it and paste your client id. The plugin loads the tracker and proxies it through your own domain. You can also add the script tag manually."
-      },
-      {
-        "question": "How does OpenPanel compare to MonsterInsights or Analytify?",
-        "answer": "Those plugins are wrappers around Google Analytics: they still send data to Google and still need cookies. OpenPanel is an independent platform that is cookieless by default and stores data in Germany."
-      },
-      {
-        "question": "Can I track WooCommerce events?",
-        "answer": "Yes. Hook into WooCommerce's actions (woocommerce_thankyou, add to cart) to send events, and send the order total as a revenue event from the thank-you page or your backend. No dedicated WooCommerce plugin required."
-      },
-      {
-        "question": "Does OpenPanel affect WordPress site speed?",
-        "answer": "The tracker is about 3 KB gzipped and loads async; GA4 with a wrapper plugin is many times larger. Switching from GA4 will likely improve your Core Web Vitals."
-      }
-    ]
-  },
-  "related_links": {
-    "guides": [
-      {
-        "title": "Ecommerce tracking setup",
-        "url": "/guides/ecommerce-tracking"
-      },
-      {
-        "title": "Website analytics setup",
-        "url": "/guides/website-analytics-setup"
-      },
-      {
-        "title": "OpenPanel WordPress plugin",
-        "url": "https://sv.wordpress.org/plugins/openpanel/"
-      }
-    ],
-    "articles": [
-      {
-        "title": "Cookieless analytics explained",
-        "url": "/articles/cookieless-analytics"
-      },
-      {
-        "title": "How to self-host OpenPanel",
-        "url": "/articles/self-hosted-web-analytics"
-      }
-    ],
-    "comparisons": [
-      {
-        "title": "OpenPanel vs Google Analytics",
-        "url": "/compare/google-analytics-alternative"
-      },
-      {
-        "title": "OpenPanel vs Plausible",
-        "url": "/compare/plausible-alternative"
-      },
-      {
-        "title": "OpenPanel vs Matomo",
-        "url": "/compare/matomo-alternative"
-      }
-    ]
-  },
-  "ctas": {
-    "primary": {
-      "label": "Try OpenPanel Free",
-      "href": "https://dashboard.openpanel.dev/onboarding"
+  "kind": "sdk",
+  "name": "WordPress",
+  "category": "Web",
+  "title": "WordPress analytics, cookieless and EU-hosted",
+  "description": "Add cookieless, EU-hosted analytics to any WordPress site by pasting one snippet into a free header-code plugin. No coding, no theme files, works with any theme or page builder.",
+  "tagline": "Cookieless analytics for WordPress in about five minutes, no code required.",
+  "intro": "Privytics is cookieless, EU-hosted analytics for WordPress. You add it by pasting one snippet into a free plugin, so there is no coding and no theme files to touch. It works with any theme or page builder, and your page views start counting the moment you save. The whole thing takes about five minutes.",
+  "why": [
+    {
+      "title": "No coding, works with any theme",
+      "body": "You paste one snippet into a free plugin. It does not matter whether you use a classic theme, a block theme, or a builder like Elementor or Divi. There is nothing to set up in your theme and no files to edit."
     },
-    "secondary": {
-      "label": "View Source on GitHub",
-      "href": "https://github.com/Openpanel-dev/openpanel"
+    {
+      "title": "Cookieless, so a simpler banner story",
+      "body": "Privytics sets no tracking cookies. It counts visitors with a daily-changing anonymous fingerprint instead of a stored id, so there are no analytics cookies to list in a cookie banner. Whether your site still needs a banner depends on your other tools, but Privytics adds none."
+    },
+    {
+      "title": "Installs in minutes, removes just as easily",
+      "body": "The whole setup is one snippet in one box, so it takes a few minutes. To undo it, you just delete the snippet. There are no database changes and nothing left behind."
+    },
+    {
+      "title": "Running a shop? Track sales too",
+      "body": "If you sell with WooCommerce and want orders and revenue, follow the Privytics WooCommerce guide. It adds sales tracking on top of the page views you set up here."
     }
-  }
+  ],
+  "steps": [
+    {
+      "title": "Install a free plugin",
+      "body": "In your WordPress dashboard, go to Plugins, then Add New Plugin. Search for WPCode, then click Install Now and Activate. WPCode is free and lets you add code to your whole site from one box, so you never have to open a theme file. Any header-and-footer code plugin works the same way; these steps use WPCode.",
+      "lang": "text",
+      "code": "Plugins  >  Add New Plugin  >  search \"WPCode\"  >  Install  >  Activate"
+    },
+    {
+      "title": "Paste the snippet and save",
+      "body": "In the left menu open WPCode, then Header & Footer. Paste the snippet below into the Header box and click Save Changes. You do not need to understand the code, just copy it exactly. The one thing to change is YOUR_CLIENT_ID: replace it with the client id from your Privytics dashboard, keeping the quote marks.",
+      "lang": "html",
+      "code": "<script>\n  window.op=window.op||function(){var n=[];return new Proxy(function(){arguments.length&&n.push([].slice.call(arguments))},{get:function(t,r){return\"q\"===r?n:function(){n.push([r].concat([].slice.call(arguments)))}} ,has:function(t,r){return\"q\"===r}}) }();\n  window.op('init', {\n    apiUrl: 'https://api.privytics.com',\n    clientId: 'YOUR_CLIENT_ID',\n    trackScreenViews: true,\n    trackOutgoingLinks: true,\n  });\n</script>\n<script src=\"https://privytics.com/op1.js\" defer async></script>"
+    },
+    {
+      "title": "Check that it is working",
+      "body": "That is the whole setup. Open your website and click through a page or two, then open your Privytics dashboard and look at the Realtime view: your visits show up within a few seconds, and page views keep counting on their own from now on. One tip: if your site uses a caching plugin, clear its cache once so the snippet is live for every visitor.",
+      "lang": "text",
+      "code": "Your site  >  click through a few pages\nPrivytics dashboard  >  Realtime  >  watch your visits appear"
+    }
+  ],
+  "faq": [
+    {
+      "q": "Do I need a developer or to edit any files?",
+      "a": "No. Install a free plugin like WPCode, paste the snippet into its Header box, and save. Nothing touches your theme files. If you would rather add it in code, a developer can put the same two tags into a child theme's functions.php using the wp_head hook, but that is optional and most sites do not need it."
+    },
+    {
+      "q": "Does Privytics set cookies or need a cookie banner?",
+      "a": "Privytics is cookieless. It counts visitors with a daily-changing anonymous fingerprint rather than a stored id, so it sets no tracking cookies and there are none to list in a banner. Whether your site still needs a banner depends on your other tools, but Privytics itself adds none."
+    },
+    {
+      "q": "I pasted the snippet but see no data. What is wrong?",
+      "a": "The usual cause is caching. If you use a caching plugin such as WP Super Cache, W3 Total Cache or LiteSpeed, or a CDN like Cloudflare, clear the cache and reload. Then check that you replaced YOUR_CLIENT_ID with your real client id, and that you pasted the snippet into the Header box (not Footer)."
+    },
+    {
+      "q": "Can I track clicks, events, or WooCommerce sales?",
+      "a": "Page views track automatically. To record a specific action like a signup, call window.op('track', 'signup') from a Custom HTML block on the page where it happens, for example a thank-you page. For shop orders and revenue, follow the Privytics WooCommerce guide. For most sites, the automatic page views are all you need."
+    }
+  ],
+  "sourcesUsed": [
+    "https://openpanel.dev/docs/sdks/script",
+    "https://developer.wordpress.org/reference/hooks/wp_head/",
+    "https://developer.wordpress.org/reference/functions/add_action/",
+    "https://developer.wordpress.org/themes/advanced-topics/child-themes/",
+    "https://wordpress.org/plugins/insert-headers-and-footers/",
+    "https://wordpress.org/plugins/wp-headers-and-footers/",
+    "https://www.wpbeginner.com/plugins/how-to-add-header-and-footer-code-in-wordpress/",
+    "Local repo: apps/api/src/routes/track.router.ts, apps/api/src/utils/auth.ts (verified ingestion contract), packages/sdks/web/src/init-snippet.ts (verified op stub byte-for-byte), packages/sdks/web/src/index.ts (verified trackScreenViews/trackOutgoingLinks/trackAttributes options), packages/validation/src/track.validation.ts (verified zTrackPayload shape)"
+  ],
+  "omitted": [
+    "Simplified for clarity after feedback that the first version was hard to understand. Changes: (1) removed op1.js / window.op / 'OpenPanel engine' jargon from the intro; (2) reduced to three no-code steps (install, paste, check) instead of four; (3) dropped the data-track event tutorial from the steps because it required editing the pasted snippet (trackAttributes is not set in it), which confused non-technical readers; (4) moved the functions.php / wp_head code path and custom-event tracking into plain FAQ answers instead of numbered steps.",
+    "Custom events: the guide no longer shows the data-track attribute. Verified in packages/sdks/web/src/index.ts that data-track only fires when trackAttributes:true is set, which the pasted snippet deliberately does not set. The events FAQ uses window.op('track', ...) from a Custom HTML block instead, which works with the pasted snippet as-is and fires on page load (accurate for thank-you-page style events, not raw button-click tracking).",
+    "The functions.php / wp_head code alternative is real and verified (add_action('wp_head', cb) with static HTML cannot fatal a site) but is now mentioned only in the 'do I need a developer' FAQ, to keep the main flow no-code. The tags it would print are the same two shown in step 2.",
+    "window.op stub reproduced byte-for-byte from getInitSnippet() in packages/sdks/web/src/init-snippet.ts (including the '}} ,has:' spacing). Left unchanged.",
+    "Hosts: the snippet sets apiUrl to https://api.privytics.com and loads the tracker from https://privytics.com/op1.js. The op1.js file is served by the marketing site itself (apps/public/public/op1.js), so the URL resolves once privytics.com is deployed.",
+    "Header-code plugin: step 1 leads with WPCode (WordPress.org slug insert-headers-and-footers) only, to avoid the near-identical-name collision with the separate 'Insert Headers and Footers' plugin. Exact WPCode menu labels (Header & Footer > Header) can shift between versions and were taken from research, not re-verified against a live install this session.",
+    "Caching guidance names WP Super Cache, W3 Total Cache, LiteSpeed and Cloudflare as common cases; standard operational practice, not re-verified against each product's docs this session.",
+    "No PHP SDK and no official Privytics/OpenPanel WordPress plugin exist, so the optional code path uses raw WordPress hooks and step 1 recommends a generic third-party plugin. The copy does not imply any official plugin.",
+    "Cookieless wording simplified to 'daily-changing anonymous fingerprint' in the reader-facing copy (the precise mechanism is a daily-rotating salted hash of IP, user agent and project id). Not legal advice; whether a site needs a consent banner depends on its other scripts and jurisdiction.",
+    "Plan details (10,000 events/month free, 12-month free / 5-year paid retention, session replay on paid) are left off this install-focused page."
+  ]
 }

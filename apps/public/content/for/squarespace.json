@@ -1,0 +1,85 @@
+{
+  "slug": "squarespace",
+  "kind": "sdk",
+  "name": "Squarespace",
+  "category": "Web",
+  "title": "Squarespace analytics, cookieless and EU-hosted",
+  "description": "Add privacy-first, cookieless analytics to your Squarespace site by pasting one snippet into the Code Injection header. No coding, EU-hosted, and no cookie banner for anonymous visitors.",
+  "tagline": "Paste one snippet, get clean traffic numbers, skip the cookie banner.",
+  "intro": "Privytics adds privacy-first analytics to Squarespace with one snippet you paste into a single box. There is no coding and no plugin to install. Most Squarespace owners reach for GA4, which needs a cookie consent banner for EU visitors. Privytics is cookieless and EU-hosted, so you paste it once, save, and page views start arriving with no banner to manage.",
+  "why": [
+    {
+      "title": "No cookie banner to manage",
+      "body": "The snippet sets no cookies and stores no identifier, so for anonymous visitors there is nothing to consent to. You skip the consent popup that GA4 needs for EU traffic."
+    },
+    {
+      "title": "Nothing is saved on the visitor's device",
+      "body": "Privytics counts visitors with an anonymous id that resets every day. Nothing is written to the browser, so there is nothing to clear or explain."
+    },
+    {
+      "title": "Your data is stored in the EU",
+      "body": "Your traffic data is stored in EU data centres in Germany. You remain the data controller for your site."
+    },
+    {
+      "title": "Free to start, no card",
+      "body": "The free plan covers 10,000 events a month with no credit card. That is plenty for most Squarespace sites, and you can upgrade later for session replay and longer history."
+    }
+  ],
+  "steps": [
+    {
+      "title": "Open the Code Injection header box",
+      "body": "In your Squarespace dashboard, go to Settings, then Advanced, then Code Injection. You will see a box labeled Header. Code Injection is a paid feature: you need one of the plans that includes it, which are Core, Plus, or Advanced. The cheaper Basic plan and the older Personal plan do not have it, so confirm your plan first. Everything else happens in this one box.",
+      "lang": "text",
+      "code": "Settings > Advanced > Code Injection > Header"
+    },
+    {
+      "title": "Paste the snippet and add your client id",
+      "body": "Copy the two tags below and paste them into the Header box. Replace YOUR_CLIENT_ID with the client id from your Privytics project, then click Save. Squarespace applies this to every page, so you only do it once. It can take a minute to go live, so give it a moment before you check.",
+      "lang": "html",
+      "code": "<script>\n  window.op=window.op||function(){var n=[];return new Proxy(function(){arguments.length&&n.push([].slice.call(arguments))},{get:function(t,r){return\"q\"===r?n:function(){n.push([r].concat([].slice.call(arguments)))}} ,has:function(t,r){return\"q\"===r}}) }();\n  window.op('init', {\n    apiUrl: 'https://api.privytics.com',\n    clientId: 'YOUR_CLIENT_ID',\n    trackScreenViews: true,\n    trackOutgoingLinks: true,\n  });\n</script>\n<script src=\"https://privytics.com/op1.js\" defer async></script>"
+    },
+    {
+      "title": "Check that page views are arriving",
+      "body": "Open your live site in a normal browser tab and click around a few pages. Then open your Privytics dashboard: within a minute or two you will see those page views appear. Page views and outgoing link clicks are tracked automatically, so once you see them, you are done. This is the main value and it needs no extra setup.",
+      "lang": "text",
+      "code": "Privytics dashboard > Realtime"
+    },
+    {
+      "title": "Optional: track one button click",
+      "body": "Page views need nothing extra. If you also want to count a specific action, like clicks on a Book Now button, add a Code Block to that page. Edit the page, click an insert point, choose Code, and paste the small button below. When a visitor clicks it, Privytics records a book_now_click event, and you can rename book_now_click to anything you like. Code Blocks that run JavaScript are on the same paid plans that give you Code Injection, and they only show on the live site, not in the editor preview. Leave the snippet from step 2 exactly as it is.",
+      "lang": "html",
+      "code": "<button onclick=\"window.op('track', 'book_now_click')\">Book Now</button>"
+    }
+  ],
+  "faq": [
+    {
+      "q": "Do I need a paid Squarespace plan?",
+      "a": "Yes for the setup. Code Injection is a paid feature, included on the Core, Plus, and Advanced plans but not the cheaper Basic plan or the older Personal plan, so confirm your plan first. Privytics itself is free to start, with 10,000 events a month and no credit card."
+    },
+    {
+      "q": "Do I still need a cookie banner?",
+      "a": "The default snippet writes nothing to the device and sends no cookie, so for the anonymous case there is nothing to consent to. You remain the data controller."
+    },
+    {
+      "q": "Where is my data stored?",
+      "a": "In the EU. Your data is stored in Germany. Event history is kept for 12 months on the free plan and 5 years on paid plans, which also add session replay."
+    },
+    {
+      "q": "Can I track button clicks or events?",
+      "a": "Yes. Page views and outgoing link clicks are automatic. For a specific click, add a Squarespace Code Block that calls window.op('track', 'your_event'), as shown in the last step. Code Blocks with JavaScript need a paid plan and only run on the live site, not the editor preview."
+    }
+  ],
+  "sourcesUsed": [
+    "Squarespace Help Center: Using code injection (path Settings > Advanced > Code Injection > Header; available on Core, Plus, Advanced and some legacy plans, not Personal)",
+    "Squarespace Help Center: Code Blocks (custom HTML/JavaScript render inline in the page on paid plans; hidden in logged-in editor, run for visitors on the live site)",
+    "Privytics script-tag install (op1.js + window.op init, apiUrl https://api.privytics.com)"
+  ],
+  "omitted": [
+    "Plan gate: Code Injection requires a qualifying paid plan (Core, Plus, or Advanced); the current entry Basic plan and the legacy Personal plan do not include it. Stated in step 1 and the FAQ.",
+    "Custom-event caveat: Squarespace Code Blocks that run JavaScript also require a paid plan and do not render in the editor preview, only on the published live site. Noted in the optional step and FAQ.",
+    "We did not use the data-track attribute. The pasted init snippet does not enable trackAttributes, and Squarespace no-code buttons cannot carry a raw HTML attribute, so custom events use window.op('track', ...) from a first-party Code Block instead.",
+    "Simplification: left out advanced OpenPanel options (domain filtering, identified profiles, manual screen-view tracking) to keep the guide to paste-and-go. The pasted snippet was not modified.",
+    "Verified July 2026 against the Squarespace Help Center (Using code injection): the path Settings > Advanced > Code Injection > Header is current, and Code Injection is available on Core, Plus, Advanced and some legacy plans but not the current Basic plan or the legacy Personal plan. Step 1 and the FAQ were adjusted to name Basic as well as Personal so a Basic-plan reader is not misled.",
+    "Verified Squarespace Code Blocks inject JavaScript inline into the page (first-party, same window and DOM), not a sandboxed iframe like Wix, so window.op('track', ...) from a Code Block reaches the global window.op set by the header snippet. Scripts are hidden in the logged-in editor and run for visitors on the live site, which the optional step already states. Sources: Squarespace Help Center Code Blocks; whatsquare.space Squarespace Code Block guide."
+  ]
+}

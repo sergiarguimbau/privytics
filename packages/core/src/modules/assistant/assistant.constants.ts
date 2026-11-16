@@ -1,3 +1,4 @@
+import type { SubscriptionState } from '@openpanel/payments/subscription-state';
 import { z } from 'zod';
 
 export type ChatProvider = 'openai' | 'anthropic';
@@ -22,41 +23,16 @@ export interface ChatModelEntry {
 }
 
 export const CHAT_MODELS = [
+  // Privytics: only these two models are approved (cost and key scope).
+  // Never restore upstream's wider catalog on a merge.
   {
-    id: 'gpt-6-1-sol',
-    modelId: 'gpt-6.1-sol',
-    label: 'GPT-6.1 Sol',
+    id: 'gpt-6-luna',
+    modelId: 'gpt-6-luna',
+    label: 'GPT-6 Luna',
     provider: 'openai',
     tier: 'balanced',
     reasoning: 'low',
     description: 'Quick and capable. The default.',
-  },
-  {
-    id: 'gpt-5-4-mini',
-    modelId: 'gpt-5.4-mini',
-    label: 'GPT-5.4 mini',
-    provider: 'openai',
-    tier: 'fast',
-    reasoning: 'low',
-    description: 'Fastest and cheapest.',
-  },
-  {
-    id: 'gpt-5-5',
-    modelId: 'gpt-5.5',
-    label: 'GPT-5.5',
-    provider: 'openai',
-    tier: 'deep',
-    reasoning: 'medium',
-    description: 'Slower. Thinks harder on tricky analysis.',
-  },
-  {
-    id: 'claude-sonnet-5-5',
-    modelId: 'claude-sonnet-5-5',
-    label: 'Claude Sonnet 5.5',
-    provider: 'anthropic',
-    tier: 'balanced',
-    reasoning: 'low',
-    description: 'Quick and capable.',
   },
   {
     id: 'claude-haiku-5-5',
@@ -67,26 +43,17 @@ export const CHAT_MODELS = [
     reasoning: 'low',
     description: 'Fastest and cheapest.',
   },
-  {
-    id: 'claude-opus-5-5',
-    modelId: 'claude-opus-5-5',
-    label: 'Claude Opus 5.5',
-    provider: 'anthropic',
-    tier: 'deep',
-    reasoning: 'medium',
-    description: 'Slower. Thinks harder on tricky analysis.',
-  },
 ] as const satisfies readonly ChatModelEntry[];
 
 export type ChatModelId = (typeof CHAT_MODELS)[number]['id'];
 
 /** Bumped when the default changes so a stale pinned model does not stick. */
-export const MODEL_STORAGE_KEY = 'op-chat-model-v3';
+export const MODEL_STORAGE_KEY = 'op-chat-model-v4';
 
 /** OpenAI first: Cloud already runs with that key. */
 export const DEFAULT_MODEL_BY_PROVIDER = {
-  openai: 'gpt-6-1-sol',
-  anthropic: 'claude-sonnet-5-5',
+  openai: 'gpt-6-luna',
+  anthropic: 'claude-haiku-5-5',
 } as const satisfies Record<ChatProvider, ChatModelId>;
 
 export type ConfiguredProviders = Record<ChatProvider, boolean>;
@@ -223,6 +190,16 @@ export const CHAT_TIERS = [
   'blocked',
 ] as const;
 export type ChatTier = (typeof CHAT_TIERS)[number];
+
+// Privytics: the assistant runs on the operator's own LLM key, so it is a paid
+// feature. The free plan, a paused plan and an unfinished checkout get no AI.
+const NO_CHAT_STATES: ReadonlySet<SubscriptionState> =
+  new Set<SubscriptionState>(['free', 'paused', 'incomplete']);
+
+/** True when the server refuses AI for this plan state; the dashboard hides AI controls on it. */
+export function isChatBlockedState(state: SubscriptionState): boolean {
+  return NO_CHAT_STATES.has(state);
+}
 
 /** Messages one workspace may send per UTC day. `null` is no cap. */
 export const CHAT_MESSAGES_PER_DAY: Record<ChatTier, number | null> = {

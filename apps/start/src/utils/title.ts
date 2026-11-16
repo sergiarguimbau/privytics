@@ -1,4 +1,6 @@
-const BASE_TITLE = 'OpenPanel.dev';
+import { BRAND } from '@/brand';
+
+const BASE_TITLE = BRAND.name;
 
 export function createTitle(
   pageTitle: string,

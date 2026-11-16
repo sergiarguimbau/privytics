@@ -211,7 +211,7 @@ export const OverviewWidgetTable = <T,>({
           return (
             <div className="!p-0 absolute top-0 left-0 h-full w-full">
               <div
-                className="relative h-full bg-def-200 transition-colors group-hover/row:bg-blue-200 dark:group-hover/row:bg-blue-900"
+                className="relative h-full bg-def-200 transition-colors group-hover/row:bg-teal-200 dark:group-hover/row:bg-teal-900"
                 style={{
                   width: `${getColumnPercentage(item) * 100}%`,
                 }}

@@ -3,6 +3,7 @@ import { stubHttpCtx } from '../../../test/rpc-fixtures';
 import { makeTrpcContext } from '../../rpc/base';
 import { TRPCForbiddenError } from '../../rpc/errors';
 import type { CookieOptions } from '../../shared/cookie';
+import { canImport } from './import.routes';
 import { importRouter } from './import.rpc';
 
 const COOKIE_OPTIONS: CookieOptions = {
@@ -167,3 +168,146 @@ test('create refuses an Umami mapping into a project the caller cannot write', a
   });
   expect(create).not.toHaveBeenCalled();
 });
+
+// Privytics: imports write straight into `events`, past the free hard cap.
+const FREE_ORG = {
+  subscriptionStatus: 'free',
+  subscriptionCanceledAt: null,
+  subscriptionEndsAt: null,
+  subscriptionPauseAtPeriodEnd: false,
+  subscriptionPeriodEventsLimit: 10_000,
+  // True on free in Privytics, so it must not be what gates imports.
+  isActive: true,
+};
+
+async function withCloudStates(fn: () => Promise<void>) {
+  // test/preload.ts pins SELF_HOSTED=true, which reads every org as self_hosted.
+  const preloadSelfHosted = process.env.SELF_HOSTED;
+  process.env.SELF_HOSTED = 'false';
+  try {
+    await fn();
+  } finally {
+    process.env.SELF_HOSTED = preloadSelfHosted;
+  }
+}
+
+test('canImport is paid-only, and always on for self-hosted installs', () =>
+  withCloudStates(async () => {
+    const paid = {
+      ...FREE_ORG,
+      subscriptionStatus: 'active',
+      subscriptionPeriodEventsLimit: 100_000,
+    };
+    expect(canImport(FREE_ORG, false)).toBe(false);
+    expect(
+      canImport({ ...FREE_ORG, subscriptionStatus: 'paused' }, false)
+    ).toBe(false);
+    // An unpaid checkout is hard-capped at ingest like free.
+    expect(
+      canImport({ ...paid, subscriptionStatus: 'incomplete' }, false)
+    ).toBe(false);
+    expect(
+      canImport({ ...paid, subscriptionPeriodEventsLimit: 0 }, false)
+    ).toBe(false);
+    expect(canImport(null, false)).toBe(false);
+    expect(canImport(paid, false)).toBe(true);
+    expect(canImport(FREE_ORG, true)).toBe(true);
+    expect(canImport(null, true)).toBe(true);
+  }));
+
+test('create refuses an organization on the free plan', () =>
+  withCloudStates(async () => {
+    const create = mock(() => Promise.resolve({ id: 'imp_1' }));
+    const findFirst = mock(() => Promise.resolve(FREE_ORG));
+    const t = memberCaller({
+      db: { import: { create }, organization: { findFirst } },
+    });
+    const caller = await t.caller();
+
+    await expect(
+      caller.create({
+        projectId: 'proj_1',
+        provider: 'umami',
+        config: {
+          provider: 'umami',
+          type: 'file',
+          fileUrl: 'https://example.com/export.csv',
+          projectMapper: [],
+        },
+      })
+    ).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+    expect(create).not.toHaveBeenCalled();
+  }));
+
+test('retry refuses an organization on the free plan', () =>
+  withCloudStates(async () => {
+    const update = mock(() => Promise.resolve({}));
+    const t = memberCaller({
+      db: {
+        import: {
+          findUniqueOrThrow: mock(() =>
+            Promise.resolve({
+              id: 'imp_1',
+              projectId: 'proj_1',
+              status: 'failed',
+              config: {
+                provider: 'umami',
+                type: 'file',
+                fileUrl: 'https://example.com/export.csv',
+                projectMapper: [],
+              },
+            })
+          ),
+          update,
+        },
+        organization: { findFirst: mock(() => Promise.resolve(FREE_ORG)) },
+      },
+    });
+    const caller = await t.caller();
+
+    await expect(caller.retry({ id: 'imp_1' })).rejects.toMatchObject({
+      code: 'BAD_REQUEST',
+    });
+    expect(update).not.toHaveBeenCalled();
+  }));
+
+test('create refuses an Umami mapping into another organization on the free plan', () =>
+  withCloudStates(async () => {
+    const create = mock(() => Promise.resolve({ id: 'imp_1' }));
+    const paid = {
+      ...FREE_ORG,
+      subscriptionStatus: 'active',
+      subscriptionPeriodEventsLimit: 100_000,
+    };
+    const findMany = mock(() => Promise.resolve([FREE_ORG]));
+    const t = memberCaller(
+      {
+        db: {
+          import: { create },
+          organization: {
+            findFirst: mock(() => Promise.resolve(paid)),
+            findMany,
+          },
+        },
+      },
+      ['proj_1', 'proj_free']
+    );
+    const caller = await t.caller();
+
+    await expect(
+      caller.create({
+        projectId: 'proj_1',
+        provider: 'umami',
+        config: {
+          provider: 'umami',
+          type: 'file',
+          fileUrl: 'https://example.com/export.csv',
+          projectMapper: [{ from: 'website_1', to: 'proj_free' }],
+        },
+      })
+    ).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+    expect(findMany).toHaveBeenCalledWith({
+      where: { projects: { some: { id: { in: ['proj_free'] } } } },
+    });
+    expect(create).not.toHaveBeenCalled();
+  }));

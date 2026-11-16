@@ -1,22 +1,7 @@
 import { LogoSquare } from '../logo';
 import { AuthShowcase } from './auth-showcase';
+import { BRAND } from '@/brand';
 import { useAppContext } from '@/hooks/use-app-context';
-
-const SELF_HOSTED_LINKS = [
-  { label: 'OpenPanel Cloud', href: 'https://openpanel.dev' },
-  {
-    label: 'Mixpanel alternative',
-    href: 'https://openpanel.dev/compare/mixpanel-alternative',
-  },
-  {
-    label: 'PostHog alternative',
-    href: 'https://openpanel.dev/compare/posthog-alternative',
-  },
-  {
-    label: 'Open source analytics',
-    href: 'https://openpanel.dev/articles/open-source-web-analytics',
-  },
-] as const;
 
 /** Two columns: the form on the left, social proof on the right. On small screens only the form remains. */
 export function AuthShell({ children }: { children: React.ReactNode }) {
@@ -27,10 +12,10 @@ export function AuthShell({ children }: { children: React.ReactNode }) {
         <header className="flex items-center justify-between p-6 lg:px-10 lg:py-8">
           <a
             className="row items-center gap-2.5 font-medium"
-            href="https://openpanel.dev"
+            href={BRAND.marketingUrl}
           >
             <LogoSquare className="size-8 shrink-0" />
-            <span>OpenPanel</span>
+            <span>{BRAND.name}</span>
           </a>
           {isSelfHosted && (
             <span className="rounded-full bg-def-200 px-2.5 py-1 text-muted-foreground text-xs">
@@ -42,21 +27,7 @@ export function AuthShell({ children }: { children: React.ReactNode }) {
           <div className="w-full max-w-[400px]">{children}</div>
         </main>
         <footer className="p-6 text-center text-muted-foreground text-xs lg:px-10">
-          {isSelfHosted ? (
-            <nav>
-              <ul className="row flex-wrap justify-center gap-x-4 gap-y-1">
-                {SELF_HOSTED_LINKS.map((link) => (
-                  <li key={link.href}>
-                    <a className="hover:text-foreground" href={link.href}>
-                      {link.label}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          ) : (
-            <span>Open source product analytics · openpanel.dev</span>
-          )}
+          <span>Privacy-first product analytics · {BRAND.domain}</span>
         </footer>
       </div>
       <AuthShowcase />

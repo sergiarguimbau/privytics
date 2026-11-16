@@ -26,7 +26,15 @@ export function PageHeader({
         )}
         {children}
       </div>
-      <div className="row flex-wrap gap-2">{actions}</div>
+      {/* items-start matters: `md:row` above is a flex row whose default
+          align-items is `stretch`, so this box would otherwise stretch to the
+          full height of the title block (three lines on tablet). Action buttons
+          set explicit heights so they ignore that, but a wrapper like the
+          search field's `relative` div does not; its absolutely positioned
+          icon then centres against the stretched box instead of the input, and
+          drifts far below it. Mobile was unaffected because `col` applies
+          there. */}
+      <div className="row flex-wrap items-start gap-2">{actions}</div>
     </div>
   );
 }

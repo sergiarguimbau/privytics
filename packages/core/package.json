@@ -11,7 +11,8 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "bun test --isolate",
-    "codegen": "bun scripts/download-geo.ts && bun scripts/get-datacenter-asns.ts",
+    "codegen": "bun run with-env bun scripts/download-geo.ts && bun scripts/get-datacenter-asns.ts",
+    "refresh": "bun run with-env bun scripts/refresh.ts",
     "gen:asns": "bun scripts/get-datacenter-asns.ts",
     "gen:bots": "bun scripts/get-bots.ts && biome format --write ./src/modules/ingest/src/bots/bots.ts",
     "gen:referrers": "bun scripts/get-referrers.ts && biome format --write ./src/shared/referrers/index.ts",
@@ -67,6 +68,7 @@
     "re2js": "2.9.0",
     "short-unique-id": "5.0.3",
     "superjson": "2.2.2",
+    "tar": "7.4.3",
     "unzipper": "0.12.5",
     "uuid": "9.0.1",
     "zod": "catalog:"
@@ -79,7 +81,6 @@
     "@types/unzipper": "0.10.11",
     "@types/uuid": "10.0.0",
     "bun-types": "1.4.4",
-    "tar": "7.4.3",
     "typescript": "catalog:"
   }
 }

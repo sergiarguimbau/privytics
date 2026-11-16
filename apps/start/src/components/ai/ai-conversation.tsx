@@ -7,7 +7,7 @@ const COLLAPSE_AFTER_CHARS = 1500;
 
 const ROLE_CLASS: Record<string, string> = {
   system: 'bg-def-200 text-muted-foreground',
-  user: 'bg-blue-500/15 text-blue-600 dark:text-blue-300',
+  user: 'bg-primary/15 text-primary dark:text-teal-300',
   assistant: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300',
   tool: 'bg-amber-500/15 text-amber-700 dark:text-amber-300',
 };

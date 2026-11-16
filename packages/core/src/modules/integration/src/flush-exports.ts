@@ -278,7 +278,7 @@ async function exportWindows(
   if (!adapter) {
     throw new Error(`Integration ${config.type} has no export adapter`);
   }
-  const prefix = config.prefix || 'openpanel-exports';
+  const prefix = config.prefix || 'privytics-exports';
   const format = config.format || 'jsonl_gzip';
 
   const maxBatches =

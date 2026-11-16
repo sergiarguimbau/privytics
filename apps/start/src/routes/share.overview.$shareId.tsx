@@ -43,7 +43,7 @@ export const Route = createFileRoute('/share/overview/$shareId')({
       return {
         meta: [
           {
-            title: 'Share not found - OpenPanel.dev',
+            title: 'Share not found - Privytics',
           },
         ],
       };
@@ -52,7 +52,7 @@ export const Route = createFileRoute('/share/overview/$shareId')({
     return {
       meta: [
         {
-          title: `${share.project?.name} - ${share.organization?.name} - OpenPanel.dev`,
+          title: `${share.project?.name} - ${share.organization?.name} - Privytics`,
         },
       ],
     };

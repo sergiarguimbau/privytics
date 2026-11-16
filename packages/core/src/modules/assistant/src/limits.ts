@@ -1,7 +1,6 @@
 import {
   getSubscriptionState,
   type SubscriptionStateInput,
-  subscriptionBlocksDashboard,
 } from '@openpanel/payments/subscription-state';
 import type { Logger } from '../../../logger';
 import {
@@ -10,6 +9,7 @@ import {
   CHAT_TIER_EVENT_BANDS,
   type ChatLimitError,
   type ChatTier,
+  isChatBlockedState,
 } from '../assistant.constants';
 
 const SECOND = 1000;
@@ -42,10 +42,8 @@ export function resolveChatTier(
   if (state === 'self_hosted') {
     return 'unlimited';
   }
-  if (state === 'trialing') {
-    return 'trial';
-  }
-  if (subscriptionBlocksDashboard(state)) {
+  // Privytics: paid-only, see isChatBlockedState.
+  if (isChatBlockedState(state)) {
     return 'blocked';
   }
   const events = organization.subscriptionPeriodEventsLimit;
@@ -109,7 +107,7 @@ function blockedError(tier: ChatTier, resetsAt: Date): ChatLimitError {
     limit: 0,
     resetsAt: resetsAt.toISOString(),
     message:
-      'The AI assistant is paused until the workspace has an active plan.',
+      'AI chat is available on paid plans. Upgrade to use the assistant.',
   };
 }
 

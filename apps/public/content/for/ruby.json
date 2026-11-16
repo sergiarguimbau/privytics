@@ -1,0 +1,95 @@
+{
+  "slug": "ruby",
+  "kind": "sdk",
+  "name": "Ruby",
+  "title": "Ruby and Rails analytics, cookieless and hosted in the EU",
+  "description": "Track server-side events from Ruby and Rails with the openpanel-sdk gem. Cookieless by default, event data stored in Germany. Setup takes a few lines.",
+  "tagline": "Server-side analytics for Ruby and Rails, with event data stored in Germany.",
+  "category": "Backend",
+  "intro": "Privytics tracks events straight from your Ruby or Rails backend using the openpanel-sdk gem. You install the gem, set three environment variables, build a tracker and call track. Because the events leave your server rather than the browser, there is no script tag and nothing written to the visitor's device.",
+  "why": [
+    {
+      "title": "Server-side events do not get blocked",
+      "body": "Requests originate from your Rails process, not the browser, so ad blockers, tracking protection and script blockers never see them. Signups, payments and background job outcomes get recorded whatever the client is running."
+    },
+    {
+      "title": "Fits the Rails request lifecycle",
+      "body": "The tracker constructor takes a global properties hash and a disabled flag, so you can build one instance per request in ApplicationController, tag every event with Rails.env, and switch tracking off in development with a single argument."
+    },
+    {
+      "title": "You decide what leaves your server",
+      "body": "Client IP and user agent are not collected implicitly. You forward them yourself with set_header, using request.ip and request.user_agent, so the data your backend sends is exactly what you chose to send."
+    },
+    {
+      "title": "Profiles keyed on your own user ids",
+      "body": "Backend events have no browser to fingerprint. You attach them with profile_id or an IdentifyUser object built from your own User record, which is the natural identifier a Rails app already has. Note that identifying users is opt-in and needs your own lawful basis."
+    }
+  ],
+  "steps": [
+    {
+      "title": "Install the gem",
+      "body": "The gem requires Ruby 3.2.0 or higher.",
+      "lang": "bash",
+      "code": "bundle add openpanel-sdk\n\n# or, without Bundler\ngem install openpanel-sdk"
+    },
+    {
+      "title": "Point the SDK at Privytics",
+      "body": "The SDK reads its configuration from environment variables. Set them in your .env file. The track URL must point at the Privytics ingestion API, otherwise events go to the default OpenPanel host. Note it takes a full URL ending in /track, not a bare host.",
+      "lang": "bash",
+      "code": "OPENPANEL_TRACK_URL=https://api.privytics.com/track\nOPENPANEL_CLIENT_ID=YOUR_CLIENT_ID\nOPENPANEL_CLIENT_SECRET=YOUR_CLIENT_SECRET"
+    },
+    {
+      "title": "Create a tracker",
+      "body": "Require the gem and build a tracker. The first argument is a hash of global properties applied to every event, so pass an empty hash if you have none. In Rails, build one per request so it can carry the environment, forward the request details and be disabled locally.",
+      "lang": "ruby",
+      "code": "require 'openpanel-sdk'\n\ntracker = OpenPanel::SDK::Tracker.new({})\n\n# Rails: app/controllers/application_controller.rb\nclass ApplicationController < ActionController::Base\n  before_action :set_openpanel_tracker\n\n  protected\n\n  def set_openpanel_tracker\n    @openpanel_tracker = OpenPanel::SDK::Tracker.new(\n      { env: Rails.env.to_s },\n      disabled: Rails.env.development?\n    )\n    @openpanel_tracker.set_header 'x-client-ip', request.ip\n    @openpanel_tracker.set_header 'user-agent', request.user_agent\n  end\nend"
+    },
+    {
+      "title": "Track events and identify users",
+      "body": "track takes an event name and a payload, and optionally a profile_id to attach the event to a known user. IdentifyUser sets profile properties, and the profile counters take that same object.",
+      "lang": "ruby",
+      "code": "# A plain event\n@openpanel_tracker.track('signup_completed', payload: { plan: 'free' })\n\n# An event attached to a known user\n@openpanel_tracker.track(\n  'invoice_paid',\n  profile_id: current_user.id.to_s,\n  payload: { amount: 49 }\n)\n\n# Build a profile\nidentify_user = OpenPanel::SDK::IdentifyUser.new\nidentify_user.profile_id = current_user.id.to_s\nidentify_user.email = current_user.email\nidentify_user.first_name = current_user.first_name\nidentify_user.last_name = current_user.last_name\nidentify_user.properties = { tier: 'premium', company: 'Acme Inc' }\n\n@openpanel_tracker.identify(identify_user)\n\n# Counters on the profile\n@openpanel_tracker.increment_property(identify_user, 'visits', 1)\n@openpanel_tracker.decrement_property(identify_user, 'credits', 1)\n\n# Revenue\n@openpanel_tracker.revenue(\n  user: identify_user,\n  amount: 49,\n  properties: { currency: 'EUR' }\n)"
+    }
+  ],
+  "faq": [
+    {
+      "q": "Does this work with Ruby on Rails?",
+      "a": "Yes. The documented pattern is to build a tracker in ApplicationController with the Rails environment as global properties and disabled: Rails.env.development?, forward the client IP and user agent with set_header, then reuse that instance across your actions."
+    },
+    {
+      "q": "Is the openpanel-sdk gem official?",
+      "a": "It is a community-maintained gem published on RubyGems as openpanel-sdk, not a first-party package under the @openpanel scope like the JavaScript SDKs. It is the gem the OpenPanel Ruby documentation points to."
+    },
+    {
+      "q": "Do server-side Ruby events set cookies?",
+      "a": "No. Privytics is cookieless by default and a backend event has no browser to write to. Events are anonymous unless you attach a profile_id or call identify with your own user id."
+    },
+    {
+      "q": "How do I send events to Privytics instead of OpenPanel?",
+      "a": "Set OPENPANEL_TRACK_URL to https://api.privytics.com/track. The gem defaults to the OpenPanel host, so this variable is required rather than optional. There is no in-code option for it, and no script tag is involved in a server-side SDK."
+    },
+    {
+      "q": "Where is the event data stored?",
+      "a": "Event data is stored in EU data centres in Germany. Privytics is a managed service built on the open-source OpenPanel engine and is not affiliated with OpenPanel."
+    }
+  ],
+  "docsUrl": "https://openpanel.dev/docs/sdks/ruby",
+  "sourcesUsed": [
+    "https://openpanel.dev/docs/sdks/ruby",
+    "https://rubygems.org/gems/openpanel-sdk",
+    "https://github.com/tstaetter/openpanel-ruby-sdk",
+    "https://raw.githubusercontent.com/tstaetter/openpanel-ruby-sdk/main/README.md",
+    "https://raw.githubusercontent.com/tstaetter/openpanel-ruby-sdk/main/lib/openpanel/sdk/tracker.rb"
+  ],
+  "omitted": [
+    "CORRECTED: the previous draft had `OpenPanel::SDK::Tracker.new` with no arguments, copied from the docs page. The gem source defines `def initialize(global_props, disabled: false)`, where global_props is a required positional argument with no default, so the zero-argument form raises ArgumentError. Changed to `Tracker.new({})`. The docs page snippet appears to be wrong.",
+    "CORRECTED: the Rails example now matches the documented pattern exactly (`@openpanel_tracker` / `set_openpanel_tracker`, `protected`, set_header calls inside the before_action) rather than the invented `@tracker` / `set_tracker` naming.",
+    "RESTORED: tracker.revenue was previously omitted as unverifiable. The source signature is `def revenue(user:, amount:, properties: {})` and `user:` is the same IdentifyUser object the identify and property methods take, so it is now included.",
+    "There is no documented way to set the API URL, client id or client secret in Ruby code. Configuration is environment variables only, so there is no in-code apiUrl option to show; OPENPANEL_TRACK_URL carries it and takes a full path ending in /track, not a bare host.",
+    "No scriptUrl and no script tag anywhere. This is a server-side SDK, so op1.js does not apply and any scriptUrl mention would be invented.",
+    "The gem is community-maintained by Thomas Stätter (MIT licensed, RubyGems 0.3.4, May 2026), not published by OpenPanel. No official OpenPanel-published Ruby gem could be confirmed.",
+    "track also accepts tracking_type, groups and a filter lambda (`filter: ->(_payload) { false }`), and the Tracker exposes device_id. All omitted to keep the setup minimal, not because they are unverified.",
+    "I could not confirm whether client_secret is strictly required for every call or only for identify and profile operations, so it is presented as required.",
+    "No batching, flushing, retry or async delivery behaviour is documented, so no claims are made about it."
+  ]
+}

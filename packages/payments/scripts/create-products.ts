@@ -16,9 +16,25 @@ interface Answers {
   polarApiKey: string;
 }
 
-async function promptForInput() {
-  const answers = await inquirer.prompt<Answers>([
-    {
+async function promptForInput(): Promise<Answers> {
+  // Read from the environment first, so the script can run unattended and the
+  // API key never has to be typed or pasted anywhere. Put these in the root
+  // .env (gitignored):
+  //
+  //   POLAR_SERVER=sandbox            # or production
+  //   POLAR_ACCESS_TOKEN=polar_oat_...
+  //   POLAR_ORGANIZATION_ID=...       # not needed for an _oat_ token
+  //
+  // Anything missing is still prompted for, so the original interactive flow
+  // keeps working.
+  const envServer = process.env.POLAR_SERVER;
+  const envApiKey = process.env.POLAR_ACCESS_TOKEN;
+  const envOrganizationId = process.env.POLAR_ORGANIZATION_ID;
+
+  const prompts = [];
+
+  if (envServer !== 'sandbox' && envServer !== 'production') {
+    prompts.push({
       type: 'list',
       name: 'isProduction',
       message: 'Is this for production?',
@@ -27,26 +43,49 @@ async function promptForInput() {
         { name: 'No', value: false },
       ],
       default: true,
-    },
-    {
+    });
+  }
+
+  // An organization access token (polar_oat_) is already scoped to one
+  // organization, so the id is redundant there.
+  if (!(envOrganizationId || envApiKey?.includes('_oat_'))) {
+    prompts.push({
       type: 'string',
       name: 'polarOrganizationId',
       message: 'Enter your Polar organization ID:',
-    },
-    {
-      type: 'string',
+    });
+  }
+
+  if (!envApiKey) {
+    prompts.push({
+      type: 'password',
       name: 'polarApiKey',
       message: 'Enter your Polar API key:',
+      mask: '*',
       validate: (input: string) => {
         if (!input) {
           return 'API key is required';
         }
         return true;
       },
-    },
-  ]);
+    });
+  }
 
-  return answers;
+  const answers = prompts.length
+    ? await inquirer.prompt<Partial<Answers>>(prompts as never)
+    : {};
+
+  return {
+    isProduction:
+      envServer === 'production'
+        ? true
+        : envServer === 'sandbox'
+          ? false
+          : Boolean(answers.isProduction),
+    polarOrganizationId:
+      envOrganizationId ?? answers.polarOrganizationId ?? '',
+    polarApiKey: envApiKey ?? answers.polarApiKey ?? '',
+  };
 }
 
 async function main() {
@@ -73,6 +112,10 @@ async function main() {
   const isDry = process.argv.includes('--dry');
   const products = await getProducts();
   const createProducts: Product[] = [];
+  console.log(
+    `\nPolar: ${input.isProduction ? 'PRODUCTION' : 'sandbox'} — ${products.length} existing product(s)\n`,
+  );
+
   for (const price of PRICING) {
     if (price.price === 0) {
       const exists = products.find(
@@ -84,6 +127,13 @@ async function main() {
         console.log('Free product already exists:');
         console.log(' - ID:', exists.id);
         console.log(' - Name:', exists.name);
+      } else if (isDry) {
+        // Without this the free branch would create even on a dry run. Our
+        // PRICING has no zero-price tier today, so it is latent, but a dry run
+        // that writes is the last thing you want in production.
+        console.log(
+          `WOULD CREATE  ${formatEventsCount(price.events)} events per month (FREE)  free/month  eventsLimit=${price.events}`,
+        );
       } else {
         const product = await polar.products.create({
           organizationId: input.polarApiKey.includes('_oat_')
@@ -117,7 +167,21 @@ async function main() {
         {
           priceAmount: price.price * 100,
           amountType: 'fixed',
-          priceCurrency: 'usd',
+          // EUR, not upstream's USD. Privytics prices in euros everywhere that
+          // matters: the pricing page, the /for guides, and the Terms, which
+          // state "All prices are stated in euros (EUR)". Creating USD products
+          // would contradict a published contractual claim and charge customers
+          // in the wrong currency. Polar supports EUR as a presentment currency.
+          priceCurrency: 'eur',
+          // VAT is added on top of this amount, never carved out of it.
+          //
+          // Pinned rather than left to the Polar organization default, which is
+          // `location`: that resolves to inclusive for EU customers and
+          // exclusive for US ones, so the same plan would net EUR 40 from an
+          // American and EUR 33.06 from a Spaniard. Our Terms say "Prices
+          // exclude VAT" and "VAT is calculated and added at checkout", so
+          // exclusive is the only setting that matches what we publish.
+          taxBehavior: 'exclusive',
         },
       ],
       recurringInterval: 'month',
@@ -126,7 +190,46 @@ async function main() {
       },
     };
 
-    if (!isDry) {
+    if (isDry) {
+      // A dry run is the only preview available before an irreversible step:
+      // Polar products can be archived but never deleted. Show exactly what
+      // would be created, including the currency, which is the thing most
+      // likely to be wrong.
+      const yearlyName = `${productCreate.name} (yearly)`;
+      const findExisting = (name: string, interval: 'month' | 'year') =>
+        products.find(
+          (p) =>
+            p.metadata?.eventsLimit === price.events &&
+            p.recurringInterval === interval &&
+            p.name === name,
+        );
+
+      for (const [name, interval, amount] of [
+        [productCreate.name, 'month', price.price],
+        [yearlyName, 'year', price.price * 10],
+      ] as const) {
+        const found = findExisting(name, interval);
+        if (found) {
+          // Report what is actually on the product, not what we would have
+          // sent. Currency is fixed at creation and cannot be edited, so a
+          // product created in the wrong one has to be archived and replaced —
+          // this line is how you catch that.
+          const fixed = found.prices.find((p) => p.amountType === 'fixed');
+          const actual = fixed
+            ? `${fixed.priceCurrency.toUpperCase()} ${fixed.priceAmount / 100}/${interval}`
+            : 'free';
+          console.log(`EXISTS        ${name.padEnd(34)} ${actual}`);
+          continue;
+        }
+        console.log(
+          `WOULD CREATE  ${name.padEnd(34)} EUR ${String(amount).padStart(4)}/${interval} excl. VAT  eventsLimit=${price.events}`,
+        );
+      }
+      console.log('---');
+      continue;
+    }
+
+    {
       const monthlyProductExists = products.find(
         (p) =>
           p.metadata?.eventsLimit === price.events &&

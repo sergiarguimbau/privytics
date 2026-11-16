@@ -17,6 +17,13 @@ export const getSuccessUrl = (baseUrl: string, organizationId: string) =>
   `${baseUrl}/${organizationId}/billing`;
 
 export async function getProducts() {
+  // No Polar credentials (local dev, or a self-hosted instance without billing):
+  // return an empty catalogue so the billing page shows "no plans to upgrade to"
+  // rather than making a doomed API call. Paid plans only appear once
+  // POLAR_ACCESS_TOKEN and the products are configured.
+  if (!process.env.POLAR_ACCESS_TOKEN) {
+    return [];
+  }
   const products = await polar.products.list({
     limit: 100,
     isArchived: false,

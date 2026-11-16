@@ -48,7 +48,9 @@ const createWorkspace = async (
   await page.getByLabel('Workspace name').fill(workspace);
   await page.getByRole('button', { name: /^Backend \/ API/ }).click();
   await page.getByRole('button', { name: 'Create project' }).click();
-  await page.waitForURL(/\/onboarding\/.+\/connect/, {
+  // A user's later workspaces have no free allowance, so cloud mode sends
+  // them to billing instead of the install step.
+  await page.waitForURL(/\/onboarding\/.+\/connect|\/[^/]+\/billing/, {
     timeout: NAVIGATION_TIMEOUT_MS,
   });
   const organization = (await listOrganizations(page)).find(
@@ -97,6 +99,25 @@ test('a user with two organizations can switch between them and delete one', asy
   // With a single organization `/` goes straight to it.
   await page.goto('/');
   await expect(page).toHaveURL(new RegExp(`/${firstOrganization.id}$`));
+
+  // The first workspace is on the free plan, so billing offers the plans.
+  // Plan rows start a real checkout, so none is clicked.
+  await gotoHydrated(page, `/${firstOrganization.id}/billing`);
+  await expect(page.getByText('Free plan', { exact: true })).toBeVisible();
+  await expect(page.getByText('Choose a plan', { exact: true })).toBeVisible();
+  const yearlyPlan = page.getByRole('button', {
+    name: /10K events per month \(yearly\)/,
+  });
+  await expect(yearlyPlan).toContainText('/yr');
+  await expect(
+    page.getByRole('button', { name: /events per month/ })
+  ).toHaveCount(8);
+  await page.getByRole('button', { name: 'Monthly' }).click();
+  await expect(
+    page.getByRole('button', { name: /^10K events per month/ })
+  ).toContainText('/mo');
+  await page.getByRole('button', { name: 'Yearly' }).click();
+  await expect(yearlyPlan).toBeVisible();
 
   await gotoHydrated(page, `/${firstOrganization.id}`);
   await openMenu(page, page.getByRole('combobox').first());

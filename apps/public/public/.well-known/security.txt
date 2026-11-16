@@ -1,4 +1,5 @@
-Contact: mailto:security@openpanel.dev
-Expires: 2027-05-04T00:00:00.000Z
+Contact: mailto:security@privytics.com
+Expires: 2027-07-19T06:47:15.000Z
 Preferred-Languages: en
-Canonical: https://openpanel.dev/.well-known/security.txt
+Canonical: https://privytics.com/.well-known/security.txt
+Policy: https://github.com/sergiarguimbau/privytics/blob/privytics/SECURITY.md

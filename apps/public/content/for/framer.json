@@ -1,0 +1,81 @@
+{
+  "slug": "framer",
+  "kind": "sdk",
+  "name": "Framer",
+  "category": "Web",
+  "title": "Framer analytics, cookieless and EU-hosted",
+  "description": "Add privacy-first analytics to your Framer site with one snippet. Cookieless, EU-hosted, and no consent banner for anonymous visitors, so you get real visitor numbers without a GA4 cookie popup.",
+  "tagline": "Real visitor numbers for your Framer site, without adding a cookie banner.",
+  "intro": "Privytics gives your Framer site real visitor numbers from a single snippet, with no coding. Most Framer sites bolt on Google Analytics (GA4), which needs a consent banner for EU visitors. Privytics is cookieless and EU-hosted, so you paste two small tags into Framer's head field, publish, and page views start arriving with no cookie popup to manage. One thing to know before you start: adding custom code needs a paid Framer plan.",
+  "why": [
+    {
+      "title": "Nothing is saved on a visitor's device",
+      "body": "The snippet sets no cookies and stores no id in the browser. Visitors are counted with an anonymous id that resets every day, so there is nothing left behind and nothing to consent to."
+    },
+    {
+      "title": "No cookie banner to add",
+      "body": "Because nothing is written to the device, EU visitors have nothing to consent to for the anonymous case. That is the GA4 popup you get to skip. You stay the data controller."
+    },
+    {
+      "title": "Your data is stored in the EU",
+      "body": "Every event is stored in EU data centres in Germany. You remain the data controller for your Framer site."
+    },
+    {
+      "title": "Free to start, no card",
+      "body": "The free plan covers 10,000 events a month with 12-month history. Paid plans add session replay and 5-year event history when you outgrow it."
+    }
+  ],
+  "steps": [
+    {
+      "title": "Open Framer's custom code box",
+      "body": "In the Framer editor, open Site Settings, then Custom Code. Find the box labeled 'End of <head> tag'. This is where your snippet goes. Note: custom code needs a paid Framer plan (Basic and up). Free .framer.website sites cannot add it, so upgrade first if that box is locked.",
+      "lang": "text",
+      "code": "Site Settings > Custom Code > End of <head> tag"
+    },
+    {
+      "title": "Paste the snippet and publish",
+      "body": "Paste the two tags below into the 'End of <head> tag' box. Replace YOUR_CLIENT_ID with the client id from your Privytics project. Then click Publish at the top right so the change goes live. Framer can take a moment to update, so give it a minute before you check.",
+      "lang": "html",
+      "code": "<script>\n  window.op=window.op||function(){var n=[];return new Proxy(function(){arguments.length&&n.push([].slice.call(arguments))},{get:function(t,r){return\"q\"===r?n:function(){n.push([r].concat([].slice.call(arguments)))}} ,has:function(t,r){return\"q\"===r}}) }();\n  window.op('init', {\n    apiUrl: 'https://api.privytics.com',\n    clientId: 'YOUR_CLIENT_ID',\n    trackScreenViews: true,\n    trackOutgoingLinks: true,\n  });\n</script>\n<script src=\"https://privytics.com/op1.js\" defer async></script>"
+    },
+    {
+      "title": "Check that page views arrive",
+      "body": "Open your published Framer site in a new tab and click around a few pages. Within a minute or two those visits show up on your Privytics dashboard under page views. Page views are tracked automatically, so once the snippet is in you are done. There is nothing else to switch on.",
+      "lang": "text",
+      "code": "Your published site  ->  Privytics dashboard  ->  Page views"
+    }
+  ],
+  "faq": [
+    {
+      "q": "Does it need a paid plan?",
+      "a": "Privytics itself is free: 10,000 events a month, no card. Framer is the paid part here. Adding custom head code needs a paid Framer plan (Basic and up), and free .framer.website sites cannot add it. If you already publish on a paid plan, you are set."
+    },
+    {
+      "q": "Do I still need a cookie banner?",
+      "a": "The snippet writes nothing to the device and sends no cookie, so for the anonymous case there is nothing to consent to. You remain the data controller. This is the GA4 consent popup you get to skip."
+    },
+    {
+      "q": "Where is my data stored?",
+      "a": "In the EU. Every event is stored in EU data centres in Germany. You remain the data controller for your Framer site."
+    },
+    {
+      "q": "Can I track button clicks or events?",
+      "a": "Page views are tracked automatically, and for most Framer sites that is all you need. Custom events like button clicks need a developer, because Framer's plain embeds run in a sandbox that cannot reach the tracker, so firing an event means using Framer's code features. If you want event tracking, hand this step to whoever manages your Framer code."
+    }
+  ],
+  "sourcesUsed": [
+    "Framer Help: How to add custom code (Site Settings > Custom Code, head/body slots)",
+    "Framer pricing page (2026 tiers: Free, Basic, Pro, Enterprise; no Mini plan)",
+    "Privytics script-tag install (op1.js + window.op init)"
+  ],
+  "omitted": [
+    "Plan gate: custom head code requires a paid Framer plan (Basic and up); free .framer.website sites cannot add it. Stated in the intro and step 1.",
+    "Custom events are not offered as a copy-paste step: Framer's no-code embeds run in a sandboxed iframe that cannot reach window.op, and code overrides or code components require a developer. The page stops at automatic page views on purpose.",
+    "Did not use the data-track attribute, which needs an init option the pasted snippet does not set, and which Framer's native buttons cannot carry anyway.",
+    "Kept the snippet exactly as provided (apiUrl, clientId, trackScreenViews, trackOutgoingLinks) with no modifications.",
+    "Verified against Framer's current 2026 pricing page: the tiers are Free, Basic ($10/mo), Pro ($30/mo) and Enterprise, with no 'Mini' plan, so 'Basic and up' is the correct minimum paid tier for site-wide custom code.",
+    "UI-path naming nuance: the live Framer editor labels this panel 'Site Settings' (used in the page); some older third-party guides call it 'Project Settings'. The slot name 'End of <head> tag' and the paste-then-Publish flow are confirmed.",
+    "Sandboxed-embed vs first-party distinction confirmed: the tracker is installed via Site Settings head code (first-party, so page views fire automatically), whereas Framer's canvas HTML Embed element is a sandboxed iframe that cannot reach window.op. This is why a non-technical user cannot fire custom events from an embed.",
+    "Deliberately did not claim Framer 'has no native analytics' (Framer ships a built-in analytics product on paid plans); the page only notes that most Framer sites add GA4, which is accurate."
+  ]
+}

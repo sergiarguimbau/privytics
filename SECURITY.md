@@ -1,10 +1,10 @@
 # Security policy
 
-We welcome reports of security issues in OpenPanel.
+We welcome reports of security issues in Privytics.
 
 ## Reporting a vulnerability
 
-Please don't report security issues through public GitHub issues, pull requests, or our Discord. Report it privately instead, either by email to security@openpanel.dev or through the repository's GitHub Security Advisories at https://github.com/Openpanel-dev/openpanel/security/advisories/new ("Report a vulnerability"). Our contact details are also in our [security.txt](https://openpanel.dev/.well-known/security.txt).
+Please don't report security issues through public GitHub issues, pull requests, or our Discord. Report it privately instead, either by email to security@privytics.com or through the repository's GitHub Security Advisories at https://github.com/sergiarguimbau/privytics/security/advisories/new ("Report a vulnerability"). Our contact details are also in our [security.txt](https://privytics.com/.well-known/security.txt).
 
 To help us triage quickly, please include what you can:
 
@@ -35,7 +35,7 @@ Security fixes land on the latest release. Before reporting an issue on a self-h
 
 ## Scope
 
-In scope: this repository (the API, dashboard, worker, and the official SDKs under `packages/sdks/*`) and the hosted service at openpanel.dev, dashboard.openpanel.dev, and api.openpanel.dev.
+In scope: this repository (the API, dashboard, worker, and the official SDKs under `packages/sdks/*`) and the hosted service at privytics.com, app.privytics.com, and api.privytics.com.
 
 Out of scope, unless you can show concrete, exploitable impact:
 
@@ -43,7 +43,7 @@ Out of scope, unless you can show concrete, exploitable impact:
 - social engineering, phishing, or physical attacks
 - automated scanner output with no demonstrated impact
 - missing security headers or other best-practice findings without a working exploit
-- vulnerabilities in third-party dependencies without a proof of concept against OpenPanel
+- vulnerabilities in third-party dependencies without a proof of concept against Privytics
 - issues that need a compromised device, a rooted or jailbroken environment, or a man-in-the-middle position on the victim's own network
 - self-XSS, and clickjacking on pages with no sensitive actions
 

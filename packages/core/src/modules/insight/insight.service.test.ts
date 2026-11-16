@@ -271,12 +271,16 @@ test('sendWeeklyDigests mails only the members who can open the project', async 
   ]);
 });
 
+// Privytics: every paid state plus the permanent free tier gets the digest.
 test.each([
   { selfHosted: true, state: 'self_hosted', sent: 1 },
   { selfHosted: false, state: 'active', sent: 1 },
-  { selfHosted: false, state: 'trialing', sent: 1 },
-  { selfHosted: false, state: 'expired', sent: 0 },
-  { selfHosted: false, state: 'canceled', sent: 0 },
+  { selfHosted: false, state: 'free', sent: 1 },
+  { selfHosted: false, state: 'canceling', sent: 1 },
+  { selfHosted: false, state: 'pausing', sent: 1 },
+  { selfHosted: false, state: 'past_due', sent: 1 },
+  { selfHosted: false, state: 'paused', sent: 0 },
+  { selfHosted: false, state: 'incomplete', sent: 0 },
   { selfHosted: false, state: 'self_hosted', sent: 0 },
 ])('weekly digest eligibility: %j', async ({ selfHosted, state, sent }) => {
   project.findMany.mockClear();
@@ -310,7 +314,16 @@ test.each([
     ...(selfHosted
       ? {}
       : {
-          organization: { subscriptionStatus: { in: ['active', 'trialing'] } },
+          organization: {
+            OR: [
+              {
+                subscriptionStatus: {
+                  in: ['active', 'free', 'past_due', 'canceled'],
+                },
+              },
+              { subscriptionStatus: null },
+            ],
+          },
         }),
   });
   expect(result).toEqual({ projects: 1, sent });

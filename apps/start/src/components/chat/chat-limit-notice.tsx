@@ -7,6 +7,8 @@ import { GaugeIcon } from 'lucide-react';
 import { useAppParams } from '@/hooks/use-app-params';
 
 const UPGRADABLE_TIERS: ReadonlySet<ChatLimitError['tier']> = new Set([
+  // Privytics: free, paused and incomplete orgs are 'blocked' (chat is paid only).
+  'blocked',
   'trial',
   'starter',
   'growth',
@@ -49,7 +51,9 @@ export function ChatLimitNotice({ limit }: { limit: ChatLimitError }) {
               params={{ organizationId }}
               to="/$organizationId/billing"
             >
-              Upgrade for a higher limit
+              {limit.tier === 'blocked'
+                ? 'See plans'
+                : 'Upgrade for a higher limit'}
             </Link>
           </>
         )}

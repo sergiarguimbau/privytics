@@ -1,4 +1,13 @@
 import { defineConfig } from 'tsup';
+import pkg from './package.json';
+
+// The SDK stamps its version into the `openpanel-sdk-version` header via
+// `process.env.WEB_VERSION` / `process.env.SDK_VERSION`. `process` does not
+// exist in a browser, so any standalone browser bundle MUST substitute these at
+// build time. Without it op1.js throws "process is not defined" on load and
+// silently collects nothing. Workspace versions carry a `-local` suffix that
+// has no business being reported by a shipped tracker.
+const SDK_VERSION = JSON.stringify(pkg.version.replace(/-local$/, ''));
 
 export default defineConfig([
   // Library build (npm package) — cjs + esm + dts
@@ -27,8 +36,11 @@ export default defineConfig([
     minify: true,
     define: {
       __OPENPANEL_REPLAY_URL__: JSON.stringify(
-        'https://openpanel.dev/op1-replay.js'
+        'https://privytics.com/op1-replay.js'
       ),
+      'process.env.WEB_VERSION': SDK_VERSION,
+      'process.env.SDK_VERSION': SDK_VERSION,
+      'process.env.NODE_ENV': JSON.stringify('production'),
     },
     esbuildPlugins: [
       {
@@ -66,5 +78,14 @@ export default defineConfig([
     sourcemap: false,
     minify: true,
     noExternal: ['rrweb', '@rrweb/types'],
+    define: {
+      'process.env.NODE_ENV': JSON.stringify('production'),
+      'process.env.WEB_VERSION': SDK_VERSION,
+      'process.env.SDK_VERSION': SDK_VERSION,
+      // postcss ships a warning branch that reads process.env.LANG. It is dead
+      // code in a browser, but an unreplaced `process` is a ReferenceError
+      // waiting for whoever trips that path.
+      'process.env.LANG': JSON.stringify(''),
+    },
   },
 ]);

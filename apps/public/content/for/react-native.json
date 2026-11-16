@@ -1,0 +1,105 @@
+{
+  "slug": "react-native",
+  "kind": "sdk",
+  "name": "React Native",
+  "category": "Mobile",
+  "title": "React Native analytics, cookieless and EU-hosted",
+  "description": "Add product analytics to your React Native or Expo app with the @openpanel/react-native SDK. No cookies, no device storage, and event data stored in Germany.",
+  "tagline": "Screen views and custom events for Expo and React Native, hosted in the EU.",
+  "intro": "Privytics is managed product analytics for React Native and Expo apps, built on the open-source OpenPanel engine. You install the @openpanel/react-native SDK, point it at the Privytics ingestion API, and start sending screen views and custom events. Setup is a client instance in one file plus a hook for navigation changes.",
+  "why": [
+    {
+      "title": "Screen views, not page URLs",
+      "body": "Mobile apps do not have page loads. The SDK exposes screenView(), so you record the route name from expo-router or React Navigation with whatever params matter, and funnels are built from real screens instead of guessed URLs."
+    },
+    {
+      "title": "No cookies and nothing written to the device",
+      "body": "Privytics is cookieless by default. The anonymous visitor id is computed server side and resets every day. There is no advertising identifier and no local identifier persisted for analytics, which keeps the answers you give in App Store and Play Store privacy questionnaires short."
+    },
+    {
+      "title": "Events survive going offline",
+      "body": "Phones lose signal in lifts, tunnels and planes. The SDK accepts a storage and a networkInfo adapter, so events queue on the device while offline and flush when the connection returns instead of being dropped. Queued events carry a __timestamp so they are recorded at the time they happened, not the time they were delivered."
+    },
+    {
+      "title": "Event data is stored in the EU",
+      "body": "Ingested events are stored in EU data centres in Germany. If your app ships in the EU, that keeps the storage answer in your records of processing simple. You remain the controller for what you choose to send."
+    }
+  ],
+  "steps": [
+    {
+      "title": "Install the SDK",
+      "body": "The SDK depends on expo-application for build and version numbers (and the referrer on Android), and expo-constants for the user agent.",
+      "lang": "bash",
+      "code": "npm install @openpanel/react-native\nnpx expo install expo-application expo-constants"
+    },
+    {
+      "title": "Create the client",
+      "body": "Put the instance in one shared file and import it everywhere. apiUrl must be set to the Privytics ingestion host, otherwise the SDK sends to its default host. React Native needs a clientSecret because native apps cannot use CORS headers the way browsers do.",
+      "lang": "ts",
+      "code": "// lib/op.ts\nimport { OpenPanel } from '@openpanel/react-native';\n\nexport const op = new OpenPanel({\n  apiUrl: 'https://api.privytics.com',\n  clientId: 'YOUR_CLIENT_ID',\n  clientSecret: 'YOUR_CLIENT_SECRET',\n});"
+    },
+    {
+      "title": "Track screen views",
+      "body": "With Expo Router, call screenView whenever the pathname changes. React Navigation users can call the same method from onStateChange using the current route name.",
+      "lang": "tsx",
+      "code": "import { usePathname, useSegments } from 'expo-router';\nimport { useEffect } from 'react';\nimport { op } from '@/lib/op';\n\nexport default function RootLayout() {\n  const pathname = usePathname();\n  const segments = useSegments();\n\n  useEffect(() => {\n    op.screenView(pathname, {\n      segments: segments.join('/'),\n    });\n  }, [pathname, segments]);\n\n  return (/* Your layout JSX */);\n}"
+    },
+    {
+      "title": "Track events and identify users",
+      "body": "Global properties are attached to every event. identify() links sessions into one profile using your own user id, so it is opt-in and needs your own lawful basis. Call clear() on logout to reset the identity.",
+      "lang": "ts",
+      "code": "import { Platform } from 'react-native';\nimport { op } from '@/lib/op';\n\nop.setGlobalProperties({\n  app_version: '1.0.0',\n  platform: Platform.OS,\n});\n\nop.track('button_clicked', {\n  button_name: 'signup',\n  screen: 'home',\n});\n\nop.identify({\n  profileId: user.id,\n  firstName: user.firstName,\n  lastName: user.lastName,\n  email: user.email,\n  properties: {\n    plan: user.plan,\n  },\n});\n\n// on logout\nop.clear();"
+    },
+    {
+      "title": "Queue events while offline",
+      "body": "Install the two optional peer dependencies, then pass them to the constructor as the storage and networkInfo options. Events are held on the device and sent once connectivity returns.",
+      "lang": "bash",
+      "code": "npm install @react-native-async-storage/async-storage @react-native-community/netinfo"
+    },
+    {
+      "title": "Pass the offline adapters to the client",
+      "body": "Update your shared client file to include the two adapters. Everything else stays the same, including apiUrl.",
+      "lang": "ts",
+      "code": "// lib/op.ts\nimport AsyncStorage from '@react-native-async-storage/async-storage';\nimport NetInfo from '@react-native-community/netinfo';\nimport { OpenPanel } from '@openpanel/react-native';\n\nexport const op = new OpenPanel({\n  apiUrl: 'https://api.privytics.com',\n  clientId: 'YOUR_CLIENT_ID',\n  clientSecret: 'YOUR_CLIENT_SECRET',\n  storage: AsyncStorage,\n  networkInfo: NetInfo,\n});"
+    }
+  ],
+  "faq": [
+    {
+      "q": "Does this work with Expo?",
+      "a": "Yes. The SDK installs its two Expo peer dependencies through npx expo install, and the screen view example uses expo-router hooks directly. It also works in bare React Native projects on iOS and Android."
+    },
+    {
+      "q": "Do I need cookies or an advertising ID to track a React Native app?",
+      "a": "Not with Privytics. Tracking is cookieless by default and nothing is written to the device for identification. The anonymous visitor id is a salted hash of IP, user agent and project id that rotates at midnight UTC."
+    },
+    {
+      "q": "Why does the React Native SDK need a clientSecret when the web SDK does not?",
+      "a": "Native apps cannot use the CORS headers that browsers send, so the SDK authenticates with a client secret instead. This is documented behaviour of @openpanel/react-native, not a Privytics-specific requirement."
+    },
+    {
+      "q": "What happens to events if the user is offline?",
+      "a": "If you pass a storage adapter and a networkInfo adapter to the constructor, events are queued on the device and flushed when the connection comes back. Each queued event carries a __timestamp so it is recorded at the time it happened. Without those adapters, the SDK has nowhere to buffer."
+    },
+    {
+      "q": "Where is the data stored?",
+      "a": "Event data is stored in EU data centres in Germany. Privytics runs the open-source OpenPanel engine but is an independent service and is not affiliated with or endorsed by OpenPanel."
+    }
+  ],
+  "docsUrl": "https://openpanel.dev/docs/sdks/react-native",
+  "sourcesUsed": [
+    "https://openpanel.dev/docs/sdks/react-native",
+    "https://openpanel.dev/guides/react-native-analytics",
+    "https://openpanel.dev/docs/sdks/javascript",
+    "https://registry.npmjs.org/@openpanel/react-native"
+  ],
+  "omitted": [
+    "Corrected: the previous draft claimed the docs page showed no install line for the offline adapters and gave the package names as prose. The docs page does show `npm install @react-native-async-storage/async-storage @react-native-community/netinfo`, so that verbatim command is now its own step and the constructor update is a separate step.",
+    "Corrected: package metadata was read from registry.npmjs.org (the npmjs.com HTML page 403s). Latest version is 1.4.1, not 1.4.0. Peer dependencies confirmed as react-native (*), expo-constants (14 - 18), expo-application (5 - 7); the only runtime dependency is @openpanel/sdk 1.3.1.",
+    "increment, decrement, upsertGroup, setGroup and setGroups exist on the shared JavaScript SDK but are not shown on the React Native docs page, so they are not claimed here. Only track, screenView, setGlobalProperties, identify and clear are presented.",
+    "The React Navigation variant of screen view tracking exists in the upstream guide (createNavigationContainerRef with onReady and onStateChange) but was left out of the steps to keep the setup to one path. It is referenced in prose only, and nothing about it was altered or invented.",
+    "Session replay is not mentioned for React Native in the upstream docs, so it is not presented as available on this platform.",
+    "scriptUrl and the op1.js script tag are not applicable to React Native and are absent from every snippet. They are only relevant to the Next.js style component.",
+    "Constructor options are limited to those the docs page actually lists: apiUrl, clientId, clientSecret, filter, disabled, storage, networkInfo. The full TypeScript signature was not confirmed beyond those names, so no other option is used in any snippet.",
+    "The EU hosting, cookieless and daily-rotating-hash claims are Privytics product statements, not facts drawn from the OpenPanel docs, and were not verifiable from the sources fetched."
+  ]
+}

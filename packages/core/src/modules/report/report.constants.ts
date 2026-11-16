@@ -642,7 +642,10 @@ export function getCountry(code?: string) {
 }
 
 export const chartColors = [
-  { main: '#2563EB', translucent: 'rgba(37, 99, 235, 0.1)' },
+  // Primary series color. Privytics teal (matches --primary #0C6B69), not
+  // OpenPanel's blue. This index drives every single-series chart: the overview
+  // line, project sparklines, the referrers graph and the billing usage bars.
+  { main: '#0C6B69', translucent: 'rgba(12, 107, 105, 0.1)' },
   { main: '#ff7557', translucent: 'rgba(255, 117, 87, 0.1)' },
   { main: '#7fe1d8', translucent: 'rgba(127, 225, 216, 0.1)' },
   { main: '#f8bc3c', translucent: 'rgba(248, 188, 60, 0.1)' },

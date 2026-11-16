@@ -54,7 +54,7 @@ export function ProjectMapper({
       </div>
       {fields.length === 0 && (
         <p className="text-muted-foreground text-sm">
-          Map source project IDs to your OpenPanel projects. If you skip mapping
+          Map source project IDs to your Privytics projects. If you skip mapping
           all data will be imported to your current project.
         </p>
       )}
@@ -77,7 +77,7 @@ export function ProjectMapper({
                 </div>
                 <div className="flex-1">
                   <Label className="text-muted-foreground text-xs">
-                    To (OpenPanel Project)
+                    To (Privytics Project)
                   </Label>
                   <Select
                     onValueChange={(value) =>

@@ -6,6 +6,7 @@ import { useEffect } from 'react';
 import EditReportName from '../report/edit-report-name';
 import { ReportPrompt } from '../report/report-prompt';
 import { ReportSummaryTrigger } from '../report/report-summary-trigger';
+import { useOverviewAICommandEnabled } from '@/components/overview/overview-ai-command';
 import { ReportChartType } from '@/components/report/ReportChartType';
 import { ReportInterval } from '@/components/report/ReportInterval';
 import { ReportLineType } from '@/components/report/ReportLineType';
@@ -40,15 +41,16 @@ interface ReportEditorProps {
   draft?: IReportInput & { name: string };
 }
 
-/** With an AI provider the empty editor asks for a description; without one it points at the event picker. */
+/** With an AI provider (and a paid plan) the empty editor asks for a description; without one it points at the event picker. */
 function EmptyReport({ projectId }: { projectId: string }) {
   const trpc = useTRPC();
   const models = useQuery(trpc.chat.models.queryOptions());
   const report = useSelector((state) => state.report);
+  const aiEnabled = useOverviewAICommandEnabled();
   if (models.isPending) {
     return <div className="card min-h-72" />;
   }
-  if ((models.data?.models.length ?? 0) > 0) {
+  if (aiEnabled && (models.data?.models.length ?? 0) > 0) {
     return <ReportPrompt />;
   }
   return <ReportChart isEditMode report={{ ...report, projectId }} />;

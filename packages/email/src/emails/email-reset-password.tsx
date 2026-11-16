@@ -9,7 +9,7 @@ export const zEmailResetPassword = z.object({
 export type Props = z.infer<typeof zEmailResetPassword>;
 export default EmailResetPassword;
 export function EmailResetPassword({
-  url = 'https://openpanel.dev',
+  url = 'https://privytics.com',
   unsubscribeUrl,
 }: Props & { unsubscribeUrl?: string }) {
   return (

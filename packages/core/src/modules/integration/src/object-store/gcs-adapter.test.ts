@@ -91,7 +91,7 @@ function adapter(
     {
       type: 'gcs_export',
       bucket: overrides.bucket ?? BUCKET,
-      prefix: 'openpanel-exports',
+      prefix: 'privytics-exports',
       format: 'jsonl_gzip',
       serviceAccountKey: overrides.serviceAccountKey ?? SERVICE_ACCOUNT_KEY,
     },
@@ -160,7 +160,7 @@ describe.skipIf(!available)('GCSAdapter (fake-gcs-server)', () => {
       await adapter().testConnection();
 
       await expect(
-        readObject(BUCKET, 'openpanel-exports/.openpanel-connection-test')
+        readObject(BUCKET, 'privytics-exports/.privytics-connection-test')
       ).rejects.toThrow();
     });
 

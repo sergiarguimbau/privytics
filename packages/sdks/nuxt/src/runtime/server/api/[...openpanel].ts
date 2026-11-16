@@ -10,7 +10,7 @@ import {
   setResponseStatus,
 } from 'h3';
 
-const API_URL = 'https://api.openpanel.dev';
+const API_URL = 'https://api.privytics.com';
 
 function getClientHeaders(event: H3Event<EventHandlerRequest>): Headers {
   const headers = new Headers();

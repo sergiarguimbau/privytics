@@ -97,8 +97,8 @@ function Component() {
     ? `/login?inviteId=${encodeURIComponent(inviteId)}`
     : '/login';
   const description = isSelfHosted
-    ? 'Set up your account on this OpenPanel instance.'
-    : 'Start your 30-day free trial. No credit card required.';
+    ? 'Set up your account on this Privytics instance.'
+    : '10,000 events a month free. No credit card required.';
 
   return (
     <div className="col w-full gap-8">
@@ -163,7 +163,7 @@ function Component() {
         By creating an account you agree to the{' '}
         <a
           className="underline hover:text-foreground"
-          href="https://openpanel.dev/terms"
+          href="https://privytics.com/terms"
           rel="noreferrer"
           target="_blank"
         >
@@ -172,7 +172,7 @@ function Component() {
         and{' '}
         <a
           className="underline hover:text-foreground"
-          href="https://openpanel.dev/privacy"
+          href="https://privytics.com/privacy"
           rel="noreferrer"
           target="_blank"
         >
