@@ -77,6 +77,7 @@ export class OpenPanel extends OpenPanelBase {
   private lastPath = '';
   private debounceTimer: any;
   private pendingRevenues: PendingRevenue[] = [];
+  private pendingRevenuesLoaded = false;
 
   constructor(public options: OpenPanelOptions) {
     super({
@@ -86,18 +87,6 @@ export class OpenPanel extends OpenPanelBase {
     });
 
     if (!this.isServer()) {
-      try {
-        const pending = sessionStorage.getItem('openpanel-pending-revenues');
-        if (pending) {
-          const parsed = JSON.parse(pending);
-          if (Array.isArray(parsed)) {
-            this.pendingRevenues = parsed;
-          }
-        }
-      } catch {
-        this.pendingRevenues = [];
-      }
-
       this.setGlobalProperties({
         __referrer: document.referrer,
       });
@@ -347,7 +336,25 @@ export class OpenPanel extends OpenPanelBase {
     });
   }
 
+  // Read on first use, not on load: a site that never calls pendingRevenue()
+  // gets a tracker that reads nothing from the visitor's device.
+  private loadPendingRevenues() {
+    if (this.pendingRevenuesLoaded || this.isServer()) {
+      return;
+    }
+    this.pendingRevenuesLoaded = true;
+    try {
+      const parsed = JSON.parse(
+        sessionStorage.getItem('openpanel-pending-revenues') ?? '[]'
+      );
+      if (Array.isArray(parsed)) {
+        this.pendingRevenues = [...parsed, ...this.pendingRevenues];
+      }
+    } catch {}
+  }
+
   async flushRevenue() {
+    this.loadPendingRevenues();
     const promises = this.pendingRevenues.map((pending) =>
       super.revenue(pending.amount, pending.properties)
     );
@@ -365,6 +372,7 @@ export class OpenPanel extends OpenPanelBase {
   }
 
   pendingRevenue(amount: number, properties?: Record<string, unknown>) {
+    this.loadPendingRevenues();
     this.pendingRevenues.push({ amount, properties });
     if (!this.isServer()) {
       try {

@@ -39,7 +39,7 @@
     "@openpanel/payments": "workspace:*",
     "@openpanel/sdk-info": "workspace:^",
     "@openpanel/shared": "workspace:*",
-    "@openpanel/web": "1.0.5",
+    "@openpanel/web": "workspace:*",
     "@radix-ui/react-accordion": "1.2.12",
     "@radix-ui/react-alert-dialog": "1.1.15",
     "@radix-ui/react-aspect-ratio": "1.1.7",

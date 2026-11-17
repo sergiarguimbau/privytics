@@ -5,6 +5,7 @@ import { nitroV2Plugin } from '@tanstack/nitro-v2-vite-plugin';
 import { tanstackStart } from '@tanstack/react-start/plugin/vite';
 import viteReact from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
+import webSdkPackage from '../../packages/sdks/web/package.json';
 import viteTsConfigPaths from 'vite-tsconfig-paths';
 
 const plugins = [
@@ -31,8 +32,18 @@ if (process.env.NITRO) {
 // and its HMR client has to dial 443 over wss instead of the dev port.
 const behindProxy = (process.env.DASHBOARD_URL ?? '').startsWith('https://');
 
+// The web SDK is bundled from source, which reads its version from
+// `process.env`; substitute it the way the SDK's own tsup build does.
+const WEB_SDK_VERSION = JSON.stringify(
+  webSdkPackage.version.replace(/-local$/, '')
+);
+
 const config = defineConfig({
   plugins,
+  define: {
+    'process.env.WEB_VERSION': WEB_SDK_VERSION,
+    'process.env.SDK_VERSION': WEB_SDK_VERSION,
+  },
   server: {
     allowedHosts: ['.openpanel.cc'],
     ...(behindProxy ? { hmr: { protocol: 'wss', clientPort: 443 } } : {}),

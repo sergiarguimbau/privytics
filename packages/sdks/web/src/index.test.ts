@@ -107,3 +107,28 @@ describe('automatic click events', () => {
     });
   });
 });
+
+describe('pending revenue', () => {
+  test('a tracker that never uses it reads nothing from session storage', () => {
+    const storage = (globalThis as any).sessionStorage as Storage;
+    const reads: string[] = [];
+    const getItem = storage.getItem.bind(storage);
+    storage.getItem = (key: string) => {
+      reads.push(key);
+      return getItem(key);
+    };
+    createSdk({ trackScreenViews: true });
+    expect(reads).toEqual([]);
+  });
+
+  test('a later page flushes what an earlier page left pending', async () => {
+    createSdk({}).pendingRevenue(1999, { plan: 'pro' });
+    await createSdk({}).flushRevenue();
+    expect(sentTrackEvents()).toEqual([
+      expect.objectContaining({
+        name: 'revenue',
+        properties: expect.objectContaining({ __revenue: 1999, plan: 'pro' }),
+      }),
+    ]);
+  });
+});
