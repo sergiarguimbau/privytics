@@ -284,6 +284,38 @@ test('createProjectForOrganization creates a project with a first write client',
   expect(typeof result.client?.secret).toBe('string');
 });
 
+test('createProjectForOrganization allows the domain when no origins were given', async () => {
+  const result = await subject.createProjectForOrganization('org_1', {
+    name: 'Site',
+    domain: 'https://example.com/',
+    cors: [],
+    crossDomain: false,
+    types: ['website'],
+  });
+
+  expect(result.project.cors).toEqual(['https://example.com']);
+});
+
+test('createProjectForOrganization keeps explicit origins and adds none without a domain', async () => {
+  const explicit = await subject.createProjectForOrganization('org_1', {
+    name: 'Explicit',
+    domain: 'https://example.com',
+    cors: ['https://app.example.com/'],
+    crossDomain: false,
+    types: ['website'],
+  });
+  expect(explicit.project.cors).toEqual(['https://app.example.com']);
+
+  const backend = await subject.createProjectForOrganization('org_1', {
+    name: 'Backend',
+    domain: null,
+    cors: [],
+    crossDomain: false,
+    types: ['backend'],
+  });
+  expect(backend.project.cors).toEqual([]);
+});
+
 test('updateProjectForOrganization returns null for a project in a different org', async () => {
   projectStore.set('p1', makeProject({ id: 'p1', organizationId: 'org_1' }));
 

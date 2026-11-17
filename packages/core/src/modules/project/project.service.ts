@@ -385,7 +385,14 @@ export function createProjectService(
         organizationId,
         name: input.name,
         domain: input.domain ? stripTrailingSlash(input.domain) : null,
-        cors: input.cors.map((c) => stripTrailingSlash(c)),
+        // A website project with a domain but no allowed origins would refuse
+        // every browser event ("Invalid cors or secret"). The dashboard form
+        // only copies the domain into the list when the field loses focus, so
+        // fall back to the domain here, for the form and the REST API alike.
+        cors: (input.cors.length > 0 || !input.domain
+          ? input.cors
+          : [input.domain]
+        ).map((c) => stripTrailingSlash(c)),
         crossDomain: input.crossDomain ?? false,
         allowUnsafeRevenueTracking: false,
         filters: [],
