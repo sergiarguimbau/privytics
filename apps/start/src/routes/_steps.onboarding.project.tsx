@@ -33,6 +33,7 @@ import { Combobox } from '@/components/ui/combobox';
 import { Label } from '@/components/ui/label';
 import { rememberOnboardingKeys } from '@/hooks/use-client-secret';
 import { handleError, useTRPC } from '@/integrations/trpc/react';
+import { toOrigin } from '@/utils/origin';
 import { cn } from '@/utils/cn';
 import {
   failureReason,
@@ -105,14 +106,6 @@ const PROJECT_TYPES: {
 const TIMEZONES = ['UTC', ...Intl.supportedValuesOf('timeZone')].map(
   (zone) => ({ value: zone, label: zone })
 );
-
-function toOrigin(value: string) {
-  const trimmed = value.trim();
-  if (!trimmed || trimmed === '*' || /^https?:\/\//.test(trimmed)) {
-    return trimmed;
-  }
-  return `https://${trimmed}`;
-}
 
 function Component() {
   const workspaceFieldId = useId();

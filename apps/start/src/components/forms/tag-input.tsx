@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { fieldSurface } from '@/components/ui/input';
 import { cn } from '@/utils/cn';
+import { fieldMessageId } from './input-with-label';
 
 interface Props {
   placeholder: string;
@@ -139,6 +140,7 @@ const TagInput = ({
 
       <input
         className="min-w-20 flex-1 bg-transparent py-1 focus-visible:outline-none"
+        aria-describedby={id ? fieldMessageId(id) : undefined}
         id={id}
         onBlur={handleBlur}
         onChange={(e) => setInputValue(e.target.value)}

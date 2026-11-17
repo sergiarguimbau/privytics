@@ -4,6 +4,7 @@ import { Link } from '@tanstack/react-router';
 import { SparklesIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { curlSnippet, type SnippetContext } from './install-snippets';
+import { toOrigin } from '@/utils/origin';
 import { setLaunchedQuestion } from '@/components/chat/chat-launch';
 import { canUseAssistant } from '@/components/organization/plan-state';
 import CopyInput from '@/components/forms/copy-input';
@@ -37,12 +38,7 @@ function diagnoseQuestion(project: IServiceProjectWithClients): string {
 }
 
 function normalizeOrigins(values: string[]) {
-  return values
-    .map((value) => value.trim())
-    .filter(Boolean)
-    .map((value) =>
-      value === '*' || /^https?:\/\//.test(value) ? value : `https://${value}`
-    );
+  return [...new Set(values.map(toOrigin).filter(Boolean))];
 }
 
 /** A quiet link under the listener that opens the troubleshooting checks. */

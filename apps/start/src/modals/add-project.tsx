@@ -8,7 +8,7 @@ import {
   ServerIcon,
   SmartphoneIcon,
 } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -24,6 +24,7 @@ import { DialogFooter } from '@/components/ui/dialog';
 import { useAppParams } from '@/hooks/use-app-params';
 import { rememberOnboardingKeys } from '@/hooks/use-client-secret';
 import { handleError, useTRPC } from '@/integrations/trpc/react';
+import { toOrigin } from '@/utils/origin';
 
 const validator = zOnboardingProject;
 type IForm = z.infer<typeof validator>;
@@ -43,6 +44,20 @@ export default function AddProject() {
       backend: false,
     },
   });
+  // The domain's origin is kept in "Allowed domains" as it is typed (a website
+  // with none refuses every browser event); origins added by hand stay.
+  const mirroredOrigin = useRef<string | null>(null);
+  const domainField = form.register('domain');
+  const mirrorDomain = (domain: string) => {
+    const next = domain.includes('.') ? toOrigin(domain) : null;
+    const previous = mirroredOrigin.current;
+    mirroredOrigin.current = next;
+    const kept = form.getValues().cors.filter((origin) => origin !== previous);
+    form.setValue(
+      'cors',
+      next && !kept.includes(next) ? [next, ...kept] : kept
+    );
+  };
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const mutation = useMutation(
@@ -93,6 +108,7 @@ export default function AddProject() {
     if (!isWebsite) {
       form.setValue('domain', null);
       form.setValue('cors', []);
+      mirroredOrigin.current = null;
     }
   }, [isWebsite, form]);
 
@@ -158,19 +174,23 @@ export default function AddProject() {
                       <div className="p-4 pl-14">
                         <InputWithLabel
                           label="Domain"
-                          placeholder="Your website address"
-                          {...form.register('domain')}
+                          placeholder="https://example.com"
+                          {...domainField}
                           className="mb-4"
                           error={form.formState.errors.domain?.message}
+                          hint="The address of the site you will track."
                           onBlur={(e) => {
-                            const value = e.target.value.trim();
-                            if (
-                              value.includes('.') &&
-                              form.getValues().cors.length === 0 &&
-                              !form.formState.errors.domain
-                            ) {
-                              form.setValue('cors', [value]);
+                            domainField.onBlur(e);
+                            const value = toOrigin(e.target.value);
+                            if (value) {
+                              form.setValue('domain', value, {
+                                shouldValidate: true,
+                              });
                             }
+                          }}
+                          onChange={(e) => {
+                            domainField.onChange(e);
+                            mirrorDomain(e.target.value);
                           }}
                         />
 
@@ -178,24 +198,19 @@ export default function AddProject() {
                           control={form.control}
                           name="cors"
                           render={({ field }) => (
-                            <WithLabel label="Allowed domains">
+                            <WithLabel
+                              id="project-cors"
+                              hint="Sites allowed to send events to this project. Your domain is added for you; add any other domain that runs the same tracking code."
+                              label="Allowed domains"
+                            >
                               <TagInput
                                 {...field}
                                 error={form.formState.errors.cors?.message}
+                                id="project-cors"
                                 onChange={(newValue) => {
-                                  field.onChange(
-                                    newValue.map((item) => {
-                                      const trimmed = item.trim();
-                                      if (
-                                        trimmed.startsWith('http://') ||
-                                        trimmed.startsWith('https://') ||
-                                        trimmed === '*'
-                                      ) {
-                                        return trimmed;
-                                      }
-                                      return `https://${trimmed}`;
-                                    })
-                                  );
+                                  field.onChange([
+                                    ...new Set(newValue.map(toOrigin)),
+                                  ]);
                                 }}
                                 placeholder="Accept events from these domains"
                                 renderTag={(tag) =>
