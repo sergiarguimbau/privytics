@@ -168,7 +168,13 @@ export default async function ForPage({ params }: Params) {
             <h1>{entry.title}</h1>
             <p className="for-tagline">{entry.tagline}</p>
             <div className="for-hero-actions">
-              <a className="btn btn-primary" href={SIGNUP_URL}>
+              <a
+                className="btn btn-primary"
+                data-track="cta_clicked"
+                data-cta="signup"
+                data-location="guide-hero"
+                href={SIGNUP_URL}
+              >
                 Start for free
               </a>
               <a className="btn btn-ghost" href="#setup">
@@ -254,7 +260,13 @@ export default async function ForPage({ params }: Params) {
                 time.
               </p>
               <div className="post-cta-actions">
-                <a className="btn btn-primary" href={SIGNUP_URL}>
+                <a
+                  className="btn btn-primary"
+                  data-track="cta_clicked"
+                  data-cta="signup"
+                  data-location="guide-end"
+                  href={SIGNUP_URL}
+                >
                   Start for free
                 </a>
                 <a className="btn btn-ghost" href="/docs">

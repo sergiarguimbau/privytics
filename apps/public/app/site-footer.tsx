@@ -51,7 +51,14 @@ export function SiteFooter() {
           <a href="/docs">Docs</a>
           <a href="/for">Setup guides</a>
           <a href="/blog">Blog</a>
-          <a href={LOGIN_URL}>Log in</a>
+          <a
+            data-track="cta_clicked"
+            data-cta="login"
+            data-location="footer"
+            href={LOGIN_URL}
+          >
+            Log in
+          </a>
         </div>
 
         <div className="site-foot-col">

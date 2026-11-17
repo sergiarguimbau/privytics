@@ -7,6 +7,7 @@ import { createTRPCOptionsProxy } from '@trpc/tanstack-react-query';
 import { useMemo } from 'react';
 import superjson from 'superjson';
 import { TRPCProvider } from '@/integrations/trpc/react';
+import { trackActivation } from '@/utils/funnel-tracking';
 
 const DEFAULT_RETRY_COUNT = 1;
 
@@ -127,7 +128,11 @@ export function getContext(apiUrl: string) {
       hydrate: { deserializeData: superjson.deserialize },
     },
     queryCache: new QueryCache({ onError: handleUnauthorized }),
-    mutationCache: new MutationCache({ onError: handleUnauthorized }),
+    mutationCache: new MutationCache({
+      onError: handleUnauthorized,
+      onSuccess: (_data, _variables, _context, mutation) =>
+        trackActivation(mutation.options.mutationKey),
+    }),
   });
 
   // Create a tRPC client with cookies if provided

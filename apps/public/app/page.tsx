@@ -196,10 +196,22 @@ export default function Page() {
             <a href="#faq">FAQ</a>
           </div>
           <div className="nav-cta">
-            <a className="nav-login" href={LOGIN_URL}>
+            <a
+              className="nav-login"
+              data-track="cta_clicked"
+              data-cta="login"
+              data-location="nav"
+              href={LOGIN_URL}
+            >
               Log in
             </a>
-            <a className="btn btn-primary" href={SIGNUP_URL}>
+            <a
+              className="btn btn-primary"
+              data-track="cta_clicked"
+              data-cta="signup"
+              data-location="nav"
+              href={SIGNUP_URL}
+            >
               Start for free
             </a>
           </div>
@@ -222,13 +234,22 @@ export default function Page() {
               the EU. Free for your first 10,000 events a month.
             </p>
             <div className="hero-cta">
-              <a className="btn btn-primary btn-lg" href={SIGNUP_URL}>
+              <a
+                className="btn btn-primary btn-lg"
+                data-track="cta_clicked"
+                data-cta="signup"
+                data-location="hero"
+                href={SIGNUP_URL}
+              >
                 Start for free
               </a>
               {/* No demo exists yet: point at pricing until DEMO_URL is set. */}
               {DEMO_URL ? (
                 <a
                   className="btn btn-ghost btn-lg"
+                  data-track="cta_clicked"
+                  data-cta="demo"
+                  data-location="hero"
                   href={DEMO_URL}
                   rel="noopener"
                   target="_blank"
@@ -236,7 +257,13 @@ export default function Page() {
                   See a live demo
                 </a>
               ) : (
-                <a className="btn btn-ghost btn-lg" href="#pricing">
+                <a
+                  className="btn btn-ghost btn-lg"
+                  data-track="cta_clicked"
+                  data-cta="pricing"
+                  data-location="hero"
+                  href="#pricing"
+                >
                   See pricing
                 </a>
               )}
@@ -372,7 +399,13 @@ export default function Page() {
                 .
               </p>
               <div className="hero-cta">
-                <a className="btn btn-primary" href={SIGNUP_URL}>
+                <a
+                  className="btn btn-primary"
+                  data-track="cta_clicked"
+                  data-cta="signup"
+                  data-location="free-plan"
+                  href={SIGNUP_URL}
+                >
                   Create your free project
                 </a>
               </div>
@@ -518,6 +551,10 @@ export default function Page() {
                     </span>
                     <a
                       className={`btn ${tier.featured ? 'btn-primary' : 'btn-ghost'}`}
+                      data-track="cta_clicked"
+                      data-cta={tier.price === 'Custom' ? 'contact' : 'signup'}
+                      data-location="pricing"
+                      data-plan={tier.events}
                       href={cta.href}
                     >
                       {cta.label}
@@ -634,7 +671,13 @@ export default function Page() {
                 10,000 events a month free. No credit card, no time limit, and a
                 few minutes to set up.
               </p>
-              <a className="btn btn-primary btn-lg" href={SIGNUP_URL}>
+              <a
+                className="btn btn-primary btn-lg"
+                data-track="cta_clicked"
+                data-cta="signup"
+                data-location="final"
+                href={SIGNUP_URL}
+              >
                 Start for free
               </a>
             </div>
@@ -676,7 +719,14 @@ export default function Page() {
               <a href="/docs">Docs</a>
               <a href="/for">Setup guides</a>
               <a href="/blog">Blog</a>
-              <a href={LOGIN_URL}>Log in</a>
+              <a
+                data-track="cta_clicked"
+                data-cta="login"
+                data-location="footer"
+                href={LOGIN_URL}
+              >
+                Log in
+              </a>
               <a href={SOURCE_URL}>Source code</a>
             </div>
             <div className="footer-col">

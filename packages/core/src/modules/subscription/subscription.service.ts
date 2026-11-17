@@ -23,6 +23,8 @@ import type { Logger } from '../../logger';
 import { TRPCBadRequestError } from '../../rpc/errors';
 import type { ServiceDeps, Services } from '../../services';
 import { formatClickhouseDate } from '../../shared/ch-dates';
+import type { OpenPanel } from '@openpanel/sdk';
+import { selfTrackingClient } from '../ai/src/self-tracking';
 import { getAccessChecks } from '../auth/auth.service';
 import {
   getOrganizationBillingUsageCached,
@@ -858,6 +860,66 @@ export async function handlePolarWebhookEvent(
   }
 }
 
+const REVENUE_TRACKED_TTL_SECONDS = 60 * 60 * 24 * 30;
+
+interface PaidOrder {
+  id: string;
+  netAmount: number;
+  currency: string;
+  billingReason: string;
+  metadata: unknown;
+  product: { name: string } | null;
+}
+
+// Our own revenue in our own analytics (the project OP_CLIENT_ID names): each
+// paid order once, net of VAT and in cents, on the profile of the user who
+// checked out, which is the id the dashboard identifies them by. Polar
+// redelivers webhooks, so the order id is claimed first; a failed send is
+// logged and lost rather than ever counted twice.
+export async function trackOrderRevenue(
+  op: Pick<OpenPanel, 'revenue'> | null,
+  redis: {
+    set: (
+      key: string,
+      value: string,
+      ex: 'EX',
+      seconds: number,
+      nx: 'NX'
+    ) => Promise<string | null>;
+  },
+  order: PaidOrder,
+  logger: Pick<Logger, 'warn'>
+): Promise<void> {
+  if (!op || order.netAmount <= 0) {
+    return;
+  }
+  const claimed = await redis.set(
+    `polar:revenue-tracked:${order.id}`,
+    '1',
+    'EX',
+    REVENUE_TRACKED_TTL_SECONDS,
+    'NX'
+  );
+  if (claimed !== 'OK') {
+    return;
+  }
+  const metadata = subscriptionMetadataSchema.safeParse(order.metadata);
+  try {
+    await op.revenue(order.netAmount, {
+      profileId: metadata.data?.userId,
+      organizationId: metadata.data?.organizationId,
+      currency: order.currency,
+      product: order.product?.name,
+      billingReason: order.billingReason,
+    });
+  } catch (err) {
+    logger.warn(
+      { err, orderId: order.id },
+      'polar webhook: revenue tracking failed'
+    );
+  }
+}
+
 async function dispatchPolarWebhookEvent(
   deps: ServiceDeps,
   event: PolarEvent,
@@ -875,6 +937,14 @@ async function dispatchPolarWebhookEvent(
     // transition. Re-deliveries of the same paid order just reset to 0 again,
     // which is harmless (and safely under-counts at worst).
     case 'order.updated': {
+      if (event.data.status === 'paid') {
+        await trackOrderRevenue(
+          selfTrackingClient(deps.config),
+          deps.redis,
+          event.data,
+          logger
+        );
+      }
       if (
         event.data.billingReason !== 'subscription_cycle' ||
         event.data.status !== 'paid'

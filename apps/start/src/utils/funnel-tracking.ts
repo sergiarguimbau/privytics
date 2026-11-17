@@ -60,6 +60,37 @@ export function trackFunnel(name: FunnelEvent, properties?: FunnelProperties) {
   op.track(name, properties);
 }
 
+// What an account does once it is set up, recorded from the one place every
+// tRPC mutation passes (the query client's MutationCache). Only the event name
+// is sent: inputs carry report names and filter values, which can hold a
+// customer's end-user data.
+const ACTIVATION_EVENTS: Record<string, string> = {
+  'project.create': 'project_created',
+  'client.create': 'client_created',
+  'dashboard.create': 'dashboard_created',
+  'report.create': 'report_created',
+  'organization.inviteUser': 'member_invited',
+  'organization.acceptInvite': 'invite_accepted',
+  'share.createDashboard': 'dashboard_shared',
+  'share.createOverview': 'overview_shared',
+  'share.createReport': 'report_shared',
+  'integration.createOrUpdate': 'integration_saved',
+  'integration.createOrUpdateSlack': 'integration_saved',
+  'integration.createOrUpdateExport': 'export_saved',
+  'notification.createOrUpdateRule': 'notification_rule_saved',
+  'project.delete': 'project_deleted',
+  'organization.delete': 'organization_deleted',
+};
+
+/** Tracks a succeeded mutation if it is one of the activation steps above. */
+export function trackActivation(mutationKey: readonly unknown[] | undefined) {
+  const path = mutationKey?.[0];
+  const name = Array.isArray(path) ? ACTIVATION_EVENTS[path.join('.')] : undefined;
+  if (name) {
+    op.track(name);
+  }
+}
+
 /** Seconds since the step mounted, attached to the events that end a step. */
 export function useSecondsOnStep() {
   const mountedAt = useRef(Date.now());

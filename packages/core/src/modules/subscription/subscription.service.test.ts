@@ -5,6 +5,7 @@ import {
   isStaleSubscriptionEvent,
   resolveFreeDowngrade,
   resolvePeriodEventsLimit,
+  trackOrderRevenue,
 } from './subscription.service';
 
 // test/preload.ts pins SELF_HOSTED=true, under which getSubscriptionState
@@ -287,5 +288,61 @@ describe('getCurrentSubscriptionProduct', () => {
         'privytics'
       )
     ).toBeNull();
+  });
+});
+
+describe('trackOrderRevenue', () => {
+  const order = {
+    id: 'ord_1',
+    netAmount: 1000,
+    currency: 'eur',
+    billingReason: 'subscription_create',
+    metadata: { organizationId: 'org_1', userId: 'user_1' },
+    product: { name: 'Pro 100k' },
+  };
+  const setup = () => {
+    const sent: [number, Record<string, unknown> | undefined][] = [];
+    const claimed = new Set<string>();
+    const op = {
+      revenue: (amount: number, properties?: Record<string, unknown>) => {
+        sent.push([amount, properties]);
+        return Promise.resolve();
+      },
+    };
+    const redis = {
+      set: (key: string) => {
+        if (claimed.has(key)) {
+          return Promise.resolve(null);
+        }
+        claimed.add(key);
+        return Promise.resolve('OK');
+      },
+    };
+    return { sent, op, redis, logger: { warn: () => undefined } };
+  };
+
+  it('counts a paid order once, net of VAT, on the buyer profile', async () => {
+    const { sent, op, redis, logger } = setup();
+    await trackOrderRevenue(op, redis, order, logger);
+    await trackOrderRevenue(op, redis, order, logger);
+    expect(sent).toEqual([
+      [
+        1000,
+        {
+          profileId: 'user_1',
+          organizationId: 'org_1',
+          currency: 'eur',
+          product: 'Pro 100k',
+          billingReason: 'subscription_create',
+        },
+      ],
+    ]);
+  });
+
+  it('sends nothing for a free order or without a tracking client', async () => {
+    const { sent, op, redis, logger } = setup();
+    await trackOrderRevenue(op, redis, { ...order, netAmount: 0 }, logger);
+    await trackOrderRevenue(null, redis, order, logger);
+    expect(sent).toEqual([]);
   });
 });

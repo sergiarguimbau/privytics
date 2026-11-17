@@ -81,7 +81,13 @@ export default function ForIndex() {
               10,000 events a month.
             </p>
             <div className="for-hero-actions">
-              <a className="btn btn-primary" href={SIGNUP_URL}>
+              <a
+                className="btn btn-primary"
+                data-track="cta_clicked"
+                data-cta="signup"
+                data-location="guides-index"
+                href={SIGNUP_URL}
+              >
                 Start for free
               </a>
               <a className="btn btn-ghost" href="/docs">

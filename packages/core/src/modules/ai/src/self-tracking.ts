@@ -44,6 +44,8 @@ export function instrumentLanguageModel(
   }
   return wrapLanguageModel({
     model,
-    middleware: openpanelAiMiddleware({ op }),
+    // Metadata only (model, tokens, cost, latency): prompts and answers can hold
+    // customers' analytics data, which must never reach our own project.
+    middleware: openpanelAiMiddleware({ op, privacyMode: true }),
   });
 }

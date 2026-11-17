@@ -166,7 +166,13 @@ export default async function BlogPost({ params }: Params) {
             time.
           </p>
           <div className="post-cta-actions">
-            <a className="btn btn-primary" href={SIGNUP_URL}>
+            <a
+              className="btn btn-primary"
+              data-track="cta_clicked"
+              data-cta="signup"
+              data-location="blog-post"
+              href={SIGNUP_URL}
+            >
               Start for free
             </a>
             <a className="btn btn-ghost" href="/docs">
