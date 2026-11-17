@@ -44,6 +44,8 @@ import { isSignedIn } from '@/utils/route-session';
 
 const validateSearch = z.object({
   inviteId: z.string().optional(),
+  // Set by the OAuth sign-up redirect (sign-in-oauth.tsx).
+  signup: z.enum(['google', 'github']).optional().catch(undefined),
 });
 export const Route = createFileRoute('/_steps/onboarding/project')({
   component: Component,
@@ -213,6 +215,20 @@ function Component() {
   useEffect(() => {
     trackFunnel('onboarding_project_viewed', { hasWorkspaces });
   }, [hasWorkspaces]);
+
+  const { signup } = Route.useSearch();
+  useEffect(() => {
+    if (!signup) {
+      return;
+    }
+    trackFunnel('auth_signup_succeeded', { provider: signup, hasInvite: false });
+    // Drop the tag so a reload does not count the sign-up twice.
+    navigate({
+      to: '/onboarding/project',
+      search: (prev) => ({ ...prev, signup: undefined }),
+      replace: true,
+    });
+  }, [signup, navigate]);
 
   // The workspace is the billing unit, not something a new user should have
   // to name before seeing a single chart: it follows the project name until

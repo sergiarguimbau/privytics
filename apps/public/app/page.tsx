@@ -498,7 +498,7 @@ export default function Page() {
               <p>
                 Cookie-based tools like Google Analytics usually need a consent
                 banner in the EU, and every visitor who declines it goes
-                unmeasured. Privytics sets no cookies, so its anonymous
+                unmeasured, or only estimated on large sites. Privytics sets no cookies, so its anonymous
                 analytics generally needs no banner, and those visitors stay in
                 your numbers. See the{' '}
                 <a href="/blog/privytics-vs-google-analytics">

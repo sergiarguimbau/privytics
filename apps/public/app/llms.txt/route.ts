@@ -68,8 +68,8 @@ event data is stored in EU data centres in Germany.
 - Cookieless by default: sets no cookies and stores nothing on the visitor's device. The
   anonymous visitor id is derived from IP address, user agent and project id and changes
   every day, so it cannot follow a person from one day to the next.
-- Because nothing is stored on or read from the device, the ePrivacy consent requirement
-  for cookies and similar storage does not apply to Privytics' anonymous analytics, so a
+- Because nothing is stored on the device and nothing on it is used to identify visitors,
+  the ePrivacy consent requirement for cookies and similar storage generally does not apply to Privytics' anonymous analytics, so a
   site generally does not need to include Privytics in a cookie banner. Other tools on the
   same site may still need one. Site owners remain the data controller and are responsible
   for their own compliance. This is not legal advice.

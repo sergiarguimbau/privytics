@@ -75,6 +75,11 @@ export function SignInOAuth({
         authClient.signIn.social({
           provider,
           callbackURL: dashboardUrl,
+          // New accounts land where `/` would send them anyway, tagged so
+          // onboarding can count the sign-up. Invited users skip onboarding.
+          newUserCallbackURL: inviteId
+            ? undefined
+            : `${dashboardUrl}/onboarding/project?signup=${provider}`,
           errorCallbackURL: `${dashboardUrl}/login`,
           additionalData: inviteId ? { inviteId } : undefined,
         })
