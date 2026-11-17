@@ -1,4 +1,5 @@
 import { LOGIN_URL } from './links';
+import { StatusIndicator } from './status-indicator';
 
 /**
  * Shared footer for the secondary pages (docs, blog, legal).
@@ -32,6 +33,7 @@ export function SiteFooter() {
             Privytics
           </a>
           <p>Privacy-first product analytics, hosted in the EU.</p>
+          <StatusIndicator />
         </div>
 
         <div className="site-foot-col">

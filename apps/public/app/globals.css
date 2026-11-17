@@ -896,27 +896,83 @@ footer {
 }
 
 /* Status pill */
-.footer-status {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.footer-bottom .status-pill {
+/* Live status light in the footer brand column (app/status-indicator.tsx).
+   Grey until /api/status answers; only a known state gets colour and the
+   pulse, so the light never claims "operational" on a guess. */
+.status-indicator {
+  --status-color: #9aa8ab;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: var(--ink-2);
+  gap: 10px;
+  margin-top: 18px;
+  padding: 7px 14px 7px 12px;
   border: 1px solid var(--border-2);
   border-radius: 999px;
-  padding: 5px 12px;
+  background: var(--bg);
+  color: var(--ink-2);
+  font-size: 0.86rem;
+  font-weight: 500;
+  line-height: 1.2;
+  transition: border-color 0.2s ease, color 0.2s ease;
 }
 
-.footer-bottom .status-pill:hover {
-  border-color: var(--accent);
-  color: var(--accent-ink);
+.status-indicator:hover {
+  border-color: var(--status-color);
+  color: var(--ink);
+}
+
+.status-indicator[data-state='operational'] {
+  --status-color: #16a34a;
+}
+
+.status-indicator[data-state='degraded'] {
+  --status-color: #d97706;
+}
+
+.status-indicator[data-state='downtime'] {
+  --status-color: #dc2626;
+}
+
+.status-indicator[data-state='maintenance'] {
+  --status-color: #2563eb;
+}
+
+.status-dot {
+  position: relative;
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--status-color);
+  transition: background-color 0.3s ease;
+}
+
+.status-indicator:not([data-state='unknown']) .status-dot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--status-color);
+  animation: status-ping 2.2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes status-ping {
+  0% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  80%,
+  100% {
+    transform: scale(2.8);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status-indicator .status-dot::after {
+    animation: none;
+    display: none;
+  }
 }
 
 /* Legal + docs pages */
@@ -1647,6 +1703,13 @@ details p a:hover {
   margin-bottom: 0;
 }
 
+/* Same for the shared footer: its full-bleed margin/padding trick resolves to
+   zero on a full-width page, which left it flush against the window edges. */
+.for-page > .site-foot {
+  margin-inline: 0;
+  padding-inline: max(24px, calc((100% - 880px) / 2));
+}
+
 .for-page main > section {
   padding: 56px 0;
 }
@@ -1979,7 +2042,8 @@ details p a:hover {
     width: min(100% - 32px, 880px);
   }
 
-  .for-page > .legal-nav {
+  .for-page > .legal-nav,
+  .for-page > .site-foot {
     padding-inline: 16px;
   }
 

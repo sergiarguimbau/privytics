@@ -3,11 +3,11 @@ import {
   LOGIN_URL,
   SIGNUP_URL,
   SOURCE_URL,
-  STATUS_URL,
 } from './links';
 import { Reveal } from './reveal';
 import { ProfileShowcase } from './profile-showcase';
 import { COMPARE_LINKS } from './site-footer';
+import { StatusIndicator } from './status-indicator';
 import { StructuredData } from './structured-data';
 
 const CONTACT_EMAIL = 'hello@privytics.com';
@@ -653,6 +653,7 @@ export default function Page() {
                 Privytics
               </a>
               <p>Privacy-first product analytics, hosted in the EU.</p>
+              <StatusIndicator />
             </div>
             <div className="footer-col">
               <h4>Compare</h4>
@@ -705,21 +706,7 @@ export default function Page() {
               </a>
               .
             </span>
-            <div className="footer-status">
-              {/* No live state: the static export cannot know it. Hidden until
-                  the status page exists. */}
-              {STATUS_URL ? (
-                <a
-                  className="status-pill"
-                  href={STATUS_URL}
-                  rel="noopener"
-                  target="_blank"
-                >
-                  Status
-                </a>
-              ) : null}
-              <span>&copy; 2026 Privytics</span>
-            </div>
+            <span>&copy; 2026 Privytics</span>
           </div>
         </div>
       </footer>
