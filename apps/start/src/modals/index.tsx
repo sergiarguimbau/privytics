@@ -103,9 +103,11 @@ export const {
   modals,
 });
 
-onPushModal('*', (open, props, name) => {
+// Only the modal's name: its props hold customers' end-user data (chart
+// breakdowns, page URLs, group properties) that our own analytics must not see.
+onPushModal('*', (open, _props, name) => {
   if (open) {
-    op.screenView(`modal:${name}`, props as Record<string, unknown>);
+    op.screenView(`modal:${name}`);
   }
 });
 

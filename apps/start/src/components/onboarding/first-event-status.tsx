@@ -39,7 +39,8 @@ export function useFirstEvents(projectId: string, secondsOnStep: () => number) {
         projectId,
         secondsOnStep: secondsOnStep(),
         eventCount: events.length,
-        firstEventName: firstEvent?.name ?? null,
+        // Not the name itself: it comes from the customer's project.
+        firstEventIsScreenView: firstEvent?.name === 'screen_view',
         sdk: firstEvent?.sdkName || null,
       });
     }

@@ -33,7 +33,6 @@ import { Combobox } from '@/components/ui/combobox';
 import { Label } from '@/components/ui/label';
 import { rememberOnboardingKeys } from '@/hooks/use-client-secret';
 import { handleError, useTRPC } from '@/integrations/trpc/react';
-import { readAttribution } from '@/utils/attribution';
 import { cn } from '@/utils/cn';
 import {
   failureReason,
@@ -254,7 +253,6 @@ function Component() {
       mutation.mutate({
         ...values,
         organization,
-        attribution: readAttribution(),
       });
       return;
     }
