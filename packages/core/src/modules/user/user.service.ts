@@ -1,6 +1,8 @@
+import { sql } from '@openpanel/db/src/clickhouse/sql';
 import type { User } from '@openpanel/db/src/prisma-client';
 import { TRPCBadRequestError } from '../../rpc/errors';
 import type { ServiceDeps, Services } from '../../services';
+import { replicatedTarget, TABLE_NAMES } from '../../shared/ch-tables';
 
 // Explicit `Promise<User>` return type, not inferred: Prisma's
 // `findUniqueOrThrow` returns a chainable "fluent" client (PromiseLike, plus
@@ -104,6 +106,37 @@ export async function deleteUserAccount(
   }
 
   await deps.db.user.delete({ where: { id: userId } });
+  await deleteOwnAnalyticsProfile(deps, userId);
+}
+
+// Our own dashboard analytics identify signed-in users by their id (privacy
+// policy, section 8): the profile holding their email and name goes with the
+// account. Their events stay until that project's retention removes them,
+// under an id nothing links to a person any more.
+async function deleteOwnAnalyticsProfile(
+  deps: ServiceDeps,
+  userId: string
+): Promise<void> {
+  const { clientId } = deps.config.selfTracking;
+  if (!clientId) {
+    return;
+  }
+  try {
+    const client = await deps.db.client.findUnique({
+      where: { id: clientId },
+      select: { projectId: true },
+    });
+    if (!client?.projectId) {
+      return;
+    }
+    const statement = sql`ALTER TABLE ${replicatedTarget(deps.config.clickhouseClustered, TABLE_NAMES.profiles)} DELETE WHERE project_id = ${sql.string(client.projectId)} AND id = ${sql.string(userId)}`;
+    await deps.ch.command(statement.toStatement());
+  } catch (err) {
+    deps.logger.error(
+      { err, userId },
+      'Could not delete the own-analytics profile of a deleted account'
+    );
+  }
 }
 
 /** better-auth's `name`, kept in step with the first and last name. */

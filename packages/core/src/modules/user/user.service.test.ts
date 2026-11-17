@@ -87,14 +87,35 @@ const organization = {
   ),
 };
 
+const chCommands: { query: string; query_params: Record<string, unknown> }[] =
+  [];
+
 const subject = createUserService(
   {
-    db: { user, organization },
+    db: {
+      user,
+      organization,
+      client: {
+        findUnique: mock(async () => ({ projectId: 'privytics' })),
+      },
+    },
+    ch: {
+      command: mock(
+        async (statement: {
+          query: string;
+          query_params: Record<string, unknown>;
+        }) => {
+          chCommands.push(statement);
+        }
+      ),
+    },
+    config: { selfTracking: { clientId: 'own-client' } },
   } as unknown as ServiceDeps,
   testServices()
 );
 
 beforeEach(() => {
+  chCommands.length = 0;
   userStore.clear();
   organizationStore.clear();
 });
@@ -172,4 +193,11 @@ test('deleteUserAccount deletes the row once no blocker remains', async () => {
 
   await subject.deleteUserAccount('user_1');
   expect(userStore.has('user_1')).toBe(false);
+  // The own-analytics profile (email, name) goes with the account.
+  expect(chCommands).toHaveLength(1);
+  expect(chCommands[0]?.query).toContain('ALTER TABLE profiles DELETE WHERE');
+  expect(Object.values(chCommands[0]?.query_params ?? {})).toEqual([
+    'privytics',
+    'user_1',
+  ]);
 });
