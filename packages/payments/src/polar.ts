@@ -1,9 +1,67 @@
+import { createHmac, timingSafeEqual } from 'node:crypto';
 import { Polar } from '@polar-sh/sdk';
-
-export {
-  validateEvent as validatePolarEvent,
-  WebhookVerificationError as PolarWebhookVerificationError,
+import {
+  validateEvent,
+  WebhookVerificationError,
 } from '@polar-sh/sdk/webhooks';
+
+export { WebhookVerificationError as PolarWebhookVerificationError };
+
+const SECRET_PREFIX = 'whsec_';
+
+const sign = (key: Buffer, content: string) =>
+  createHmac('sha256', key).update(content).digest('base64');
+
+/**
+ * Polar signs with Standard Webhooks (key: base64-decode of what follows
+ * `whsec_`) for secrets generated on or after 8 Sep 2026, and with the UTF-8
+ * bytes of the whole secret before that. SDK 0.49 only knows the older key, so
+ * when the newer one matches, re-sign with the older key and let the SDK check
+ * the timestamp and parse the event.
+ * ponytail: plain validateEvent once @polar-sh/sdk >= 1.0.0-alpha.19, which tries both keys.
+ */
+export function validatePolarEvent(
+  body: string | Buffer,
+  headers: Record<string, string>,
+  secret: string
+): ReturnType<typeof validateEvent> {
+  try {
+    return validateEvent(body, headers, secret);
+  } catch (err) {
+    if (
+      !(err instanceof WebhookVerificationError) ||
+      !secret.startsWith(SECRET_PREFIX)
+    ) {
+      throw err;
+    }
+    const content = `${headers['webhook-id']}.${headers['webhook-timestamp']}.${body.toString()}`;
+    const expected = Buffer.from(
+      sign(Buffer.from(secret.slice(SECRET_PREFIX.length), 'base64'), content)
+    );
+    const signedWithStandardKey = (headers['webhook-signature'] ?? '')
+      .split(' ')
+      .some((versioned) => {
+        const [version, signature = ''] = versioned.split(',');
+        const given = Buffer.from(signature);
+        return (
+          version === 'v1' &&
+          given.length === expected.length &&
+          timingSafeEqual(given, expected)
+        );
+      });
+    if (!signedWithStandardKey) {
+      throw err;
+    }
+    return validateEvent(
+      body,
+      {
+        ...headers,
+        'webhook-signature': `v1,${sign(Buffer.from(secret), content)}`,
+      },
+      secret
+    );
+  }
+}
 
 export type IPolarProduct = Awaited<ReturnType<typeof getProduct>>;
 export type IPolarPrice = IPolarProduct['prices'][number];
