@@ -99,6 +99,10 @@ export async function getProduct(id: string) {
   return polar.products.get({ id });
 }
 
+export function getSubscription(id: string) {
+  return polar.subscriptions.get({ id });
+}
+
 export async function createPortal({ customerId }: { customerId: string }) {
   return polar.customerSessions.create({
     customerId,

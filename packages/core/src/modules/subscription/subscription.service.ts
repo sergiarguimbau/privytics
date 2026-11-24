@@ -6,6 +6,7 @@ import {
   createPortal,
   getProduct,
   getProducts,
+  getSubscription,
   type IPolarProduct,
   isCustomProduct,
   pauseSubscription as pausePolarSubscription,
@@ -997,7 +998,11 @@ async function dispatchPolarWebhookEvent(
     case 'subscription.canceled':
     case 'subscription.revoked':
     case 'subscription.past_due': {
-      await syncSubscriptionToOrg(deps, event.data, event.type, logger);
+      // A retry carries the snapshot taken when the event fired, so a late one
+      // can undo a later plan change in the same billing period, which the
+      // period guard cannot see. Sync the subscription as Polar has it now.
+      const current = await getSubscription(event.data.id);
+      await syncSubscriptionToOrg(deps, current, event.type, logger);
       return;
     }
     default: {
