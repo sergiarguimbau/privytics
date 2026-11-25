@@ -1,5 +1,3 @@
-export type { ProductPrice } from '@polar-sh/sdk/models/components/productprice.js';
-
 function formatEventsCount(events: number) {
   return new Intl.NumberFormat('en-gb', {
     notation: 'compact',

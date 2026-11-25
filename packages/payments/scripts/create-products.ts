@@ -1,6 +1,4 @@
-import { Polar } from '@polar-sh/sdk';
-import type { Product } from '@polar-sh/sdk/dist/esm/models/components/product';
-import type { ProductCreate } from '@polar-sh/sdk/dist/esm/models/components/productcreate';
+import { createPolar, type models } from '@polar-sh/sdk/2026-10';
 import inquirer from 'inquirer';
 import { PRICING } from '../';
 
@@ -91,18 +89,18 @@ async function promptForInput(): Promise<Answers> {
 async function main() {
   const input = await promptForInput();
 
-  const polar = new Polar({
+  const polar = createPolar({
     accessToken: input.polarApiKey!,
-    server: input.isProduction ? 'production' : 'sandbox',
+    environment: input.isProduction ? 'production' : 'sandbox',
   });
 
   async function getProducts() {
     const products = await polar.products.list({
       limit: 100,
-      isArchived: false,
+      is_archived: false,
       sorting: ['price_amount'],
     });
-    return products.result.items.filter((product) => {
+    return products.items.filter((product) => {
       return (
         product.metadata.custom !== 'true' && product.metadata.custom !== true
       );
@@ -111,7 +109,7 @@ async function main() {
 
   const isDry = process.argv.includes('--dry');
   const products = await getProducts();
-  const createProducts: Product[] = [];
+  const createProducts: models.Product[] = [];
   console.log(
     `\nPolar: ${input.isProduction ? 'PRODUCTION' : 'sandbox'} — ${products.length} existing product(s)\n`,
   );
@@ -121,7 +119,7 @@ async function main() {
       const exists = products.find(
         (p) =>
           p.metadata?.eventsLimit === price.events &&
-          p.recurringInterval === 'month'
+          p.recurring_interval === 'month'
       );
       if (exists) {
         console.log('Free product already exists:');
@@ -136,14 +134,14 @@ async function main() {
         );
       } else {
         const product = await polar.products.create({
-          organizationId: input.polarApiKey.includes('_oat_')
+          organization_id: input.polarApiKey.includes('_oat_')
             ? undefined
             : input.polarOrganizationId,
           name: `${formatEventsCount(price.events)} events per month (FREE)`,
-          recurringInterval: 'month',
+          recurring_interval: 'month',
           prices: [
             {
-              amountType: 'free',
+              amount_type: 'free',
             },
           ],
           metadata: {
@@ -158,21 +156,21 @@ async function main() {
       continue;
     }
 
-    const productCreate: ProductCreate = {
-      organizationId: input.polarApiKey.includes('_oat_')
+    const productCreate: models.ProductCreateRecurring = {
+      organization_id: input.polarApiKey.includes('_oat_')
         ? undefined
         : input.polarOrganizationId,
       name: `${formatEventsCount(price.events)} events per month`,
       prices: [
         {
-          priceAmount: price.price * 100,
-          amountType: 'fixed',
+          price_amount: price.price * 100,
+          amount_type: 'fixed',
           // EUR, not upstream's USD. Privytics prices in euros everywhere that
           // matters: the pricing page, the /for guides, and the Terms, which
           // state "All prices are stated in euros (EUR)". Creating USD products
           // would contradict a published contractual claim and charge customers
           // in the wrong currency. Polar supports EUR as a presentment currency.
-          priceCurrency: 'eur',
+          price_currency: 'eur',
           // VAT is added on top of this amount, never carved out of it.
           //
           // Pinned rather than left to the Polar organization default, which is
@@ -181,10 +179,10 @@ async function main() {
           // American and EUR 33.06 from a Spaniard. Our Terms say "Prices
           // exclude VAT" and "VAT is calculated and added at checkout", so
           // exclusive is the only setting that matches what we publish.
-          taxBehavior: 'exclusive',
+          tax_behavior: 'exclusive',
         },
       ],
-      recurringInterval: 'month',
+      recurring_interval: 'month',
       metadata: {
         eventsLimit: price.events,
       },
@@ -200,7 +198,7 @@ async function main() {
         products.find(
           (p) =>
             p.metadata?.eventsLimit === price.events &&
-            p.recurringInterval === interval &&
+            p.recurring_interval === interval &&
             p.name === name,
         );
 
@@ -214,9 +212,9 @@ async function main() {
           // sent. Currency is fixed at creation and cannot be edited, so a
           // product created in the wrong one has to be archived and replaced —
           // this line is how you catch that.
-          const fixed = found.prices.find((p) => p.amountType === 'fixed');
+          const fixed = found.prices.find((p) => p.amount_type === 'fixed');
           const actual = fixed
-            ? `${fixed.priceCurrency.toUpperCase()} ${fixed.priceAmount / 100}/${interval}`
+            ? `${fixed.price_currency.toUpperCase()} ${fixed.price_amount / 100}/${interval}`
             : 'free';
           console.log(`EXISTS        ${name.padEnd(34)} ${actual}`);
           continue;
@@ -233,13 +231,13 @@ async function main() {
       const monthlyProductExists = products.find(
         (p) =>
           p.metadata?.eventsLimit === price.events &&
-          p.recurringInterval === 'month' &&
+          p.recurring_interval === 'month' &&
           p.name === productCreate.name
       );
       const yearlyProductExists = products.find(
         (p) =>
           p.metadata?.eventsLimit === price.events &&
-          p.recurringInterval === 'year' &&
+          p.recurring_interval === 'year' &&
           p.name === `${productCreate.name} (yearly)`
       );
 
@@ -255,7 +253,7 @@ async function main() {
         console.log(' - ID:', monthlyProduct.id);
         console.log(' - Name:', monthlyProduct.name);
         console.log(' - Prices:', monthlyProduct.prices);
-        console.log(' - Recurring Interval:', monthlyProduct.recurringInterval);
+        console.log(' - Recurring Interval:', monthlyProduct.recurring_interval);
         console.log(' - Events Limit:', monthlyProduct.metadata?.eventsLimit);
         createProducts.push(monthlyProduct);
       }
@@ -268,19 +266,19 @@ async function main() {
       } else {
         // yearly
         productCreate.name = `${productCreate.name} (yearly)`;
-        productCreate.recurringInterval = 'year';
+        productCreate.recurring_interval = 'year';
         if (
           productCreate.prices[0] &&
-          'priceAmount' in productCreate.prices[0]
+          'price_amount' in productCreate.prices[0]
         ) {
-          productCreate.prices[0]!.priceAmount = price.price * 100 * 10;
+          productCreate.prices[0]!.price_amount = price.price * 100 * 10;
         }
         const yearlyProduct = await polar.products.create(productCreate);
         console.log('Yearly product created:');
         console.log(' - ID:', yearlyProduct.id);
         console.log(' - Name:', yearlyProduct.name);
         console.log(' - Prices:', yearlyProduct.prices);
-        console.log(' - Recurring Interval:', yearlyProduct.recurringInterval);
+        console.log(' - Recurring Interval:', yearlyProduct.recurring_interval);
         console.log(' - Events Limit:', yearlyProduct.metadata?.eventsLimit);
         createProducts.push(yearlyProduct);
       }
@@ -295,7 +293,7 @@ async function main() {
       console.log(' - ID:', product.id);
       console.log(' - Name:', product.name);
       console.log(' - Prices:', product.prices);
-      console.log(' - Recurring Interval:', product.recurringInterval);
+      console.log(' - Recurring Interval:', product.recurring_interval);
       console.log(' - Events Limit:', product.metadata?.eventsLimit);
     }
   }

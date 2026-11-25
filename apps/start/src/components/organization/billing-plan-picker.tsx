@@ -27,8 +27,8 @@ interface Props {
 }
 
 const getPrice = (product: IPolarProduct) => {
-  return product.prices[0] && 'priceAmount' in product.prices[0]
-    ? product.prices[0].priceAmount / 100
+  return product.prices[0] && 'price_amount' in product.prices[0]
+    ? product.prices[0].price_amount / 100
     : 0;
 };
 
@@ -90,7 +90,7 @@ export default function BillingPlanPicker({
   const selectedProduct = products.find(
     (product) =>
       product.id === selectedProductId &&
-      product.recurringInterval === recurringInterval
+      product.recurring_interval === recurringInterval
   );
 
   // No current plan to compare against → a plan row is the buy button (straight
@@ -319,12 +319,12 @@ export default function BillingPlanPicker({
       <div className="col min-h-0 divide-y divide-border overflow-y-auto rounded-lg border">
         {products
           .filter((product) =>
-            // `free` no longer exists in the SDK's amountType union, but
+            // `free` no longer exists in the SDK's amount_type union, but
             // retired free-plan products can still come back from Polar's API.
-            product.prices.some((p) => (p.amountType as string) !== 'free')
+            product.prices.some((p) => (p.amount_type as string) !== 'free')
           )
           .filter((product) => product.metadata.eventsLimit)
-          .filter((product) => product.recurringInterval === recurringInterval)
+          .filter((product) => product.recurring_interval === recurringInterval)
           .map((product) => {
             const price = getPrice(product);
 

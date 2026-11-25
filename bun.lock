@@ -382,7 +382,7 @@
       "name": "@openpanel/payments",
       "version": "0.0.1",
       "dependencies": {
-        "@polar-sh/sdk": "0.49.0",
+        "@polar-sh/sdk": "1.3.3",
         "date-fns": "3.3.1",
       },
       "devDependencies": {
@@ -638,7 +638,6 @@
   },
   "patchedDependencies": {
     "react-grid-layout@2.3.0": "patches/react-grid-layout@2.3.0.patch",
-    "@polar-sh/sdk@0.49.0": "patches/@polar-sh__sdk.patch",
   },
   "overrides": {
     "embla-carousel": "8.0.0-rc22",
@@ -1863,7 +1862,7 @@
 
     "@playwright/test": ["@playwright/test@1.63.0", "", { "dependencies": { "playwright": "1.63.0" }, "bin": { "playwright": "cli.js" } }, "sha512-oxMK4vllB9RK5NQ2l1pq1IfOf2AvnEuj/vYGDj0H2nMtmtZpKtCwt/l00GEO6xjGfpBNAvjovvYdCm50dRQkpQ=="],
 
-    "@polar-sh/sdk": ["@polar-sh/sdk@0.49.0", "", { "dependencies": { "standardwebhooks": "^1.0.0", "zod": "^3.25.65 || ^4.0.0" } }, "sha512-9UYb70iKjJCtWYlu0OF5HLYBLmkxHwqr2RlXwuxXQgRGqq56IQWlVG+NO7e1YJ7I5GW0CBHhGIjRbQ9hYM6ycQ=="],
+    "@polar-sh/sdk": ["@polar-sh/sdk@1.3.3", "", { "peerDependencies": { "@opentelemetry/api": "^1.9.1", "@opentelemetry/otlp-transformer": "^0.223.0", "@opentelemetry/resources": "^2.12.0", "@opentelemetry/sdk-metrics": "^2.12.0", "@opentelemetry/sdk-trace": "^2.12.0", "@vercel/oidc": "^4.0.5", "ioredis": "^5.11.0" }, "optionalPeers": ["@opentelemetry/api", "@opentelemetry/otlp-transformer", "@opentelemetry/resources", "@opentelemetry/sdk-metrics", "@opentelemetry/sdk-trace", "@vercel/oidc", "ioredis"] }, "sha512-B3aRREEYUs3cYuOQcjSsK9t2b9WD0PC+1AVEUkW1H7Jfj3pD95Yz8RALXd6R/K8afvo3PsBw+3iIIfvwo6C7lg=="],
 
     "@polka/url": ["@polka/url@1.0.0-next.29", "", {}, "sha512-wwQAWhWSuHaag8c4q/KN/vCoeOJYshAIvMQwD4GpSb3OiZklFfvAgmj0VCBBImRpuF/aFgIRzllXlVX93Jevww=="],
 

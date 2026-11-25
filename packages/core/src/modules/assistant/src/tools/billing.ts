@@ -14,8 +14,8 @@ const CENTS_PER_UNIT = 100;
 const PERCENT = 100;
 
 interface PriceLike {
-  priceAmount?: number;
-  priceCurrency?: string;
+  price_amount?: number;
+  price_currency?: string;
 }
 
 export interface BillingOutput {
@@ -135,12 +135,12 @@ export function billingTools(ctx: ChatToolContext) {
             name: product?.name ?? null,
             free: state === 'free',
             price:
-              typeof price?.priceAmount === 'number'
-                ? price.priceAmount / CENTS_PER_UNIT
+              typeof price?.price_amount === 'number'
+                ? price.price_amount / CENTS_PER_UNIT
                 : null,
-            currency: price?.priceCurrency ?? null,
+            currency: price?.price_currency ?? null,
             interval:
-              product?.recurringInterval ?? organization.subscriptionInterval,
+              product?.recurring_interval ?? organization.subscriptionInterval,
             eventsLimit,
           },
           usage: {
@@ -202,11 +202,11 @@ export function billingTools(ctx: ChatToolContext) {
               name: product.name,
               eventsLimit: Number.isFinite(limit) && limit > 0 ? limit : null,
               price:
-                typeof price?.priceAmount === 'number'
-                  ? price.priceAmount / CENTS_PER_UNIT
+                typeof price?.price_amount === 'number'
+                  ? price.price_amount / CENTS_PER_UNIT
                   : null,
-              currency: price?.priceCurrency ?? null,
-              interval: product.recurringInterval ?? null,
+              currency: price?.price_currency ?? null,
+              interval: product.recurring_interval ?? null,
               current: product.id === organization.subscriptionProductId,
               unavailable: product.disabled ?? null,
             };

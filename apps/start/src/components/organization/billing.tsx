@@ -81,13 +81,13 @@ export default function Billing({ organization }: Props) {
     ? null
     : (currentProductQuery.data ?? null);
   const currentPrice = currentProduct?.prices.flatMap((p) =>
-    p.amountType === 'fixed' ? [p] : []
+    p.amount_type === 'fixed' ? [p] : []
   )[0];
 
   // What the customer actually pays while a recurring discount applies. A
   // `once` discount only hits the next invoice, so the header keeps the list
   // price and the discount line below explains it.
-  const listPrice = currentPrice ? currentPrice.priceAmount / 100 : null;
+  const listPrice = currentPrice ? currentPrice.price_amount / 100 : null;
   const discountedPrice = (() => {
     const active = organization.subscriptionDiscount;
     if (!active || listPrice === null || active.duration === 'once') {
@@ -270,14 +270,14 @@ export default function Billing({ organization }: Props) {
               <div className="text-lg">
                 {discountedPrice !== null && (
                   <span className="mr-2 text-muted-foreground line-through">
-                    {number.currency(currentPrice.priceAmount / 100, {
+                    {number.currency(currentPrice.price_amount / 100, {
                       currency: BILLING_CURRENCY,
                     })}
                   </span>
                 )}
                 <span className="font-bold">
                   {number.currency(
-                    discountedPrice ?? currentPrice.priceAmount / 100,
+                    discountedPrice ?? currentPrice.price_amount / 100,
                     { currency: BILLING_CURRENCY }
                   )}
                 </span>

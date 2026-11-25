@@ -1,5 +1,5 @@
 import { db } from '@openpanel/db';
-import { Polar } from '@polar-sh/sdk';
+import { createPolar } from '@polar-sh/sdk/2026-10';
 import inquirer from 'inquirer';
 import inquirerAutocomplete from 'inquirer-autocomplete-prompt';
 import { getSuccessUrl } from '..';
@@ -161,9 +161,9 @@ async function main() {
   console.log('Creating custom pricing...');
   const input = await promptForInput();
 
-  const polar = new Polar({
+  const polar = createPolar({
     accessToken: input.polarApiKey!,
-    server: input.isProduction ? 'production' : 'sandbox',
+    environment: input.isProduction ? 'production' : 'sandbox',
   });
 
   const organization = await db.organization.findUniqueOrThrow({
@@ -212,15 +212,15 @@ async function main() {
   }
 
   const product = await polar.products.create({
-    organizationId: input.polarApiKey.includes('_oat_')
+    organization_id: input.polarApiKey.includes('_oat_')
       ? undefined
       : input.polarOrganizationId,
     name: `Custom product for ${organization.name}`,
-    recurringInterval: 'month',
+    recurring_interval: 'month',
     prices: [
       {
-        amountType: 'fixed',
-        priceAmount: input.price * 100,
+        amount_type: 'fixed',
+        price_amount: input.price * 100,
       },
     ],
     metadata: {
@@ -232,14 +232,14 @@ async function main() {
   });
 
   const checkoutLink = await polar.checkoutLinks.create({
-    paymentProcessor: 'stripe',
-    productId: product.id,
-    allowDiscountCodes: false,
+    payment_processor: 'stripe',
+    products: [product.id],
+    allow_discount_codes: false,
     metadata: {
       organizationId: organization.id,
       userId: user.id,
     },
-    successUrl: getSuccessUrl(
+    success_url: getSuccessUrl(
       input.isProduction
         ? 'https://app.privytics.com'
         : 'http://localhost:3000',

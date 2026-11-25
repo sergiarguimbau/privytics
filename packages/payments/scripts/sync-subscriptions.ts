@@ -1,12 +1,12 @@
 import { db, Prisma } from '@openpanel/db';
-import { Polar } from '@polar-sh/sdk';
-import type { Subscription } from '@polar-sh/sdk/dist/esm/models/components/subscription';
+import { createPolar, type Polar } from '@polar-sh/sdk/2026-10';
+import { type PolarSubscription, toPolarSubscription } from '../src/polar';
 import { FREE_TIER_EVENTS_LIMIT } from '../src/prices';
 import { getSubscriptionState } from '../src/subscription-state';
 
 // Mirrors toSubscriptionDiscount in apps/api webhook.controller.ts — a compact
 // summary of Polar's embedded discount so the dashboard can show it.
-function toSubscriptionDiscount(discount: Subscription['discount']) {
+function toSubscriptionDiscount(discount: PolarSubscription['discount']) {
   if (!discount) {
     return null;
   }
@@ -15,7 +15,7 @@ function toSubscriptionDiscount(discount: Subscription['discount']) {
     name: discount.name,
     type:
       discount.type === 'fixed' ? ('fixed' as const) : ('percentage' as const),
-    basisPoints: 'basisPoints' in discount ? discount.basisPoints : null,
+    basisPoints: 'basis_points' in discount ? discount.basis_points : null,
     amount: 'amount' in discount ? discount.amount : null,
     currency: 'currency' in discount ? discount.currency : null,
     duration:
@@ -23,7 +23,7 @@ function toSubscriptionDiscount(discount: Subscription['discount']) {
         ? discount.duration
         : ('once' as const),
     durationInMonths:
-      'durationInMonths' in discount ? discount.durationInMonths : null,
+      'duration_in_months' in discount ? discount.duration_in_months : null,
   };
 }
 
@@ -127,30 +127,12 @@ function toComparable(
 }
 
 async function getAllSubscriptions(polar: Polar) {
-  const all: Array<
-    Awaited<
-      ReturnType<typeof polar.subscriptions.list>
-    >['result']['items'][number]
-  > = [];
-  const limit = 100;
-  let page = 1;
-
-  while (true) {
-    const response = await polar.subscriptions.list({
-      limit,
-      page,
-    });
-
-    const items = response.result.items;
-    all.push(...items);
-
-    if (items.length < limit) {
-      break;
-    }
-
-    page += 1;
+  const all: PolarSubscription[] = [];
+  for await (const subscription of polar.subscriptions.iterList({
+    limit: 100,
+  })) {
+    all.push(toPolarSubscription(subscription));
   }
-
   return all;
 }
 
@@ -161,14 +143,14 @@ async function main() {
     );
   }
 
-  const polar = new Polar({
+  const polar = createPolar({
     accessToken: process.env.POLAR_ACCESS_TOKEN,
-    server: getServer(),
+    environment: getServer(),
   });
 
   console.log(`Fetching subscriptions from Polar (${getServer()})...`);
   const subscriptions = targetSubscriptionId
-    ? [await polar.subscriptions.get({ id: targetSubscriptionId })]
+    ? [toPolarSubscription(await polar.subscriptions.get(targetSubscriptionId))]
     : await getAllSubscriptions(polar);
 
   const scopedSubscriptions = subscriptions.filter((subscription) => {
@@ -280,9 +262,7 @@ async function main() {
     let subscriptionPeriodEventsLimit: number | undefined;
     if (subscription.productId) {
       if (!productEventsLimit.has(subscription.productId)) {
-        const product = await polar.products.get({
-          id: subscription.productId,
-        });
+        const product = await polar.products.get(subscription.productId);
         const eventsLimit = product.metadata?.eventsLimit;
         productEventsLimit.set(
           subscription.productId,

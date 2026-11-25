@@ -1,4 +1,4 @@
-import { Polar } from '@polar-sh/sdk';
+import { createPolar } from '@polar-sh/sdk/2026-10';
 
 /**
  * Register the Polar webhook endpoint that drives subscription state.
@@ -44,16 +44,17 @@ async function main() {
   }
 
   const server = process.env.POLAR_SERVER === 'production' ? 'production' : 'sandbox';
-  const polar = new Polar({ accessToken, server });
+  const polar = createPolar({ accessToken, environment: server });
 
   console.log(`\nPolar: ${server.toUpperCase()}`);
   console.log(`URL:   ${url}\n`);
 
   const existing = await polar.webhooks.listWebhookEndpoints({ limit: 100 });
-  const match = existing.result.items.find((e) => e.url === url);
+  const match = existing.items.find((e) => e.url === url);
   if (match) {
     console.log('Endpoint already exists for this URL:');
     console.log(' - ID:    ', match.id);
+    console.log(' - API:   ', match.api_version);
     console.log(' - Events:', match.events.join(', '));
     console.log(
       '\nPolar only reveals the secret at creation. If you do not have it,' +
@@ -65,8 +66,10 @@ async function main() {
   const endpoint = await polar.webhooks.createWebhookEndpoint({
     url,
     format: 'raw',
+    // The payload shape the handler's SDK reads (`@polar-sh/sdk/2026-10`).
+    api_version: '2026-10',
     events: [...EVENTS],
-    organizationId: process.env.POLAR_ORGANIZATION_ID || undefined,
+    organization_id: process.env.POLAR_ORGANIZATION_ID || undefined,
   });
 
   console.log('Endpoint created:');
@@ -78,9 +81,9 @@ async function main() {
 main().catch((error) => {
   // The SDK's raw error dump is hundreds of lines and buries the message.
   const status = (error as { statusCode?: number }).statusCode;
-  const body = (error as { body?: string }).body;
+  const body = (error as { error?: unknown }).error;
   console.error(
-    `\nFailed${status ? ` (HTTP ${status})` : ''}: ${body ?? (error as Error).message}`,
+    `\nFailed${status ? ` (HTTP ${status})` : ''}: ${body ? JSON.stringify(body) : (error as Error).message}`,
   );
   process.exit(1);
 });

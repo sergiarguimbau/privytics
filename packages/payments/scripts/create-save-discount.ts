@@ -1,4 +1,4 @@
-import { Polar } from '@polar-sh/sdk';
+import { createPolar } from '@polar-sh/sdk/2026-10';
 import inquirer from 'inquirer';
 
 // Creates the reusable save-offer discount used by the cancel flow: 30% off,
@@ -51,27 +51,23 @@ async function promptForInput() {
 async function main() {
   const input = await promptForInput();
 
-  const polar = new Polar({
+  const polar = createPolar({
     accessToken: input.polarApiKey!,
-    server: input.isProduction ? 'production' : 'sandbox',
+    environment: input.isProduction ? 'production' : 'sandbox',
   });
 
-  // The list response is a page iterator — walk every page so an existing
-  // discount beyond the first page doesn't get duplicated. Scoped to the same
-  // organization we'd create in, so a same-named discount from another org
-  // can't be picked up.
+  // Walk every page so an existing discount beyond the first page doesn't get
+  // duplicated. Scoped to the same organization we'd create in, so a
+  // same-named discount from another org can't be picked up.
   let match: { id: string; name: string } | undefined;
-  const pages = await polar.discounts.list({
+  for await (const discount of polar.discounts.iterList({
     limit: 100,
-    organizationId: input.polarApiKey.includes('_oat_')
+    organization_id: input.polarApiKey.includes('_oat_')
       ? undefined
       : input.polarOrganizationId,
-  });
-  for await (const page of pages) {
-    match = page.result.items.find(
-      (discount) => discount.name === DISCOUNT_NAME
-    );
-    if (match) {
+  })) {
+    if (discount.name === DISCOUNT_NAME) {
+      match = discount;
       break;
     }
   }
@@ -85,14 +81,14 @@ async function main() {
   }
 
   const discount = await polar.discounts.create({
-    organizationId: input.polarApiKey.includes('_oat_')
+    organization_id: input.polarApiKey.includes('_oat_')
       ? undefined
       : input.polarOrganizationId,
     name: DISCOUNT_NAME,
     type: 'percentage',
-    basisPoints: BASIS_POINTS,
+    basis_points: BASIS_POINTS,
     duration: 'repeating',
-    durationInMonths: DURATION_IN_MONTHS,
+    duration_in_months: DURATION_IN_MONTHS,
   });
 
   console.log('Save discount created:');
