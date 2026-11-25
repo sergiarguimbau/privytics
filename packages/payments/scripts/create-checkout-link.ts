@@ -1,5 +1,5 @@
 import { db } from '@openpanel/db';
-import { Polar } from '@polar-sh/sdk';
+import { createPolar, type Polar } from '@polar-sh/sdk/2026-10';
 import inquirer from 'inquirer';
 import inquirerAutocomplete from 'inquirer-autocomplete-prompt';
 import { getSuccessUrl } from '..';
@@ -24,10 +24,10 @@ async function promptForInput(polar: Polar) {
   try {
     const productsResponse = await polar.products.list({
       limit: 100,
-      isArchived: false,
+      is_archived: false,
       sorting: ['price_amount'],
     });
-    products = productsResponse.result.items;
+    products = productsResponse.items;
 
     if (products.length === 0) {
       console.warn('Warning: No products found in Polar');
@@ -54,7 +54,7 @@ async function promptForInput(polar: Polar) {
           .map((product) => {
             const price = product.prices[0];
             const priceDisplay = price
-              ? `$${(price.priceAmount / 100).toFixed(2)}`
+              ? `$${(price.price_amount / 100).toFixed(2)}`
               : 'Free';
             return {
               name: `${product.name} - ${priceDisplay} (${product.id})`,
@@ -164,9 +164,9 @@ async function main() {
       },
     ]);
 
-    const polar = new Polar({
+    const polar = createPolar({
       accessToken: polarApiKey!,
-      server: isProduction ? 'production' : 'sandbox',
+      environment: isProduction ? 'production' : 'sandbox',
     });
 
     const input = await promptForInput(polar);
@@ -187,7 +187,7 @@ async function main() {
       },
     });
 
-    const product = await polar.products.get({ id: input.productId });
+    const product = await polar.products.get(input.productId);
 
     console.log('\nReview the following settings:');
     console.table({
@@ -216,14 +216,14 @@ async function main() {
 
     const checkout = await polar.checkouts.create({
       products: [input.productId],
-      successUrl: getSuccessUrl(
+      success_url: getSuccessUrl(
         isProduction
           ? 'https://app.privytics.com'
           : 'http://localhost:3000',
         organization.id
       ),
-      customerEmail: user.email,
-      customerName: [user.firstName, user.lastName].filter(Boolean).join(' '),
+      customer_email: user.email,
+      customer_name: [user.firstName, user.lastName].filter(Boolean).join(' '),
       metadata: {
         organizationId: organization.id,
         userId: user.id,

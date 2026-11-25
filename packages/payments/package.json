@@ -16,7 +16,7 @@
     "create-webhook": "bun run with-env bun ./scripts/create-webhook.ts"
   },
   "dependencies": {
-    "@polar-sh/sdk": "0.49.0",
+    "@polar-sh/sdk": "1.3.3",
     "date-fns": "3.3.1"
   },
   "devDependencies": {

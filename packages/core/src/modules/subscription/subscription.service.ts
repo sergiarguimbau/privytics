@@ -8,6 +8,7 @@ import {
   getProducts,
   getSubscription,
   type IPolarProduct,
+  type PolarSubscription,
   isCustomProduct,
   pauseSubscription as pausePolarSubscription,
   reactivateSubscription,
@@ -41,7 +42,9 @@ import {
   zCancellationReason,
 } from './subscription.constants';
 
-const POLAR_PRODUCTS_CACHE_KEY = 'polar:products';
+// Versioned with the Polar API the products are cached from, so a deploy that
+// changes their shape never serves the old one.
+const POLAR_PRODUCTS_CACHE_KEY = 'polar:products:2026-10';
 const POLAR_PRODUCTS_CACHE_TTL_SECONDS = 60 * 60 * 24;
 const TRAILING_USAGE_WINDOW_DAYS = 30;
 const PRODUCT_OVER_LIMIT_MESSAGE =
@@ -68,13 +71,13 @@ async function requireOrgAdmin(
  * catalog shows it and checkout enforces it, so the two cannot drift.
  */
 function getProductIneligibility(
-  product: Pick<IPolarProduct, 'metadata' | 'isArchived'>,
+  product: Pick<IPolarProduct, 'metadata' | 'is_archived'>,
   organization: { id: string; subscriptionPeriodEventsCount: number }
 ): string | null {
   const isOtherOrganizationsProduct =
     isCustomProduct(product) &&
     product.metadata.organizationId !== organization.id;
-  if (product.isArchived || isOtherOrganizationsProduct) {
+  if (product.is_archived || isOtherOrganizationsProduct) {
     return PRODUCT_UNAVAILABLE_MESSAGE;
   }
   const eventsLimit = product.metadata.eventsLimit;
@@ -407,17 +410,14 @@ export async function portal(
     customerId: organization.subscriptionCustomerId,
   });
 
-  return { url: created.customerPortalUrl };
+  return { url: created.customer_portal_url };
 }
 
 // `validatePolarEvent` verifies the signature over the RAW body bytes, so the route
 // must read `request.text()`, not parsed JSON.
 
-type PolarEvent = ReturnType<typeof validatePolarEvent>;
-type PolarSubscriptionData = Extract<
-  PolarEvent,
-  { type: 'subscription.updated' }
->['data'];
+type PolarEvent = Awaited<ReturnType<typeof validatePolarEvent>>;
+type PolarSubscriptionData = PolarSubscription;
 type PolarSubscriptionDiscount = PolarSubscriptionData['discount'];
 
 const subscriptionMetadataSchema = z.object({
@@ -465,7 +465,7 @@ export function toSubscriptionDiscount(
     id: discount.id,
     name: discount.name,
     type: discount.type === 'fixed' ? 'fixed' : 'percentage',
-    basisPoints: 'basisPoints' in discount ? discount.basisPoints : null,
+    basisPoints: 'basis_points' in discount ? discount.basis_points : null,
     amount: 'amount' in discount ? discount.amount : null,
     currency: 'currency' in discount ? discount.currency : null,
     duration:
@@ -475,7 +475,7 @@ export function toSubscriptionDiscount(
           ? 'forever'
           : 'once',
     durationInMonths:
-      'durationInMonths' in discount ? discount.durationInMonths : null,
+      'duration_in_months' in discount ? discount.duration_in_months : null,
   };
 }
 
@@ -812,7 +812,7 @@ export async function handlePolarWebhookEvent(
 
   let event: PolarEvent;
   try {
-    event = validatePolarEvent(
+    event = await validatePolarEvent(
       rawBody,
       headers,
       deps.config.polar.webhookSecret ?? ''
@@ -942,16 +942,23 @@ async function dispatchPolarWebhookEvent(
         await trackOrderRevenue(
           selfTrackingClient(deps.config),
           deps.redis,
-          event.data,
+          {
+            id: event.data.id,
+            netAmount: event.data.net_amount,
+            currency: event.data.currency,
+            billingReason: event.data.billing_reason,
+            metadata: event.data.metadata,
+            product: event.data.product,
+          },
           logger
         );
       }
       if (
-        event.data.billingReason !== 'subscription_cycle' ||
+        event.data.billing_reason !== 'subscription_cycle' ||
         event.data.status !== 'paid'
       ) {
         logger.info(
-          { ...eventCtx, billingReason: event.data.billingReason },
+          { ...eventCtx, billingReason: event.data.billing_reason },
           'polar webhook: order.updated ignored (not a paid billing cycle)'
         );
         return;
@@ -988,9 +995,9 @@ async function dispatchPolarWebhookEvent(
       );
       return;
     }
-    // Pause/resume transitions arrive via `subscription.updated` (the SDK's
-    // webhook union has no dedicated paused/reactivated payloads yet) and are
-    // reflected in `status` / `pauseAtPeriodEnd` / `resumesAt` below.
+    // Pause/resume transitions arrive via `subscription.updated` (nothing here
+    // handles `subscription.paused`/`resumed`) and are reflected in `status` /
+    // `pauseAtPeriodEnd` / `resumesAt` below.
     case 'subscription.created':
     case 'subscription.active':
     case 'subscription.updated':
