@@ -438,7 +438,7 @@ function Component() {
         <div className="col gap-3 pb-10">
           <InputWithLabel
             error={form.formState.errors.domain?.message}
-            hint="Browser events are only accepted from this domain."
+            hint="Browser events are only accepted from this domain. Not live yet? Use your dev server, like localhost:3000."
             inputMode="url"
             label="Website URL"
             placeholder="acme.com"
