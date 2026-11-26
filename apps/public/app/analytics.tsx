@@ -1,6 +1,8 @@
 'use client';
 
 import { OpenPanelComponent } from '@openpanel/nextjs';
+import { usePathname } from 'next/navigation';
+import { useEffect } from 'react';
 
 /**
  * Privytics tracking its own marketing site, installed the same way a customer
@@ -32,6 +34,36 @@ import { OpenPanelComponent } from '@openpanel/nextjs';
 const CLIENT_ID = process.env.NEXT_PUBLIC_PRIVYTICS_CLIENT_ID;
 const API_URL =
   process.env.NEXT_PUBLIC_PRIVYTICS_API_URL || 'https://api.privytics.com';
+const SCROLL_DEPTH_THRESHOLDS = [25, 50, 75, 100];
+
+/**
+ * One `scroll_depth` event per threshold and page, sent only on a real scroll,
+ * so a visit that never scrolls sends nothing extra. Besides showing how far
+ * people read, it gives single-page visits a later event to measure time from.
+ */
+function ScrollDepth() {
+  const pathname = usePathname();
+
+  useEffect(() => {
+    const reached = new Set<number>();
+    const onScroll = () => {
+      const seen = window.scrollY + window.innerHeight;
+      const percent = Math.ceil(
+        (seen / document.documentElement.scrollHeight) * 100
+      );
+      for (const threshold of SCROLL_DEPTH_THRESHOLDS) {
+        if (percent >= threshold && !reached.has(threshold)) {
+          reached.add(threshold);
+          window.op('track', 'scroll_depth', { percent: threshold });
+        }
+      }
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [pathname]);
+
+  return null;
+}
 
 export function Analytics() {
   if (!CLIENT_ID) {
@@ -39,13 +71,16 @@ export function Analytics() {
   }
 
   return (
-    <OpenPanelComponent
-      apiUrl={API_URL}
-      clientId={CLIENT_ID}
-      scriptUrl="/op1.js"
-      trackAttributes
-      trackOutgoingLinks
-      trackScreenViews
-    />
+    <>
+      <OpenPanelComponent
+        apiUrl={API_URL}
+        clientId={CLIENT_ID}
+        scriptUrl="/op1.js"
+        trackAttributes
+        trackOutgoingLinks
+        trackScreenViews
+      />
+      <ScrollDepth />
+    </>
   );
 }
