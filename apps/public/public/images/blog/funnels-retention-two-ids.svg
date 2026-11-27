@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 336" width="720" height="336" role="img" aria-labelledby="title desc" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+  <title id="title">Anonymous visitors versus signed-in users you identify</title>
+  <desc id="desc">Anonymous visitors get a new ID each day, which covers traffic, events and funnels within one visit. Signed-in users you identify keep one ID across days and devices, which covers profiles, retention, cohorts and funnels across days.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="#0c6b69"/>
+    </marker>
+  </defs>
+
+  <rect width="720" height="336" rx="12" fill="#f5f9f9"/>
+
+  <text x="32" y="44" font-size="17" font-weight="600" fill="#0f1719">Anonymous visitors</text>
+  <text x="32" y="66" font-size="15" fill="#5d6d73">A new ID every day</text>
+
+  <rect x="32" y="84" width="104" height="64" rx="12" fill="#ffffff" stroke="#d3e0de"/>
+  <text x="84" y="110" text-anchor="middle" font-size="15" fill="#5d6d73">Mon</text>
+  <text x="84" y="134" text-anchor="middle" font-size="16" font-weight="600" fill="#0f1719">ID a7f3</text>
+
+  <rect x="154" y="84" width="104" height="64" rx="12" fill="#ffffff" stroke="#d3e0de"/>
+  <text x="206" y="110" text-anchor="middle" font-size="15" fill="#5d6d73">Tue</text>
+  <text x="206" y="134" text-anchor="middle" font-size="16" font-weight="600" fill="#0f1719">ID c912</text>
+
+  <rect x="276" y="84" width="104" height="64" rx="12" fill="#ffffff" stroke="#d3e0de"/>
+  <text x="328" y="110" text-anchor="middle" font-size="15" fill="#5d6d73">Wed</text>
+  <text x="328" y="134" text-anchor="middle" font-size="16" font-weight="600" fill="#0f1719">ID e4b0</text>
+
+  <line x1="392" y1="116" x2="410" y2="116" stroke="#0c6b69" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <rect x="424" y="84" width="264" height="64" rx="12" fill="#e2f0ef" stroke="#d3e0de"/>
+  <text x="556" y="110" text-anchor="middle" font-size="16" fill="#0f1719">Traffic, pages, events</text>
+  <text x="556" y="134" text-anchor="middle" font-size="16" fill="#0f1719">Funnels within one visit</text>
+
+  <line x1="32" y1="174" x2="688" y2="174" stroke="#d3e0de"/>
+
+  <text x="32" y="208" font-size="17" font-weight="600" fill="#0f1719">Signed-in users you identify</text>
+  <text x="32" y="230" font-size="15" fill="#5d6d73">Your own ID via identify()</text>
+
+  <line x1="136" y1="280" x2="154" y2="280" stroke="#0c6b69" stroke-width="3"/>
+  <line x1="258" y1="280" x2="276" y2="280" stroke="#0c6b69" stroke-width="3"/>
+
+  <rect x="32" y="248" width="104" height="64" rx="12" fill="#ffffff" stroke="#d3e0de"/>
+  <text x="84" y="274" text-anchor="middle" font-size="15" fill="#5d6d73">Mon, laptop</text>
+  <text x="84" y="298" text-anchor="middle" font-size="16" font-weight="600" fill="#0c6b69">user_123</text>
+
+  <rect x="154" y="248" width="104" height="64" rx="12" fill="#ffffff" stroke="#d3e0de"/>
+  <text x="206" y="274" text-anchor="middle" font-size="15" fill="#5d6d73">Tue, phone</text>
+  <text x="206" y="298" text-anchor="middle" font-size="16" font-weight="600" fill="#0c6b69">user_123</text>
+
+  <rect x="276" y="248" width="104" height="64" rx="12" fill="#ffffff" stroke="#d3e0de"/>
+  <text x="328" y="274" text-anchor="middle" font-size="15" fill="#5d6d73">Wed, laptop</text>
+  <text x="328" y="298" text-anchor="middle" font-size="16" font-weight="600" fill="#0c6b69">user_123</text>
+
+  <line x1="392" y1="280" x2="410" y2="280" stroke="#0c6b69" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <rect x="424" y="248" width="264" height="64" rx="12" fill="#e2f0ef" stroke="#d3e0de"/>
+  <text x="556" y="274" text-anchor="middle" font-size="16" fill="#0f1719">Profiles, retention, cohorts</text>
+  <text x="556" y="298" text-anchor="middle" font-size="16" fill="#0f1719">Funnels across days</text>
+</svg>

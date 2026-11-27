@@ -1,123 +1,92 @@
 ---
 slug: ad-blockers-analytics-first-party-proxy
 title: "Ad blockers blocking analytics: the first-party fix"
-description: Ad blockers blocking analytics? How filter lists work, how much data you lose by audience type, and how a first-party proxy on your own domain wins it back.
+description: Why ad blockers stop analytics, how much data you can lose, and how a small proxy on your own domain gets it back.
 date: 2026-07-29
-updated: 2026-07-29
+updated: 2026-11-27
 tag: Guide
 ---
 
-Ad blockers break analytics by matching every outgoing request against filter lists: tens of thousands of rules covering tracking domains, script filenames and endpoint paths. Privacy-first tools are hit far less often than Google Analytics, but they are on those lists too. The durable fix is to stop looking third-party: serve the tracker script from your own domain and forward events through your own server, so a blockable cross-site call becomes an ordinary first-party one.
-
-One boundary first: a first-party proxy is legitimate for cookieless, aggregate measurement of your own site, not a way to smuggle cross-site tracking past someone who has said no.
-
-*Filter list contents checked against [EasyPrivacy](https://easylist.to/) version 202607282254 (28 July 2026) on 29 July 2026. Vendor figures checked the same day. General information, not legal advice.*
+Ad blockers stop analytics by matching each request a page makes against public block lists. The fix is a small proxy on your own domain, so the script and events look like any other request to your site. Google Analytics is the main target, but privacy-first tools are on those lists too.
 
 ## How ad blockers decide what to block
 
-uBlock Origin, AdGuard, Brave's shields and Safari content blockers work the same way: they ship filter lists, and every request a page makes is tested against them before it leaves the browser. For analytics the list that matters is EasyPrivacy, on by default in uBlock Origin.
+Blockers such as uBlock Origin, AdGuard and Brave load filter lists and test each request against them. For analytics, the best-known list is EasyPrivacy. Most of its rules name a domain, but some match a filename or path on any site.
 
-The version we checked held roughly 55,600 active rules: about 51,300 anchored to a domain, about 3,000 matching a path or filename on *any* domain. That second group defeats the naive fix of renaming your host.
+| Rule matches       | Example        | A proxy avoids it? |
+|--------------------|----------------|--------------------|
+| Vendor domain      | `plausible.io` | ✓                  |
+| Filename, any site | `/umami.js`    | If renamed         |
+| Path, any site     | `/api/collect` | If renamed         |
 
-| Matching method | Example rule shape | What it catches |
-| --- | --- | --- |
-| Vendor domain | anchor on `plausible.io`, `cdn.usefathom.com`, `umami.is` | Anything served from the vendor's host |
-| Domain plus file | anchor on `openpanel.dev/op1.js` | One named script on one named host |
-| Filename anywhere | `/umami.js` | Self-hosted installs keeping the stock filename |
-| Path on any host | `/api/collect`, limited to XHR and ping | The ingestion endpoint wherever you move it |
-| Host name pattern | `://fathom.` plus an allowlist | Subdomains whose name gives the tool away |
-| CNAME target | resolved by DNS, Firefox only | Vanity subdomains pointing back at the vendor |
+So a new domain alone is not enough: give the files and paths your own names too.
 
-That last row is why the classic CNAME trick, pointing `stats.yoursite.com` at the vendor, has a shelf life: uBlock Origin on Firefox resolves the CNAME and blocks the real destination, what its documentation calls uncloaking third-party servers disguised as first-party. Chrome has no equivalent DNS API.
+## How much data you lose
 
-## How much data actually vanishes
+It depends on your audience. Without a proxy, an analytics tool typically misses 5% to 25% of visitors, according to [Plausible's proxy guide](https://plausible.io/docs/proxy/introduction).
 
-Audience decides it, and the spread is enormous. Three reference points: GWI, via DataReportal, put ad blocker usage at 29.5% of internet users worldwide in Q2 2025, counting anyone who blocks at least sometimes, peaking in the 25 to 34 band and declining through every older bracket after it. [Plausible's proxy documentation](https://plausible.io/docs/proxy/introduction) puts the share of visitors a vendor-hosted install misses at typically 5% to 25%. And [Plausible reported a case](https://plausible.io/blog/do-ad-blockers-block-plausible-analytics) on Hacker News and Reddit traffic where Google Analytics missed 58% of visitors, which they call extreme.
-
-| Audience | Blocking pressure | Reading of the evidence |
-| --- | --- | --- |
-| Developer tools, open source, security, privacy communities | Highest | The 58% gap came from this traffic mix, flagged as extreme |
-| Technical SaaS and B2B software | High | Upper end of Plausible's 5% to 25% range |
-| General consumer and ecommerce | Moderate | Blockers are installed for ads; analytics loss is collateral |
-| Older or less technical audiences | Lowest | GWI's age bands peak at 25 to 34 and decline from there |
-
-The practical read: sell to developers and your unproxied numbers are wrong by a margin that changes decisions.
+Technical audiences block the most. In one [extreme case](https://plausible.io/blog/do-ad-blockers-block-plausible-analytics), Google Analytics missed 58% of visitors from Hacker News and Reddit.
 
 ## Privacy-first tools are blocked less, not never
 
-Being cookieless helps. Firefox blocks Google Analytics in private windows by default and everywhere in Strict mode, and Safari's default protections cap or discard the cookies it depends on, with its advanced protection blocking known-tracker requests outright in private browsing. Neither blocks the privacy-first tools out of the box. That is an advantage, not an exemption.
+EasyPrivacy lists `plausible.io`, Fathom's script and collection hosts, `umami.is` and `simpleanalytics.com`. It also blocks the default filenames `/plausible.js` and `/umami.js`, so self-hosted Plausible and Umami are caught too.
 
-We checked EasyPrivacy directly. It carries entries for `plausible.io`, `cdn.usefathom.com`, `collect.usefathom.com`, `umami.is` and `simpleanalytics.com`, plus filename rules such as `/plausible.js` and `/umami.js` that catch self-hosted copies whatever domain serves them. It also carries a rule for `openpanel.dev/op1.js`, the upstream default for the open-source engine Privytics runs on. Better to say so here than let you find it in production. It is why our snippets point `scriptUrl` at `https://privytics.com/op1.js`, and why the proxy below is the durable fix rather than a workaround.
+The same list blocks `openpanel.dev/op1.js`, the default script of OpenPanel (the open-source engine behind Privytics). AdGuard blocks `api.openpanel.dev`. That is why our snippets send events to `https://api.privytics.com` and load the script from `https://privytics.com/op1.js`.
 
-## The fix: two things must move to your domain
+Today our script and API are not on EasyPrivacy, uBlock Origin's privacy list or AdGuard Tracking Protection, so most blockers let them through. Stricter custom lists can still catch them, and a proxy is insurance in case that changes.
 
-A tracker makes two kinds of request, and both have to become first-party.
+## The fix: move both requests to your domain
 
-1. **The script.** A `GET` for the tracker file. Served from `yourdomain.com/js/pv.js`, no filename or domain rule matches.
-2. **The events.** A `POST` to the ingestion endpoint. Sent to `yourdomain.com/pv/track`, no endpoint rule matches either.
+![Without a proxy, the browser calls privytics.com and api.privytics.com directly, and a blocker can cut both. With a proxy, the browser calls paths on yourdomain.com, and your server forwards them to Privytics with the visitor IP and User-Agent, without cookies.](/images/blog/first-party-proxy.svg)
 
-Moving only the script is the common half-finished job: the script loads, every event it sends is blocked, and the dashboard breaks more confusingly than before.
+A tracker makes two requests, and both have to move:
 
-Privytics supports this: the web SDK takes an `apiUrl`, and the components that inject the script tag, including the Next.js and Astro ones, take a `scriptUrl`. Point both at your own paths.
+1. **The script**, from `privytics.com/op1.js` to `yourdomain.com/js/pv.js`.
+2. **The events**, from `api.privytics.com/track` to `yourdomain.com/pv/track`.
 
-Three things your proxy must forward, or ingestion fails confusingly:
+Moving only the script is a common mistake: the script loads, but a blocker can still stop the events.
 
-- **The real visitor IP.** The API reads `openpanel-client-ip`, then `true-client-ip`, `x-client-ip`, `cf-connecting-ip`, `x-forwarded-for`, `x-real-ip`. Get this wrong and every visitor collapses into one anonymous id, since the [cookieless visitor hash](/blog/what-is-cookieless-analytics) is IP plus user agent plus project, and country reporting breaks too.
-- **The `origin` header.** The API checks it against your project's allowed domains and rejects mismatches.
-- **The `openpanel-client-id`, `openpanel-sdk-name` and `openpanel-sdk-version` headers**, plus the method and body unchanged.
+Your proxy must forward:
 
-## Code sketches
+- the visitor's IP, in the `openpanel-client-ip` header (not `X-Forwarded-For`);
+- the browser's `User-Agent` and `Origin` headers;
+- the `openpanel-client-id` header, with the method and body unchanged.
 
-Adapt the paths: a `/pv/` that becomes common becomes a filter rule.
+If the IP is missing, visitors with the same browser and system merge into one, and every visit shows your server's location. Also strip cookies: the browser sends your site's cookies with every request to your domain, and Privytics does not need them.
+
+## Two examples: Nginx and a Cloudflare Worker
+
+Pick your own paths rather than copying `/pv/`: a path many sites share can end up on a block list. EasyPrivacy already has a generic rule for `/op/op1.js`.
 
 **Nginx**
 
 ```nginx
-# in the http block, not the server block
-proxy_cache_path /var/cache/nginx/pvjs levels=1:2 keys_zone=pvjs:10m max_size=64m;
-
 location = /js/pv.js {
     proxy_pass https://privytics.com/op1.js;
     proxy_set_header Host privytics.com;
+    proxy_set_header Cookie "";
     proxy_ssl_server_name on;
-    proxy_cache pvjs;
-    proxy_cache_valid 200 6h;
 }
 
 location /pv/ {
     proxy_pass https://api.privytics.com/;
     proxy_set_header Host api.privytics.com;
-    proxy_ssl_server_name on;
-    proxy_set_header X-Forwarded-For $remote_addr;
+    proxy_set_header Cookie "";
     proxy_set_header openpanel-client-ip $remote_addr;
+    proxy_ssl_server_name on;
 }
 ```
 
-`proxy_cache_valid` is inert without both the zone and `proxy_cache`. And if nginx sits behind a CDN or load balancer, `$remote_addr` is that upstream, not the visitor: set `set_real_ip_from` and `real_ip_header` first, then check the Countries panel.
+Nginx passes `User-Agent` and `Origin` through by default. Behind a CDN or load balancer, `$remote_addr` is that machine, not the visitor: set `set_real_ip_from` and `real_ip_header` first.
 
-**Next.js rewrites**
+**Cloudflare Worker**
 
-```js
-// next.config.js
-module.exports = {
-  async rewrites() {
-    return [
-      { source: '/js/pv.js', destination: 'https://privytics.com/op1.js' },
-      { source: '/pv/:path*', destination: 'https://api.privytics.com/:path*' },
-    ];
-  },
-};
-```
-
-Rewrites to an external destination are proxied by the Next server, so whether the visitor IP survives depends on your host: check the Countries panel after deploying. Base setup is on the [Next.js guide](/for/nextjs).
-
-**Cloudflare Worker**, the least error-prone of the three, since [Cloudflare sets `CF-Connecting-IP`](https://developers.cloudflare.com/fundamentals/reference/http-request-headers/) to the original visitor address:
+Route the Worker on `yourdomain.com/js/pv.js` and `yourdomain.com/pv/*`. Cloudflare puts the visitor's address in `CF-Connecting-IP`, so the IP is right with no extra setup.
 
 ```js
 export default {
   async fetch(request) {
     const url = new URL(request.url);
-    const clientIp = request.headers.get('CF-Connecting-IP') ?? '';
 
     if (url.pathname === '/js/pv.js') {
       return fetch('https://privytics.com/op1.js', {
@@ -130,12 +99,12 @@ export default {
       headers.delete('cookie');
       headers.delete('authorization');
       headers.delete('host');
-      headers.set('openpanel-client-ip', clientIp);
-      headers.set('X-Forwarded-For', clientIp);
-      return fetch(
-        `https://api.privytics.com${url.pathname.slice('/pv'.length)}`,
-        { method: request.method, headers, body: request.body },
-      );
+      headers.set('openpanel-client-ip', request.headers.get('CF-Connecting-IP') ?? '');
+      return fetch(`https://api.privytics.com${url.pathname.slice('/pv'.length)}`, {
+        method: request.method,
+        headers,
+        body: request.body,
+      });
     }
 
     return fetch(request);
@@ -143,53 +112,46 @@ export default {
 };
 ```
 
-Note the deletes: the proxy path is on your own domain, so the browser attaches your site's session cookies to it. Forward only what ingestion needs.
+On another stack, such as Next.js or Nuxt, write a server route that does the same. Skip the proxy helpers in OpenPanel's packages for them (`createRouteHandler`, `proxy: true`): they point at OpenPanel's hosts, not ours.
 
-Then repoint the [script tag](/for/script-tag):
+Then point the [script tag](/for/script-tag) at your paths:
 
 ```html
 <script>
-  // queue stub from your setup snippet, unchanged
+  window.op=window.op||function(){var n=[];return new Proxy(function(){arguments.length&&n.push([].slice.call(arguments))},{get:function(t,r){return"q"===r?n:function(){n.push([r].concat([].slice.call(arguments)))}} ,has:function(t,r){return"q"===r}}) }();
   window.op('init', {
-    apiUrl: 'https://yourdomain.com/pv', // was https://api.privytics.com
+    apiUrl: 'https://yourdomain.com/pv',
     clientId: 'YOUR_CLIENT_ID',
     trackScreenViews: true,
+    trackOutgoingLinks: true,
+    trackAttributes: true,
   });
 </script>
-<!-- was https://privytics.com/op1.js -->
 <script src="https://yourdomain.com/js/pv.js" defer async></script>
 ```
 
-One caveat for the [Nuxt module](/for/nuxt): its `proxy: true` option generates a handler that posts to a hardcoded upstream OpenPanel host rather than your `apiUrl`, so events would not reach Privytics. Write your own server route instead.
+## Is a proxy fair to your visitors?
 
-## The ethics, which are the whole argument
+Yes, for cookieless counting on your own site. It is not a way to track people who said no.
 
-A first-party proxy is only defensible because of what is inside the requests. Cookieless measurement qualifies: nothing lands on the device to object to, no cookie, no local storage, no persistent id. The Privytics anonymous id is a salted hash of IP, user agent and project id, the salt rotating at midnight UTC, so it cannot follow anyone into tomorrow or onto another site. Proxying that is not proxying an ad pixel, and we would not write this guide for one.
+Privytics sets no cookies and stores nothing on your visitors' devices. Each visitor gets an anonymous ID that changes every day, so no one is followed from one day to the next. We explain how in [what is cookieless analytics](/blog/what-is-cookieless-analytics).
 
-Do Not Track is over: [MDN lists `navigator.doNotTrack` as deprecated](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/doNotTrack) and the specification as discontinued, and Firefox removed the setting in 2025. [Global Privacy Control](https://globalprivacycontrol.org/) replaced it and carries weight: it became a W3C Privacy Working Group work item in November 2024, and California's Attorney General has stated that the CCPA requires businesses to treat a user-enabled global privacy control as a valid opt-out request. Read `navigator.globalPrivacyControl` and honour it: in Privytics, initialise with `disabled: true` and never call `ready()` for those visitors.
+If a visitor's browser sends Global Privacy Control (`navigator.globalPrivacyControl` is `true`), respect it: start the SDK with `disabled: true` and never call `ready()`.
 
 ## FAQ
 
-### Do ad blockers block privacy-friendly analytics too?
-
-Yes. Every major privacy-first vendor has an EasyPrivacy entry, and self-hosting does not help on its own: filename rules catch the stock script name whatever domain serves it. The advantage over Google Analytics is real but a difference of degree, not of category.
-
-### How much traffic do ad blockers actually hide?
-
-Audience decides it, and the published ranges span an order of magnitude: a few per cent on a general consumer site, a quarter of visitors on a technical one, well over half in the worst documented comparison.
-
 ### Does a custom subdomain with a CNAME fix it?
 
-Only partially. uBlock Origin on Firefox resolves CNAME records and blocks the true destination, so a vanity subdomain pointing at a known analytics host still gets caught. A real reverse proxy has no such weakness.
+Only partly. Brave and uBlock Origin on Firefox look up where a CNAME points and block the vendor behind it, and EasyPrivacy lists many such subdomains by name.
 
-### Will proxying break the cookieless visitor count?
+### Do I need to move the script if I install from npm?
 
-Only if the proxy drops the visitor IP, which the anonymous id is derived from. Forward the real address in `openpanel-client-ip` or `x-forwarded-for` and counts are unchanged. A Countries panel showing one country for everything is the symptom.
+Not with `@openpanel/web`: the tracker is part of your bundle, so only `apiUrl` changes. The Next.js and Astro components load a script, so point `scriptUrl` at your path too.
 
-### Is proxying analytics dishonest?
+### Will a proxy change my visitor numbers?
 
-Not for cookieless, aggregate measurement of your own site, which is what a first-party request always was. It would be dishonest for anything that sets identifiers, follows people across sites, or routes around a stated preference. Honouring Global Privacy Control is the line.
+It adds the visits blockers were hiding, as long as the proxy forwards the visitor's IP and User-Agent. If the Countries panel shows one country for every visit, the IP is not getting through.
 
 ### Do I still need a cookie banner if I proxy?
 
-No change either way. Under EU ePrivacy rules the trigger is storing or reading information on the device, not the domain that served the script, so a cookieless tool sits in the same position proxied or not. The reasoning is in [cookieless analytics and the cookie banner](/blog/cookieless-analytics-gdpr-cookie-banner). Confirm your own case with your compliance advice.
+The proxy changes nothing here: the banner rule is about data stored on or read from the visitor's device, not the script's domain. Privytics stores nothing there, so anonymous analytics [generally needs no cookie banner](/blog/cookieless-analytics-gdpr-cookie-banner).

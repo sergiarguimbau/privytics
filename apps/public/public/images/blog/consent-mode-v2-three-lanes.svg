@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 360" width="720" height="360" role="img" aria-labelledby="title desc" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+  <title id="title">GA4 with Consent Mode compared with cookieless analytics</title>
+  <desc id="desc">With GA4 and Consent Mode, a visitor who accepts gets cookies and is measured. A visitor who rejects gets nothing stored and is not measured, or only estimated. With cookieless analytics, a visitor is counted without consent and nothing is stored on the device.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="#0c6b69"/>
+    </marker>
+  </defs>
+  <rect width="720" height="360" rx="12" fill="#f5f9f9"/>
+
+  <g font-size="16" font-weight="600" fill="#0f1719">
+    <text x="24" y="44">GA4 + Consent Mode: visitor accepts</text>
+    <text x="24" y="156">GA4 + Consent Mode: visitor rejects</text>
+    <text x="24" y="268">Cookieless analytics</text>
+  </g>
+
+  <g fill="#e2f0ef" stroke="#d3e0de" stroke-width="1.5">
+    <rect x="24" y="56" width="196" height="56" rx="12"/>
+    <rect x="262" y="56" width="196" height="56" rx="12"/>
+    <rect x="24" y="168" width="196" height="56" rx="12"/>
+    <rect x="262" y="168" width="196" height="56" rx="12"/>
+    <rect x="24" y="280" width="196" height="56" rx="12"/>
+    <rect x="262" y="280" width="196" height="56" rx="12"/>
+  </g>
+  <rect x="500" y="56" width="196" height="56" rx="12" fill="#0c6b69"/>
+  <rect x="500" y="168" width="196" height="56" rx="12" fill="#ffffff" stroke="#d3e0de" stroke-width="1.5" stroke-dasharray="6 4"/>
+  <rect x="500" y="280" width="196" height="56" rx="12" fill="#0c6b69"/>
+
+  <g stroke="#0c6b69" stroke-width="2" marker-end="url(#arrow)">
+    <line x1="224" y1="84" x2="256" y2="84"/>
+    <line x1="462" y1="84" x2="494" y2="84"/>
+    <line x1="224" y1="196" x2="256" y2="196"/>
+    <line x1="462" y1="196" x2="494" y2="196"/>
+    <line x1="224" y1="308" x2="256" y2="308"/>
+    <line x1="462" y1="308" x2="494" y2="308"/>
+  </g>
+
+  <g font-size="16" fill="#0f1719" text-anchor="middle">
+    <text x="122" y="89">Accepts cookies</text>
+    <text x="360" y="89">Cookies stored</text>
+    <text x="122" y="201">Rejects cookies</text>
+    <text x="360" y="201">Nothing stored</text>
+    <text x="122" y="313">Visits the page</text>
+    <text x="360" y="313">Nothing stored</text>
+  </g>
+  <g font-size="16" font-weight="600" fill="#ffffff" text-anchor="middle">
+    <text x="598" y="89">Measured</text>
+    <text x="598" y="313">Counted</text>
+  </g>
+  <g font-size="16" fill="#5d6d73" text-anchor="middle">
+    <text x="598" y="192">Not measured,</text>
+    <text x="598" y="212">or only estimated</text>
+  </g>
+</svg>

@@ -1262,6 +1262,13 @@ footer {
   background: rgba(12, 107, 105, 0.06);
 }
 
+.legal-prose img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 1.75rem auto;
+}
+
 /* End-of-post CTA. Sits after the article body and is visually separated from
    the prose so it reads as an offer, not as another paragraph of the piece. */
 .post-cta {

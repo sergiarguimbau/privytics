@@ -1,124 +1,86 @@
 ---
 slug: product-analytics-vs-web-analytics
 title: "Product analytics vs web analytics: what is the difference?"
-description: "Product analytics vs web analytics: web analytics counts pageviews and sources, product analytics tracks events, funnels, and retention. How to pick."
+description: "Web analytics counts visits, pages and sources. Product analytics follows what users do and whether they come back. How to pick the right one."
 date: 2026-07-22
-updated: 2026-07-29
+updated: 2026-11-27
 tag: Guide
 ---
 
-Analytics tools split into two families that answer different questions. Web analytics tells you how people arrive and what pages they see. Product analytics tells you what people do once they are inside your app and whether they come back. The names get used interchangeably, which leads to teams buying the wrong tool, then either drowning in setup they do not need or missing the exact reports they wanted.
+Web analytics counts visits: how many people came, where they came from and which pages they read. Product analytics follows users: what they do inside your app and whether they come back.
 
-This post draws the line clearly, shows which tools sit on each side, and is honest about a common truth: plenty of sites only ever need web analytics, and reaching for product analytics is overkill for them.
+![Web analytics counts pages, sources and visits. Product analytics follows one user over time: signs up, creates a project, comes back in week 2.](/images/blog/web-vs-product-analytics.svg)
 
-*Competitor details checked 2026-07-29. Verify current figures and features before acting.*
+## Web analytics: pages and visits
 
-## What web analytics measures
+Web analytics suits marketing sites, blogs and docs, where the goal is reach. The usual reports are visitors, page views, top pages, referrers, campaigns and countries.
 
-Web analytics is built around the page and the visit. The core questions are: how many people came, where did they come from, and what did they look at. The standard metrics are pageviews, sessions, unique visitors, bounce rate, traffic sources, top pages, and countries.
+Say a Reddit post sends 4,000 visitors and half of them land on your pricing page. Web analytics shows that at a glance. What each person did across visits rarely matters here.
 
-This is the right lens for a marketing site, a blog, a documentation portal, or any content where the goal is traffic and reach. You want to know that a Reddit post sent 4,000 visitors, that half of them landed on the pricing page, and that organic search is growing month over month. You do not need to know what each individual did across three visits.
+## Product analytics: users and actions
 
-Typical web analytics tools: Google Analytics, Plausible, Fathom, Simple Analytics, Umami. The privacy-first ones in that list are [cookieless](/blog/what-is-cookieless-analytics) and deliberately lightweight, giving you clean pageview reporting without a full event model to design and maintain. The lines do blur at the edges: Plausible lists funnels and user journeys on its Business plan, and Umami documents funnel, retention, and journey reports, so a couple of these are inching toward product analytics.
+Product analytics suits apps, SaaS products, onboarding and checkout, where value comes from what users do again and again. Its building blocks:
 
-## What product analytics measures
+- **Events**: named actions such as `signup_completed` or `project_created`, with properties.
+- **Funnels**: ordered steps that show where people drop out, say from pricing to checkout.
+- **Retention**: whether users come back in the weeks after they start.
+- **Cohorts**: groups of users with shared behaviour, followed over time.
+- **User profiles**: one person's timeline across visits and devices.
 
-Product analytics is built around the user and the action, not the page. Instead of "which pages got viewed," it asks "did the user complete signup, invite a teammate, and return the next week." The core building blocks are:
+Retention, cohorts and profiles need an ID that stays the same across days. Privytics gives anonymous visitors an ID that changes every day, so these reports cover signed-in users you identify with `identify()`. [How funnels, retention and cohorts work without cookies](/blog/funnels-retention-cohorts-without-cookies) explains both IDs.
 
-- **Custom events**: named actions like `signup_completed`, `project_created`, `plan_upgraded`, each with properties.
-- **Funnels**: ordered steps, so you can see where people drop out between viewing pricing and finishing checkout.
-- **Retention**: whether users who did something in week one came back in weeks two, three, and four.
-- **Cohorts**: groups of users defined by behaviour or properties, tracked over time.
-- **Per-user journeys**: the timeline of one person's events across sessions and devices.
+## Product analytics takes setup
 
-This is the right lens for a [SaaS app](/for/saas), a mobile app, an onboarding flow, or anything where the value is in what users repeatedly do, not in raw traffic. Pageviews barely matter here. Whether a cohort activates and sticks is the whole game. How those reports are built [without cookies](/blog/funnels-retention-cohorts-without-cookies) is a topic of its own.
+Web analytics reports as soon as the script loads. Product analytics pays off only once someone picks the key actions, adds them to the code and keeps them current.
 
-Typical product analytics tools: Mixpanel, Amplitude, PostHog, Heap (now part of Contentsquare), and Privytics.
+If nobody on your team will own that list of events, web analytics is the safer choice.
 
-## Comparison table
+## Which tool is which
 
-| | Web analytics | Product analytics |
-|---|---|---|
-| Core unit | Page and session | User and event |
-| Main question | How do people find and browse the site | What do people do and do they come back |
-| Key metrics | Pageviews, sessions, sources, top pages, bounce | Custom events, funnels, retention, cohorts |
-| Best for | Marketing sites, blogs, docs | Apps, SaaS, onboarding, checkout |
-| Setup effort | Drop in a script | Script plus events you define |
-| Example tools | GA4, Plausible, Fathom | Mixpanel, Amplitude, PostHog, Privytics |
+| Tool               | Type    | Cookies | Funnels       | Retention |
+|--------------------|---------|---------|---------------|-----------|
+| Plausible          | Web     | None    | Business plan | ✗         |
+| Fathom             | Web     | None    | ✗             | ✗         |
+| Google Analytics 4 | Both    | Yes     | ✓             | ✓         |
+| Mixpanel           | Product | Yes     | ✓             | ✓         |
+| Amplitude          | Product | Yes     | ✓             | ✓         |
+| PostHog            | Product | Yes ¹   | ✓             | ✓         |
+| Privytics          | Product | None    | ✓             | ✓ ²       |
 
-The row that trips people up is setup effort. Web analytics works the moment the script loads. Product analytics only pays off after you decide which events matter and instrument them, which is real work. If nobody on the team will define and maintain events, product analytics turns into an empty dashboard.
+¹ Opt-in cookieless mode. ² For signed-in users you identify.
 
-## Google Analytics (and the blurry middle)
+Google Analytics 4 sits in the middle: it reports traffic and also tracks events, funnels and retention. Tools that set cookies generally need a consent banner in the EU.
 
-Google Analytics 4 muddies the split on purpose. It started as web analytics but moved to an event-based model, so it can track custom events and build basic funnels and retention reports. In theory it does both.
-
-In practice GA4 is a heavy tool that most people use as web analytics with extra steps. Its funnel and path exploration reports exist but are clunky compared to a dedicated product tool, the interface is famously hard, sampling can kick in once a query passes Google's documented event quota on standard properties, and the standard setup relies on cookies, which means a consent banner in the EU. It is free and ubiquitous, so it remains the default. If you want proper product analytics though, GA4 is rarely where teams land.
-
-## Plausible and Fathom (mostly web analytics)
-
-Plausible and Fathom are the clean end of web analytics. Cookieless, privacy-first, one lightweight script, a single readable dashboard of pageviews, sources, and top pages. Both are excellent at what they do and make little pretense of being full product tools.
-
-They do support custom events and simple goal conversions, so you can track a signup click or a button press, and Fathom can attach revenue values to those events. Plausible goes a step further with funnels and basic user journeys on its Business plan, but neither tool offers retention cohorts, and Fathom's published feature list stops at pageviews, sources, events, and goals. That restraint is by design. If those two are your shortlist, [Plausible and Fathom differ more on pricing shape and reporting depth](/blog/plausible-vs-fathom) than on privacy posture. If your site is content and your question is "how much traffic and from where," these are often the best answer, and they are usually cheaper and simpler than a full product analytics tool.
-
-## Mixpanel, Amplitude, and PostHog (product analytics)
-
-These are the heavyweights of product analytics.
-
-- **Mixpanel** is the classic event-and-funnel tool, strong on reports and easy for non-technical teams once events exist.
-- **Amplitude** goes deeper on behavioural cohorts and analysis, and is common in larger product orgs.
-- **PostHog** bundles product analytics with session replay, feature flags, and experiments, aimed at engineering teams that want one platform. It is open source, though its own docs describe self-hosted deployments as officially unsupported and point teams to its cloud once volumes grow.
-
-All three do the full set: custom events, funnels, retention, cohorts, per-user profiles. The tradeoffs are cost and complexity. Free tiers exist, and PostHog's in particular is generous, but paid pricing scales with event or user volume and can jump sharply. Their clouds are US-hosted by default, though PostHog offers an EU Cloud in Frankfurt, which EU teams should weigh. They are powerful and mature. They are also more than a small team measuring one onboarding flow usually needs.
-
-## Where Privytics fits
-
-Privytics is product analytics: custom events, funnels, retention, cohorts, dashboards, per-user Profiles, and a REST API, built on the open-source OpenPanel engine (AGPL-3.0). Privytics is an independent service and is not affiliated with, endorsed by, or sponsored by OpenPanel. Two things make it different from the tools above.
-
-First, it is cookieless. The anonymous visitor id is a daily-rotating salted hash of IP, user agent, and project id, with the salt rotating at midnight UTC, and nothing is written to the device. For anonymous tracking that means [no consent banner](/blog/cookieless-analytics-gdpr-cookie-banner). Cross-session and cross-device identity is opt-in through `identify()` with your own user id, so you decide when a user becomes identified.
-
-Second, analytics event data is stored in EU data centres in Germany. The free tier is 10,000 events per month on one project, with no credit card and 12-month retention. Paid plans are stepped tiers rather than usage meters, as of July 2026: EUR 10 for 100k events, EUR 20 for 500k, EUR 40 for 1M, EUR 100 for 5M, EUR 200 for 10M per month, ex VAT, and custom pricing above that. Paid adds session replay and 5-year event history.
-
-Two caveats worth stating. Privytics is a newer service than Mixpanel and Amplitude, which have been operating for years, so it does not match their integration catalogue. And it is product analytics, not web analytics: it can report pageviews, but if a pageview dashboard is all you want, a dedicated web analytics tool is a simpler fit.
+Umami, a cookieless web tool, also has funnels and retention. Mixpanel, Amplitude and PostHog all offer EU data storage. For full comparisons, see [the best cookieless analytics tools](/blog/best-cookieless-analytics-tools-2026) and [Mixpanel alternatives](/blog/mixpanel-alternatives-2026).
 
 ## When another tool is the better choice
 
-Honestly, most of the time the answer is not us.
+- **You only need traffic.** For visitors, pages and sources on a content site, [Plausible or Fathom](/blog/plausible-vs-fathom) is simpler and built for exactly that.
+- **You run Google Ads.** GA4 links to Google Ads and brings key events in as conversions and audiences for remarketing. Privytics has no Google Ads integration.
+- **You want feature flags and experiments.** PostHog and Mixpanel add both to their analytics.
+- **You need the visits before signup.** Privytics does not link an anonymous visitor across days. Cookie-based tools like Mixpanel, Amplitude and PostHog do.
 
-- **You only need pageviews and sources.** A marketing site or blog is better served by Plausible or Fathom. They are cheaper, simpler, and purpose-built for that question. Do not buy product analytics you will not instrument.
-- **You are deep in the Google ecosystem.** If you live in Google Ads and Search Console and want free attribution, GA4 fits that workflow in a way an independent tool will not.
-- **You want an all-in-one product platform.** If you need product analytics plus feature flags plus experiments in one place, PostHog is designed for that and Privytics is not.
-- **You are past 10 million events a month or need enterprise procurement.** Above 10 million events Privytics moves to custom pricing, so the numbers stop being self-serve. If your purchase has to go through a formal vendor review with signed SLAs, a negotiated enterprise contract with Amplitude or a self-hosted PostHog is the better-trodden path.
+## When Privytics fits
 
-Pick the tool that matches the question you actually have.
+- **You run an app or [SaaS product](/for/saas).** Your questions are about activation, funnels and whether users come back.
+- **You want one tool for both.** Page views, referrers and UTM campaigns sit next to events and funnels.
+- **You would rather skip the banner.** Privytics sets no cookies and stores nothing on your visitors' devices, so anonymous analytics generally needs no [cookie banner](/blog/cookieless-analytics-gdpr-cookie-banner).
+- **You want EU storage by default.** Analytics data is stored in EU data centres in Germany.
 
 ## FAQ
 
-### Do I need both web analytics and product analytics?
+### Do I need both?
 
-Sometimes, but usually not at first. A content site needs only web analytics. An early app needs only product analytics for its core flows. Larger teams often run both: a web tool for the marketing site and a product tool for the app. Start with the one that answers your most pressing question and add the second only when a real gap appears.
+Usually not at first: a content site needs web analytics, an early app needs product analytics. Larger teams often run both, one on the marketing site and one in the app.
 
-### Can product analytics tools measure pageviews too?
+### What should I track first?
 
-Yes. A pageview is just an event, so most product analytics tools, Privytics included, can record and report them. The reverse is only partly true: pure web analytics tools like Fathom do not offer funnels or retention cohorts, and Plausible lists funnels on its Business plan. The difference is emphasis: product tools bury pageviews under behavioural analysis, so they feel heavier if pageviews are all you want.
+Start with the three to five actions that show a user got value, such as signing up and creating a first project. Our [tracking plan guide](/blog/analytics-tracking-plan-event-naming) covers how to name them.
 
-### Is Google Analytics product or web analytics?
+### Which one costs less?
 
-Both, sort of. GA4 uses an event model and can do basic funnels and retention, so it crosses into product analytics. In practice most teams use it as web analytics because its product reports are harder to use than dedicated tools, and its cookie-based setup usually needs a consent banner in the EU.
+Neither type is always cheaper: Plausible and Fathom have no free plan, while Mixpanel and PostHog are free up to 1M events a month. Privytics has a free plan with 10,000 events a month and no credit card, and paid plans start at €10 a month excl. VAT.
 
-### Which type needs a cookie consent banner?
+### Is identifying users personal data?
 
-It depends on the tool, not the category. Cookie-based tools like standard GA4 need a banner in the EU. Cookieless tools, whether web analytics like Plausible or product analytics like Privytics, avoid device storage, so the anonymous case generally needs no banner. Once you identify users by your own id, you take on the usual privacy obligations regardless of tool.
-
-### Is product analytics harder to set up?
-
-Yes. A web analytics script starts reporting on its own. Product analytics needs someone to decide which actions matter, name them, add the calls in your code, and keep them accurate as the product changes. That is ongoing work, so if nobody will own event definitions, web analytics is the safer choice.
-
-### Which one is cheaper?
-
-Web analytics, generally. Privacy-first web tools are inexpensive, though their pricing still scales with pageviews. Product analytics scales with event or user volume and can climb faster. Privytics is free up to 10,000 events a month and then moves through stepped tiers starting at EUR 10, so the bill only changes when you cross a tier. If budget is tight and you only need pageviews, web analytics wins on price.
-
-## Trying Privytics
-
-If your question is behavioural, whether users activate, convert through a funnel, and come back, and you want that without cookies and with the data stored in Germany, Privytics is worth a look. The free tier is 10,000 events a month with no credit card and 12-month retention, which is enough to instrument a real onboarding flow and see whether the numbers tell you anything useful.
-
-If your question is really just traffic and sources, we will say it plainly: use Plausible or Fathom instead. Buying product analytics for a content site is effort you will not get back. Match the tool to the question, and only reach for product analytics when the page stops being the thing you care about and the user starts being it.
+Yes: calling `identify()` links events to your own user IDs, so you choose the lawful basis (often consent). Built-in consent gating lets you ask first.

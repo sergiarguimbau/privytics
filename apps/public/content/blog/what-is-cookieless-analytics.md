@@ -1,137 +1,97 @@
 ---
 slug: what-is-cookieless-analytics
 title: "What is cookieless analytics? A plain-English guide"
-description: "Cookieless analytics explained: how tracking without cookies works, why it usually removes the cookie banner, its honest limits, and the tools that do it."
+description: "What cookieless analytics is, how it counts visitors without cookies, what changes in your numbers, and which tools do it."
 date: 2026-07-22
-updated: 2026-07-29
+updated: 2026-11-27
 tag: Guide
 ---
 
-If you have read the phrase "cookieless analytics" on a pricing page and nodded along without being totally sure what it means, this guide is for you. The short version: it is a way to measure who visits your site or app without storing anything in the visitor's browser, which usually means you can skip the cookie consent banner for anonymous traffic. GDPR itself still applies, as the sections below explain.
+Cookieless analytics counts visits and actions on your site or app without storing anything on the visitor's device. Because nothing is stored there, anonymous analytics generally needs no cookie banner.
 
-This is a definitional guide, not a sales pitch. We build one of the tools listed below (Privytics), and we will tell you plainly where the others are the better pick.
+We build Privytics, one of the cookieless tools below, and we say where another tool fits better.
 
-*Vendor details checked 2026-07-29. Pricing and free tiers change often, so verify current figures before acting on them. This guide is general information, not legal advice.*
+## How it counts visitors without cookies
 
-## What cookieless analytics actually means
+Each visitor gets an anonymous ID that changes every day. Three steps make that work:
 
-Cookieless analytics is web or product analytics that counts visitors and their actions without setting cookies (or any other persistent identifier) on the visitor's device.
+1. **A visit arrives.** Like every web request, it carries the visitor's IP address and browser details.
+2. **The server makes an ID.** It mixes those details, your site and a daily secret into an anonymous ID.
+3. **The next day brings a new ID.** The secret has changed, so tomorrow's ID cannot be linked to today's.
 
-Traditional analytics drops a small file, a cookie, in your browser with a long-lived random ID. Every time you come back, the site reads that ID and knows it is "you" again. That is what makes cookies useful for tracking, and also what makes them a privacy and legal problem: the ID persists, it can follow you around, and under GDPR you generally need explicit consent before you set it.
+![On Monday, a visit reaches the analytics server, which mixes the IP, browser and site with Monday's secret into the anonymous ID a3f9. On Tuesday, the same visitor gets the ID 7c21 from Tuesday's secret. The two IDs cannot be linked, and nothing is stored on the visitor's device.](/images/blog/cookieless-daily-id.svg)
 
-Cookieless tools skip that step entirely. There is no persistent ID sitting on your machine. Instead, the analytics tool works out "is this the same visitor as a moment ago?" using signals it already sees in the normal course of serving a request, and it deliberately makes that answer expire quickly.
+Within a day, the same browser on the same network keeps its ID. A visitor's pages and events add up, and funnels within a visit work. Your site is part of the mix, so the same person gets a different ID on any other site.
 
-## How cookieless tracking works
+For developers: the ID is a hash of IP address, user agent and project ID, with a secret salt that rotates at midnight UTC.
 
-The most common technique is a rotating hashed identifier, and it works like this.
+## Cookies vs cookieless
 
-When a request comes in, the analytics server already sees a few things: the visitor's IP address, their browser's user agent string, and which site (project) they are on. None of those raw signals is stored. The server combines them with a secret salt that changes every day, runs the whole thing through a one-way hash function, and gets a short fingerprint. Everyone browsing the same site from the same device on the same day produces the same fingerprint, so the tool can count unique visitors and stitch a single session together. Nothing is written to the visitor's browser.
+|                             | Cookie-based     | Cookieless |
+|-----------------------------|------------------|------------|
+| ID stored on the device     | Yes              | No         |
+| EU cookie banner            | Generally needed | Often not  |
+| Visitors who refuse cookies | Not measured     | Counted    |
 
-The important part is the daily rotation. Because the salt changes every day, the fingerprint changes every day too. Yesterday's fingerprint cannot be linked to today's, so there is no durable ID that follows anyone over time. The hash is one-way, so the original IP and user agent cannot be recovered from it. This is how Privytics works: a salted hash of IP, user agent, and project ID, with the salt rotating at midnight UTC and nothing written to the device.
+Rules differ by country, and any other tag that stores data on the device brings the banner back. [Our cookie banner guide](/blog/cookieless-analytics-gdpr-cookie-banner) covers when you can drop it.
 
-Two things fall out of this design:
+## What a daily ID changes in your numbers
 
-- **No cross-site tracking.** The fingerprint is scoped to one project. It cannot be used to recognise you on a different website, which is exactly what third-party cookies were built to do and exactly what privacy regulators object to.
-- **No device storage.** Nothing is written to local storage, IndexedDB, or a cookie jar. There is nothing for the visitor to clear, and nothing for an ad blocker to find.
+A cookie can recognise a visitor for months. A daily ID cannot, so some numbers read differently:
 
-Some tools use variations on this: server-side event collection (events are sent from your backend, so the browser never gets a script at all), or purely session-scoped IDs held in memory. The common thread: no persistent identifier lives on the device.
+- **One day:** visits and visitors are close to Google Analytics, or a bit higher, because people who would decline a banner are still counted.
+- **A week or a month:** unique visitors read higher, because an anonymous visitor who returns on another day counts again.
+- **Returning visitors** read lower, for the same reason.
 
-## Why it matters
+Signed-in users are the exception. Calling `identify()` links events to your own user IDs, so one person's visits join up across days and devices. That unlocks retention, cohorts and user profiles for signed-in users you identify.
 
-**You usually do not need a consent banner for anonymous traffic.** This is the headline benefit. Cookie consent banners exist because you set cookies. Under the EU's ePrivacy rules, storing or reading information on a user's device is what triggers the consent requirement. If your analytics tool never touches the device, that specific trigger does not fire for anonymous measurement. (You may still need a banner for other reasons, for example if your marketing pixels or chat widget set cookies. Cookieless analytics removes one source of banners, not necessarily all of them. There is a longer walkthrough in our guide to [cookieless analytics and the cookie banner](/blog/cookieless-analytics-gdpr-cookie-banner).)
+Those user IDs are personal data: you choose the lawful basis (often consent), and built-in consent gating lets you ask first. [How funnels, retention and cohorts work without cookies](/blog/funnels-retention-cohorts-without-cookies) explains both kinds of ID.
 
-**It is friendlier to GDPR.** No persistent identifier, no cross-site profile, and data minimised by design is a much easier story to tell your users and your DPO than "we track you with a year-long ID." It does not make you automatically compliant (GDPR covers all personal data processing, not just cookies), but it removes the hardest part.
+## Cookieless analytics tools
 
-**Your numbers are more complete.** Cookie-based analytics quietly loses everyone who blocks cookies, browses privately, or declines the banner. Since there is nothing to block or decline, cookieless tools tend to count a larger, truer share of your traffic.
+These five set no cookies by default:
 
-**Pages load a touch faster.** Cookieless scripts are usually small, and with no consent gate you are not delaying measurement until someone clicks "accept."
+| Tool             | Free plan        | From   | Self-host | Retention, cohorts |
+|------------------|------------------|--------|-----------|--------------------|
+| Fathom           | ✗ (7-day trial)  | $15/mo | ✗         | ✗                  |
+| Plausible        | ✗ (30-day trial) | $9/mo  | ✓         | ✗                  |
+| Simple Analytics | ✓ (badge)        | €20/mo | ✗         | ✗                  |
+| Umami Cloud      | 100k events/mo   | $20/mo | ✓         | ✓ ¹                |
+| Privytics        | 10k events/mo    | €10/mo | ✗ ²       | ✓ ³                |
 
-## The honest limits
+¹ Umami links logged-in users with `umami.identify()`. ² The engine (OpenPanel) is open source. ³ For signed-in users you identify. Prices excl. VAT.
 
-Cookieless analytics has real trade-offs, and the biggest one is easy to state.
-
-**There is no durable cross-device or cross-session identity for anonymous visitors.** Because the fingerprint rotates daily and never leaves one device, a person who visits on Monday and returns on Thursday is counted as two different visitors. Someone who browses on their phone and later on their laptop is two visitors, not one. If your entire business depends on stitching an anonymous person's journey together across weeks, cookieless tracking will frustrate you.
-
-In practice this matters less than it sounds, for two reasons. First, cookie-based cross-session tracking was already broken by ad blockers and short cookie lifetimes, so the "durable" identity you thought you had was leaky anyway. Second, the moment a user logs in, you can identify them with your own user ID and get real cross-session, cross-device analytics for that person. Privytics does this with an opt-in `identify()` call: you pass your own user ID, and from then on that user's activity is joined up properly. The anonymous case stays cookieless and banner-free; the logged-in case gives you the durable identity you need, with the user's knowledge.
-
-The other limit worth naming: some cookie-dependent features from the ad world (remarketing audiences, cross-site attribution, ad-platform integrations) simply are not available. If those are core to your work, cookieless is not the whole answer.
-
-## The main cookieless tools
-
-A handful of tools were built cookieless from the start. It is worth splitting them by what they are for: most are web analytics (traffic, pageviews, referrers), while Privytics is [product analytics](/blog/product-analytics-vs-web-analytics) (events, funnels, retention, per-user profiles). Google Analytics 4 and PostHog are not on this list because they use cookies or browser storage by default. PostHog can be configured to hold its identifiers in page memory only, but that is a setting you opt into rather than how it ships. There is a longer roundup with per-tool detail in our guide to the [best cookieless analytics tools](/blog/best-cookieless-analytics-tools-2026).
-
-## Cookieless analytics tools compared
-
-| Tool | Type | Cookieless | Open source | Hosting | Free tier | Paid from |
-|------|------|-----------|-------------|---------|-----------|-----------|
-| **Plausible** | Web | Yes | Yes (AGPL-3.0) | EU cloud or self-host | Trial | ~$9/mo |
-| **Fathom** | Web | Yes | No | Managed cloud | Trial | ~$15/mo |
-| **Umami** | Web | Yes | Yes (MIT) | Self-host or cloud | Free (self-host + cloud) | ~$20/mo |
-| **Simple Analytics** | Web | Yes | No | EU cloud | Free plan | ~€20/mo |
-| **Privytics** | Product | Yes | Engine is AGPL-3.0 | Managed, data in Germany | 10k events/mo | EUR 10/100k |
-
-*Prices are indicative and checked as of July 2026. Confirm on each vendor's site before deciding.*
-
-## Plausible
-
-Plausible is the best-known privacy-first web analytics tool. It is a lightweight script, cookieless, open source (AGPL-3.0), and gives you clean pageview and referrer stats with no consent banner needed. You can use their EU-hosted cloud (paid, from $9 per month for 10,000 monthly pageviews as of July 2026, with a 30-day free trial and no free plan) or self-host the AGPL-licensed community edition for free. If you want simple, good-looking traffic numbers and nothing more, Plausible is the obvious starting point.
-
-## Fathom
-
-Fathom is a fully managed, privacy-focused web analytics service. It is not open source, but it handles the hosting, EU data isolation, and compliance details for you, which is the whole point: zero maintenance. Pricing starts at around $15 per month for 100,000 pageviews as of July 2026, with a 7-day free trial and no free plan. Pick Fathom if you want a hands-off managed tool for website traffic and are happy to pay for someone else to run it. If the real decision is Fathom against Plausible, we compare [Plausible and Fathom side by side](/blog/plausible-vs-fathom).
-
-## Umami
-
-Umami is an open-source (MIT) web analytics tool built around simplicity and self-hosting. It is cookieless, lightweight, and free to run on your own server. There is also a hosted cloud with a genuine free tier (Umami's Hobby plan) and paid plans from around $20 per month as of July 2026. Umami started as a pure pageview tool, but it has since added funnel, retention, and user journey reports, so it sits a little further toward product analytics than the other web tools here. It is the natural pick for developers who want to own the whole stack and do not mind operating it, or who want a free hosted option to start with.
-
-## Simple Analytics
-
-Simple Analytics is a managed, EU-based (Netherlands) web analytics tool that leans hard into minimalism: no cookies, no fingerprinting, a clean dashboard, and not much to configure. It offers a free-forever plan (with a required link badge on your site) alongside paid plans from €20 per month as of July 2026. If your goal is the simplest possible privacy-friendly traffic counter, it lives up to the name.
-
-## Privytics
-
-Privytics is managed, cookieless product analytics with event data stored in Germany, built on the open-source OpenPanel engine (AGPL-3.0). Privytics is an independent service and is not affiliated with or endorsed by OpenPanel. The difference from everything above is scope: instead of pageviews and referrers, you get custom events, funnels, retention, cohorts, dashboards, per-user profiles, and a REST API. It is the tool for questions like "where do users drop out of onboarding?" rather than "how much traffic did this blog post get?"
-
-The cookieless model is the rotating salted hash described earlier, so the anonymous case needs no consent banner, and cross-session identity is opt-in through `identify()` with your own user ID. The free tier is 10,000 events per month on one project, with 12-month retention and no credit card. Paid plans are stepped tiers by event volume rather than metered usage (EUR 10 per 100k, EUR 20 per 500k, EUR 40 per 1M, EUR 100 per 5M, EUR 200 per 10M, per month, ex VAT) and add session replay plus 5-year event history. Session replay is opt-in per project and masks all text and inputs by default.
-
-Being candid: Privytics is a newer service than the names above. It is product analytics, not a lightweight pageview counter, and it starts charging once you pass 10,000 events a month. If either of those is a mismatch, one of the other tools will serve you better.
+Matomo and PostHog can also run without cookies, but only once you turn that on. Our [roundup of cookieless analytics tools](/blog/best-cookieless-analytics-tools-2026) compares them all in more detail.
 
 ## When another tool is the better choice
 
-- **You only want website traffic stats.** If the questions are "how many visitors, from where, to which pages," a dedicated web analytics tool (Plausible, Fathom, Umami, Simple Analytics) is simpler and cheaper than product analytics. Privytics can count pageviews too, but you would be buying a funnel-and-retention engine to answer a pageview question.
-- **You must self-host and pay nothing.** Umami self-hosted is free, and Plausible has a free community edition. Privytics is a managed service (the underlying OpenPanel engine is open source and self-hostable for free, but that is a different product from the hosted Privytics).
-- **You want a free hosted plan for a small site.** Umami Cloud (Hobby) and Simple Analytics both offer a free hosted tier for low volumes, and Privytics is free up to 10,000 events a month.
-- **You need a long track record today.** Plausible, Fathom, Umami, and Simple Analytics have years of production use and larger communities behind them. Privytics is a newer service than any of them.
-- **You depend on ad-network features.** Remarketing audiences and cross-site attribution need the cookie-based tracking that all of these tools deliberately avoid. That is a job for the ad platforms themselves.
+- **Traffic stats only.** Plausible, Fathom or Simple Analytics show visitors, pages and sources on a simple dashboard.
+- **A bigger free plan.** Umami Cloud is free up to 100k events a month, ten times our free plan.
+- **Hosting it yourself.** Umami is free to self-host, and Plausible offers a Community Edition.
+- **Long anonymous journeys.** If people visit over several days before signing up, a cookie-based tool links those visits for anyone who accepts cookies.
+- **Ad remarketing.** Google Analytics linked to Google Ads brings remarketing audiences and Ads conversions.
+
+## When Privytics fits
+
+- **More than page counts.** You want [product analytics](/blog/product-analytics-vs-web-analytics) without cookies: custom events, funnels and revenue.
+- **A free plan to start.** 10,000 events a month for one project, with 12 months of history, no credit card and no time limit. Past that, new events pause until next month and nothing is charged.
+- **A predictable bill.** Paid plans are fixed monthly tiers from €10 for 100,000 events, so a traffic spike inside your tier never changes the bill.
+- **Data in Germany.** Analytics data is stored in EU data centres in Germany, with a [DPA](/dpa) on every plan, free included.
 
 ## FAQ
 
-### Is cookieless analytics GDPR compliant?
-
-It makes compliance much easier but is not a magic wand. Because no cookie or device storage is used for anonymous visitors, the ePrivacy consent trigger for storing data on a device does not fire, so you typically do not need a banner for basic analytics. GDPR still governs any personal data you process, so choose a tool that minimises data and hosts in a jurisdiction you trust, and confirm your own setup with a professional if the stakes are high. Privytics stores analytics data in Germany and writes nothing to the device.
-
-### Do I still need a cookie banner?
-
-For anonymous analytics with a cookieless tool, generally no. You may still need a banner if other parts of your site set non-essential cookies (marketing pixels, embedded video, live chat). Cookieless analytics removes one common reason for a banner, not automatically all of them.
-
 ### Is Google Analytics cookieless?
 
-No. GA4 uses first-party cookies by default. Google offers a "consent mode" that models missing data, but that fills gaps with estimation rather than tracking without cookies the way a purpose-built cookieless tool does; we walk through that trade-off in our guide to [alternatives to Google consent mode v2](/blog/google-consent-mode-v2-alternative). PostHog also relies on cookies and browser storage by default for its persistent IDs, although it can be configured to keep them in page memory only.
+No: Google Analytics 4 sets cookies, so in the EU it generally needs consent first. Visitors who decline are not measured, or only estimated on larger sites with [Consent Mode](/blog/google-consent-mode-v2-alternative).
 
-### How does it count unique visitors without cookies?
+### Does cookieless analytics make my site GDPR compliant?
 
-By deriving a short, one-way fingerprint from signals the server already sees (IP, user agent, and which site you are on), mixed with a secret salt that rotates daily. Same visitor, same day, same site gives the same fingerprint, so counts and sessions work. The daily rotation means the fingerprint cannot follow anyone across days, and the one-way hash means the original details cannot be recovered.
+Not on its own: GDPR still asks for a lawful basis, a privacy notice and a DPA with your analytics provider. Legitimate interests is a common basis for anonymous analytics.
 
-### Can cookieless analytics still track individual users?
+### Can ad blockers still block cookieless analytics?
 
-For anonymous visitors, only within a single day and single device, by design. Once a user logs in, you can call `identify()` with your own user ID and get proper cross-session, cross-device analytics for that person, including funnels, retention, and a full profile. The anonymous experience stays cookieless; identified tracking is opt-in.
+Yes, because blockers work from lists of script and server addresses, not cookies. Ad blockers block Privytics less often than Google Analytics, but some do; you can [route it through your own domain](/blog/ad-blockers-analytics-first-party-proxy) to recover the rest.
 
-### How accurate is it compared to cookie-based analytics?
+### Does Privytics store visitors' IP addresses?
 
-Often more accurate for headline numbers like visits and unique visitors, because nothing is blocked or declined. Where it is deliberately less precise is long-term, cross-device journeys for anonymous users, which is the trade-off you accept in exchange for not tracking people across time.
-
-## Trying Privytics
-
-If you want cookieless analytics that goes past pageviews into events, funnels, retention, and per-user profiles, Privytics is worth a look. It is managed, stores event data in Germany, and is built on the open-source OpenPanel engine, with the anonymous case cookieless and banner-free and identified tracking available when you need it.
-
-The free tier is 10,000 events a month with 12-month retention and no credit card. If your needs are simpler (just website traffic), or you want a tool with years of production use behind it, one of the web analytics options above is the honest recommendation. If you do try Privytics, tell us where it falls short.
+No. The IP is used to build the daily ID and to find the visitor's country, region and city; the raw IP is not stored.
